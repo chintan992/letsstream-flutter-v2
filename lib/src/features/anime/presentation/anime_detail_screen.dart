@@ -15,13 +15,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
 import 'package:go_router/go_router.dart';
 
-class EnhancedDetailScreen extends ConsumerStatefulWidget {
+class AnimeDetailScreen extends ConsumerStatefulWidget {
   final Object? item; // Movie or TvShow
 
-  const EnhancedDetailScreen({super.key, required this.item});
+  const AnimeDetailScreen({super.key, required this.item});
 
   @override
-  ConsumerState<EnhancedDetailScreen> createState() => _EnhancedDetailScreenState();
+  ConsumerState<AnimeDetailScreen> createState() => _AnimeDetailScreenState();
 }
 
 class _SeasonEpisodesView extends ConsumerStatefulWidget {
@@ -87,7 +87,7 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
-                Icons.tv_outlined,
+                Icons.animation_outlined,
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
             ),
@@ -349,7 +349,7 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
   }
 }
 
-class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
+class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen>
     with TickerProviderStateMixin {
   late final AnimationController _backgroundController;
   late final AnimationController _contentController;
@@ -441,18 +441,20 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
         slivers: [
           // Custom App Bar with backdrop
           SliverAppBar(
-            expandedHeight: 300,
+            expandedHeight: 350,
             pinned: true,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            foregroundColor: Colors.white,
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Backdrop image
+                  // Backdrop image with parallax effect
                   if (backdropUrl != null)
                     AnimatedBuilder(
                       animation: _backgroundController,
                       builder: (context, child) => Transform.scale(
-                        scale: 1.0 + (0.1 * _backgroundController.value),
+                        scale: 1.0 + (0.15 * _backgroundController.value),
                         child: CachedNetworkImage(
                           imageUrl: backdropUrl,
                           fit: BoxFit.cover,
@@ -467,18 +469,20 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                         ),
                       ),
                     ),
-                  // Gradient overlay
+                  // Gradient overlay for better text readability
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.6),
                           Colors.black.withValues(alpha: 0.3),
-                          Colors.black.withValues(alpha: 0.8),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.1),
+                          Colors.black.withValues(alpha: 0.7),
                         ],
-                        stops: const [0.0, 0.6, 1.0],
+                        stops: const [0.0, 0.2, 0.4, 0.8, 1.0],
                       ),
                     ),
                   ),
@@ -490,13 +494,21 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                   opacity: _contentController.value,
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(0, 1),
+                              blurRadius: 3,
+                              color: Colors.black.withValues(alpha: 0.5),
+                            ),
+                          ],
+                        ),
                   ),
                 ),
               ),
+              centerTitle: true,
             ),
           ),
           
@@ -516,25 +528,34 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title and poster row
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Poster
-                        if (fullPosterUrl != null)
-                          Hero(
-                            tag: 'poster_$id',
+                    // Hero poster with floating effect
+                    if (fullPosterUrl != null) ...[
+                      Center(
+                        child: Hero(
+                          tag: 'poster_$id',
+                          child: Material(
+                            elevation: 8,
+                            borderRadius: BorderRadius.circular(16),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: SizedBox(
-                                width: 120,
-                                height: 180,
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                width: 180,
+                                height: 270,
+                                decoration: BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.3),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
                                 child: CachedNetworkImage(
                                   imageUrl: fullPosterUrl,
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) => const ShimmerBox(
-                                    width: 120,
-                                    height: 180,
+                                    width: 180,
+                                    height: 270,
                                   ),
                                   errorWidget: (context, url, error) => Container(
                                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -544,71 +565,108 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                               ),
                             ),
                           ),
-                        const SizedBox(width: 16),
-                        
-                        // Title and metadata
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (subtitle.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  subtitle,
-                                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                    
+                    // Title and metadata in a clean card
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                ),
-                              ],
-                              const SizedBox(height: 12),
-                              
-                              // Rating with animated stars
+                            ),
+                            if (subtitle.isNotEmpty) ...[
+                              const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  ...List.generate(5, (index) {
-                                    final filled = index < (voteAverage / 2).floor();
-                                    return AnimatedContainer(
-                                      duration: Duration(milliseconds: 200 + (index * 100)),
-                                      child: Icon(
-                                        filled ? Icons.star : Icons.star_outline,
-                                        color: filled ? Colors.amber : Colors.grey,
-                                        size: 20,
-                                      ),
-                                    ).animate(delay: Duration(milliseconds: 100 * index))
-                                      .scale(begin: const Offset(0, 0), duration: const Duration(milliseconds: 200))
-                                      .fadeIn();
-                                  }),
-                                  const SizedBox(width: 8),
+                                  Icon(
+                                    widget.item is Movie ? Icons.calendar_today : Icons.tv,
+                                    size: 16,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 6),
                                   Text(
-                                    voteAverage.toStringAsFixed(1),
-                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                    subtitle,
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                        ),
                                   ),
                                 ],
                               ),
                             ],
-                          ),
+                            const SizedBox(height: 12),
+                            
+                            // Rating with modern design
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    voteAverage.toStringAsFixed(1),
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '/10',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                     
                     const SizedBox(height: 24),
                     
-                    // Overview
+                    // Overview section with modern styling
                     _buildSection(
                       context,
                       'Overview',
-                      Text(
-                        overview,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          height: 1.6,
+                      Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            overview,
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  height: 1.6,
+                                ),
+                          ),
                         ),
                       ),
                     ),
@@ -625,7 +683,7 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                     
                     const SizedBox(height: 32),
                     
-                    // Seasons & Episodes (TV only)
+                    // Seasons & Episodes (TV only) - Anime specific styling
                     if (widget.item is TvShow) ...[
                       _buildSeasonsSection(context, id),
                       const SizedBox(height: 32),
@@ -675,16 +733,47 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                _getSectionIcon(title),
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         content,
       ],
     );
+  }
+
+  IconData _getSectionIcon(String title) {
+    switch (title) {
+      case 'Overview':
+        return Icons.info_outline;
+      case 'Trailers & Videos':
+        return Icons.play_circle_outline;
+      case 'Top Billed Cast':
+        return Icons.people_outline;
+      case 'More Like This':
+        return Icons.recommend_outlined;
+      default:
+        return Icons.info_outline;
+    }
   }
 
   Widget _buildTrailersSection(BuildContext context, repo, int id) {
@@ -693,23 +782,29 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
       children: [
         Row(
           children: [
-            Icon(
-              Icons.play_circle_outline,
-              color: Theme.of(context).colorScheme.primary,
-              size: 28,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.play_circle_outline,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Text(
               'Trailers & Videos',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ],
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 140,
+          height: 160,
           child: FutureBuilder<List<Video>>(
             future: widget.item is Movie
                 ? repo.getMovieVideos(id)
@@ -725,8 +820,8 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                     padding: const EdgeInsets.only(right: 12),
                     child: ShimmerBox(
                       width: 200,
-                      height: 120,
-                      borderRadius: BorderRadius.circular(12),
+                      height: 140,
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                 );
@@ -802,12 +897,14 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
   }
 
   Widget _buildTrailerCard(BuildContext context, Video video) {
-    final thumbUrl = 'https://img.youtube.com/vi/${video.key}/maxresdefault.jpg';
+    final thumbUrl = 'https://img.youtube.com/vi/${video.key}/mqdefault.jpg';
     
-    return Material(
-      color: Colors.transparent,
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: () async {
           final url = Uri.parse('https://www.youtube.com/watch?v=${video.key}');
           await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -815,20 +912,13 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
         child: Container(
           width: 200,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 child: Stack(
                   children: [
                     CachedNetworkImage(
@@ -849,23 +939,17 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                     ),
                     // Play button overlay
                     Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.play_arrow,
-                              color: Colors.white,
-                              size: 24,
-                            ),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.play_arrow,
+                            color: Colors.white,
+                            size: 24,
                           ),
                         ),
                       ),
@@ -875,14 +959,14 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
               ),
               const SizedBox(height: 8),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
                   video.name,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
               ),
             ],
@@ -898,23 +982,29 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
       children: [
         Row(
           children: [
-            Icon(
-              Icons.people_outline,
-              color: Theme.of(context).colorScheme.primary,
-              size: 28,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.people_outline,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Text(
               'Top Billed Cast',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ],
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 180,
+          height: 200,
           child: FutureBuilder<List<CastMember>>(
             future: widget.item is Movie
                 ? repo.getMovieCast(id)
@@ -931,9 +1021,9 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                     child: Column(
                       children: [
                         ShimmerBox(
-                          width: 80,
-                          height: 80,
-                          borderRadius: BorderRadius.circular(40),
+                          width: 90,
+                          height: 90,
+                          borderRadius: BorderRadius.circular(45),
                         ),
                         const SizedBox(height: 8),
                         const ShimmerBox(width: 80, height: 12),
@@ -982,12 +1072,16 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
         : null;
 
     return SizedBox(
-      width: 110,
+      width: 100,
       child: Column(
         children: [
           Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),
@@ -997,7 +1091,7 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
               ],
             ),
             child: CircleAvatar(
-              radius: 40,
+              radius: 45,
               backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
               backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
               child: imageUrl == null
@@ -1016,8 +1110,8 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+                  fontWeight: FontWeight.w500,
+                ),
           ),
           const SizedBox(height: 4),
           if (member.character != null && member.character!.isNotEmpty)
@@ -1027,8 +1121,8 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
         ],
       ),
@@ -1041,23 +1135,29 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
       children: [
         Row(
           children: [
-            Icon(
-              Icons.recommend_outlined,
-              color: Theme.of(context).colorScheme.primary,
-              size: 28,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.recommend_outlined,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Text(
               'More Like This',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ],
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 200,
+          height: 220,
           child: FutureBuilder<List<dynamic>>(
             future: widget.item is Movie
                 ? repo.getSimilarMovies(id)
@@ -1072,9 +1172,9 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                   itemBuilder: (context, index) => Padding(
                     padding: const EdgeInsets.only(right: 12),
                     child: ShimmerBox(
-                      width: 120,
-                      height: 180,
-                      borderRadius: BorderRadius.circular(12),
+                      width: 130,
+                      height: 200,
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                 );
@@ -1119,7 +1219,7 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
           Navigator.of(context).push(
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
-                  EnhancedDetailScreen(item: item),
+                  AnimeDetailScreen(item: item),
               transitionsBuilder: (context, animation, secondaryAnimation, child) {
                 return FadeTransition(opacity: animation, child: child);
               },
@@ -1136,7 +1236,7 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
           Navigator.of(context).push(
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
-                  EnhancedDetailScreen(item: item),
+                  AnimeDetailScreen(item: item),
               transitionsBuilder: (context, animation, secondaryAnimation, child) {
                 return FadeTransition(opacity: animation, child: child);
               },

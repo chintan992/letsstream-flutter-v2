@@ -8,6 +8,7 @@ class TvShow {
   final DateTime? firstAirDate;
   final double voteAverage;
   final int voteCount;
+  final List<int>? genreIds;
 
   TvShow({
     required this.id,
@@ -19,6 +20,7 @@ class TvShow {
     required this.firstAirDate,
     required this.voteAverage,
     required this.voteCount,
+    this.genreIds,
   });
 
   factory TvShow.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,14 @@ class TvShow {
       }
     }
 
+    List<int>? genreIds;
+    if (json['genre_ids'] is List) {
+      genreIds = (json['genre_ids'] as List)
+          .map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0)
+          .where((e) => e != 0)
+          .toList();
+    }
+
     return TvShow(
       id: (json['id'] as num).toInt(),
       name: name,
@@ -48,6 +58,7 @@ class TvShow {
       firstAirDate: parsedDate,
       voteAverage: voteAverage,
       voteCount: voteCount,
+      genreIds: genreIds,
     );
   }
 
@@ -62,6 +73,7 @@ class TvShow {
       'first_air_date': firstAirDate?.toIso8601String(),
       'vote_average': voteAverage,
       'vote_count': voteCount,
+      'genre_ids': genreIds,
     };
   }
 }
