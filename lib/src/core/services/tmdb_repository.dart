@@ -3,6 +3,8 @@ import 'package:lets_stream/src/core/models/movie.dart';
 import 'package:lets_stream/src/core/models/tv_show.dart';
 import 'package:lets_stream/src/core/models/video.dart';
 import 'package:lets_stream/src/core/models/cast_member.dart';
+import 'package:lets_stream/src/core/models/season.dart';
+import 'package:lets_stream/src/core/models/episode.dart';
 import 'package:logger/logger.dart';
 
 class TmdbRepository {
@@ -282,6 +284,30 @@ class TmdbRepository {
       return result;
     } catch (e) {
       _logger.e('Error fetching TV cast: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<SeasonSummary>> getTvSeasons(int tvId) async {
+    try {
+      _logger.i('Fetching TV seasons for $tvId');
+      final result = await _api.getTvSeasons(tvId);
+      _logger.i('Fetched ${result.length} seasons');
+      return result;
+    } catch (e) {
+      _logger.e('Error fetching TV seasons: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<EpisodeSummary>> getSeasonEpisodes(int tvId, int seasonNumber) async {
+    try {
+      _logger.i('Fetching episodes for TV $tvId season $seasonNumber');
+      final result = await _api.getSeasonEpisodes(tvId, seasonNumber);
+      _logger.i('Fetched ${result.length} episodes');
+      return result;
+    } catch (e) {
+      _logger.e('Error fetching season episodes: $e');
       rethrow;
     }
   }
