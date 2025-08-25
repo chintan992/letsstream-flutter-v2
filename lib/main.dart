@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'src/shared/theme/app_theme.dart';
 import 'src/features/home/presentation/home_screen.dart';
-import 'src/features/detail/presentation/detail_screen.dart';
+import 'src/features/detail/presentation/enhanced_detail_screen.dart';
 import 'src/features/movies/presentation/movies_list_screen.dart';
 import 'src/features/tv_shows/presentation/tv_list_screen.dart';
 import 'src/features/hub/presentation/hub_screens.dart';
@@ -13,6 +14,7 @@ import 'src/features/profile/presentation/profile_screen.dart' as feature_profil
 import 'src/features/search/presentation/search_screen.dart';
 import 'src/features/movies/presentation/movies_genre_list_screen.dart';
 import 'src/features/tv_shows/presentation/tv_genre_list_screen.dart';
+import 'src/features/detail/presentation/episode_detail_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,8 +22,8 @@ void main() async {
   // Load environment variables
   await dotenv.load(fileName: ".env");
 
-  // Initialize services here (Firebase, Hive, etc.)
-  // await initializeServices();
+  // Initialize Firebase (Android auto-config via google-services.json)
+  await Firebase.initializeApp();
   
   runApp(
     const ProviderScope(
@@ -125,7 +127,7 @@ final _router = GoRouter(
           name: 'movie-detail',
           builder: (context, state) {
             final item = state.extra; // Expecting a Movie
-            return DetailScreen(item: item);
+            return EnhancedDetailScreen(item: item);
           },
         ),
         GoRoute(
@@ -133,7 +135,26 @@ final _router = GoRouter(
           name: 'tv-detail',
           builder: (context, state) {
             final item = state.extra; // Expecting a TvShow
-            return DetailScreen(item: item);
+            return EnhancedDetailScreen(item: item);
+          },
+        ),
+        // Deep link for TV episode detail
+        GoRoute(
+          path: '/tv/:id/season/:season/episode/:ep',
+          name: 'episode-detail',
+          builder: (context, state) {
+            final tvId = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+            final season = int.tryParse(state.pathParameters['season'] ?? '1') ?? 1;
+            final epNumber = int.tryParse(state.pathParameters['ep'] ?? '1') ?? 1;
+            // We don't have the list here; EpisodeDetailScreen will fetch the season if needed
+            final idx = epNumber - 1;
+            final safeIndex = idx < 0 ? 0 : idx;
+            return EpisodeDetailScreen(
+              tvId: tvId,
+              seasonNumber: season,
+              initialIndex: safeIndex,
+              initialEpisodes: null,
+            );
           },
         ),
       ],
