@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'src/shared/theme/app_theme.dart';
+import 'src/features/home/presentation/home_screen.dart';
+import 'src/features/detail/presentation/detail_screen.dart';
+import 'src/features/movies/presentation/movies_list_screen.dart';
+import 'src/features/tv_shows/presentation/tv_list_screen.dart';
+import 'src/features/hub/presentation/hub_screens.dart';
+import 'src/features/anime/presentation/anime_screen.dart';
+import 'src/features/profile/presentation/profile_screen.dart' as feature_profile;
+import 'src/features/search/presentation/search_screen.dart';
+import 'src/features/movies/presentation/movies_genre_list_screen.dart';
+import 'src/features/tv_shows/presentation/tv_genre_list_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
   // Initialize services here (Firebase, Hive, etc.)
   // await initializeServices();
   
@@ -50,9 +64,45 @@ final _router = GoRouter(
           builder: (context, state) => const MoviesScreen(),
         ),
         GoRoute(
+          path: '/movies/:feed',
+          name: 'movies-list',
+          builder: (context, state) {
+            final feed = state.pathParameters['feed'] ?? 'popular';
+            return MoviesListScreen(feed: feed);
+          },
+        ),
+        GoRoute(
+          path: '/movies/genre/:id',
+          name: 'movies-genre',
+          builder: (context, state) {
+            final idStr = state.pathParameters['id'];
+            final name = state.uri.queryParameters['name'] ?? 'Genre';
+            final id = int.tryParse(idStr ?? '0') ?? 0;
+            return MoviesGenreListScreen(genreId: id, genreName: name);
+          },
+        ),
+        GoRoute(
           path: '/tv-shows',
           name: 'tv-shows',
           builder: (context, state) => const TvShowsScreen(),
+        ),
+        GoRoute(
+          path: '/tv-shows/:feed',
+          name: 'tv-list',
+          builder: (context, state) {
+            final feed = state.pathParameters['feed'] ?? 'popular';
+            return TvListScreen(feed: feed);
+          },
+        ),
+        GoRoute(
+          path: '/tv-shows/genre/:id',
+          name: 'tv-genre',
+          builder: (context, state) {
+            final idStr = state.pathParameters['id'];
+            final name = state.uri.queryParameters['name'] ?? 'Genre';
+            final id = int.tryParse(idStr ?? '0') ?? 0;
+            return TvGenreListScreen(genreId: id, genreName: name);
+          },
         ),
         GoRoute(
           path: '/anime',
@@ -62,7 +112,29 @@ final _router = GoRouter(
         GoRoute(
           path: '/profile',
           name: 'profile',
-          builder: (context, state) => const ProfileScreen(),
+          builder: (context, state) => const feature_profile.ProfileScreen(),
+        ),
+        GoRoute(
+          path: '/search',
+          name: 'search',
+          builder: (context, state) => const SearchScreen(),
+        ),
+        // Detail routes
+        GoRoute(
+          path: '/movie/:id',
+          name: 'movie-detail',
+          builder: (context, state) {
+            final item = state.extra; // Expecting a Movie
+            return DetailScreen(item: item);
+          },
+        ),
+        GoRoute(
+          path: '/tv/:id',
+          name: 'tv-detail',
+          builder: (context, state) {
+            final item = state.extra; // Expecting a TvShow
+            return DetailScreen(item: item);
+          },
         ),
       ],
     ),
@@ -144,41 +216,14 @@ class MainNavigationScreen extends StatelessWidget {
 }
 
 // Placeholder screens - to be moved to their respective feature folders
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Let\'s Stream'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text(
-          'Welcome to Let\'s Stream!\nYour media discovery journey starts here.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18),
-        ),
-      ),
-    );
-  }
-}
+// HomeScreen is now implemented in lib/src/features/home/presentation/home_screen.dart
 
 class MoviesScreen extends StatelessWidget {
   const MoviesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Movies'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text('Movies Section - Coming Soon!'),
-      ),
-    );
+    return const MoviesHubScreen();
   }
 }
 
@@ -187,48 +232,10 @@ class TvShowsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('TV Shows'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text('TV Shows Section - Coming Soon!'),
-      ),
-    );
+    return const TvHubScreen();
   }
 }
 
-class AnimeScreen extends StatelessWidget {
-  const AnimeScreen({super.key});
+// Replaced by feature implementation in lib/src/features/anime/presentation/anime_screen.dart
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Anime'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text('Anime Section - Coming Soon!'),
-      ),
-    );
-  }
-}
-
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text('Profile Section - Coming Soon!'),
-      ),
-    );
-  }
-}
+// Profile implemented in feature module (see import alias feature_profile)
