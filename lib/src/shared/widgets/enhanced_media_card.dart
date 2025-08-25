@@ -1,0 +1,390 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
+import 'package:lets_stream/src/shared/theme/tokens.dart';
+
+class EnhancedMediaCard extends StatefulWidget {
+  final String title;
+  final String? imagePath;
+  final VoidCallback onTap;
+  final double? rating;
+  final String? releaseYear;
+  final bool showOverlay;
+  final String? heroTag;
+
+  const EnhancedMediaCard({
+    super.key,
+    required this.title,
+    required this.imagePath,
+    required this.onTap,
+    this.rating,
+    this.releaseYear,
+    this.showOverlay = true,
+    this.heroTag,
+  });
+
+  @override
+  State<EnhancedMediaCard> createState() => _EnhancedMediaCardState();
+}
+
+class _EnhancedMediaCardState extends State<EnhancedMediaCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _overlayAnimation;
+  bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.05,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    _overlayAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    _animationController.forward();
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    _animationController.reverse();
+  }
+
+  void _onTapCancel() {
+    _animationController.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
+    final String? fullImageUrl = (widget.imagePath != null && widget.imagePath!.isNotEmpty)
+        ? '$imageBaseUrl/w500${widget.imagePath}'
+        : null;
+
+    Widget imageWidget;
+    if (fullImageUrl != null) {
+      imageWidget = widget.heroTag != null
+          ? Hero(
+              tag: widget.heroTag!,
+              child: CachedNetworkImage(
+                imageUrl: fullImageUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => const ShimmerBox(
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  child: Icon(
+                    Icons.broken_image_outlined,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    size: 32,
+                  ),
+                ),
+              ),
+            )
+          : CachedNetworkImage(
+              imageUrl: fullImageUrl,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => const ShimmerBox(
+                width: double.infinity,
+                height: double.infinity,
+              ),
+              errorWidget: (context, url, error) => Container(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Icon(
+                  Icons.broken_image_outlined,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  size: 32,
+                ),
+              ),
+            );
+    } else {
+      imageWidget = Container(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        child: Center(
+          child: Icon(
+            Icons.image_not_supported_outlined,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            size: 32,
+          ),
+        ),
+      );
+    }
+
+    return Semantics(
+      label: widget.title,
+      hint: 'Opens details',
+      button: true,
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              width: Tokens.posterCardWidth,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(Tokens.radiusM),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: _isHovered ? 0.3 : 0.15),
+                    blurRadius: _isHovered ? 12 : 8,
+                    offset: Offset(0, _isHovered ? 6 : 4),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(Tokens.radiusM),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(Tokens.radiusM),
+                  onTap: widget.onTap,
+                  onTapDown: _onTapDown,
+                  onTapUp: _onTapUp,
+                  onTapCancel: _onTapCancel,
+                  onHover: (isHovered) {
+                    setState(() {
+                      _isHovered = isHovered;
+                    });
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(Tokens.radiusM),
+                    child: Stack(
+                      children: [
+                        // Image
+                        AspectRatio(
+                          aspectRatio: 2 / 3,
+                          child: imageWidget,
+                        ),
+                        
+                        // Gradient overlay and info
+                        if (widget.showOverlay)
+                          AnimatedBuilder(
+                            animation: _overlayAnimation,
+                            builder: (context, child) {
+                              return Positioned.fill(
+                                child: AnimatedOpacity(
+                                  opacity: _isHovered ? 1.0 : 0.0,
+                                  duration: const Duration(milliseconds: 200),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.black.withValues(alpha: 0.3),
+                                          Colors.black.withValues(alpha: 0.8),
+                                        ],
+                                        stops: const [0.4, 0.7, 1.0],
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            widget.title,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600,
+                                                  shadows: [
+                                                    const Shadow(
+                                                      color: Colors.black,
+                                                      offset: Offset(0, 1),
+                                                      blurRadius: 2,
+                                                    ),
+                                                  ],
+                                                ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          if (widget.rating != null || widget.releaseYear != null)
+                                            const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              if (widget.rating != null) ...[
+                                                Icon(
+                                                  Icons.star,
+                                                  color: Colors.amber,
+                                                  size: 14,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  widget.rating!.toStringAsFixed(1),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                ),
+                                                if (widget.releaseYear != null)
+                                                  const SizedBox(width: 8),
+                                              ],
+                                              if (widget.releaseYear != null)
+                                                Text(
+                                                  widget.releaseYear!,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: Colors.white70,
+                                                      ),
+                                                ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        
+                        // Play indicator for hover state
+                        if (_isHovered)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.play_arrow,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          )
+                              .animate()
+                              .scale(begin: const Offset(0, 0), duration: 200.ms)
+                              .fadeIn(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// Simple animated MediaCard for backward compatibility
+class AnimatedMediaCard extends StatelessWidget {
+  final String title;
+  final String? imagePath;
+  final VoidCallback onTap;
+  final Duration delay;
+
+  const AnimatedMediaCard({
+    super.key,
+    required this.title,
+    required this.imagePath,
+    required this.onTap,
+    this.delay = Duration.zero,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
+    final String? fullImageUrl = (imagePath != null && imagePath!.isNotEmpty)
+        ? '$imageBaseUrl/w500$imagePath'
+        : null;
+
+    Widget imageWidget;
+    if (fullImageUrl != null) {
+      imageWidget = CachedNetworkImage(
+        imageUrl: fullImageUrl,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => const ShimmerBox(
+          width: double.infinity,
+          height: double.infinity,
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: const Icon(Icons.broken_image_outlined),
+        ),
+      );
+    } else {
+      imageWidget = Container(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        child: const Center(
+          child: Icon(Icons.image_not_supported_outlined),
+        ),
+      );
+    }
+
+    return Container(
+      width: Tokens.posterCardWidth,
+      margin: const EdgeInsets.only(right: Tokens.spaceM),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(Tokens.radiusM),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(Tokens.radiusM),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(Tokens.radiusM),
+          onTap: onTap,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(Tokens.radiusM),
+            child: AspectRatio(
+              aspectRatio: 2 / 3,
+              child: imageWidget,
+            ),
+          ),
+        ),
+      ),
+    )
+        .animate(delay: delay)
+        .slideX(begin: 0.2, duration: 300.ms)
+        .fadeIn()
+        .scale(begin: const Offset(0.8, 0.8), duration: 400.ms);
+  }
+}
