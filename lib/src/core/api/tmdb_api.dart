@@ -5,6 +5,8 @@ import 'package:lets_stream/src/core/models/tv_show.dart';
 import 'package:lets_stream/src/core/models/tmdb_response.dart';
 import 'package:lets_stream/src/core/models/video.dart';
 import 'package:lets_stream/src/core/models/cast_member.dart';
+import 'package:lets_stream/src/core/models/season.dart';
+import 'package:lets_stream/src/core/models/episode.dart';
 
 class TmdbApi {
   final Dio _dio = Dio();
@@ -327,6 +329,29 @@ class TmdbApi {
       final response = await _get('/tv/$tvId/credits');
       final cast = (response.data['cast'] as List?) ?? [];
       return cast.map((e) => CastMember.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // TV details with seasons
+  Future<List<SeasonSummary>> getTvSeasons(int tvId) async {
+    try {
+      // append_to_response=seasons is not supported by TMDB; seasons are in TV details
+      final response = await _get('/tv/$tvId');
+      final seasons = (response.data['seasons'] as List?) ?? [];
+      return seasons.map((e) => SeasonSummary.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Episodes for a specific season
+  Future<List<EpisodeSummary>> getSeasonEpisodes(int tvId, int seasonNumber) async {
+    try {
+      final response = await _get('/tv/$tvId/season/$seasonNumber');
+      final episodes = (response.data['episodes'] as List?) ?? [];
+      return episodes.map((e) => EpisodeSummary.fromJson(e as Map<String, dynamic>)).toList();
     } catch (e) {
       rethrow;
     }
