@@ -10,11 +10,14 @@ import 'src/features/movies/presentation/movies_list_screen.dart';
 import 'src/features/tv_shows/presentation/tv_list_screen.dart';
 import 'src/features/hub/presentation/hub_screens.dart';
 import 'src/features/anime/presentation/anime_screen.dart';
+import 'src/features/anime/presentation/anime_detail_screen.dart';
 import 'src/features/profile/presentation/profile_screen.dart' as feature_profile;
 import 'src/features/search/presentation/search_screen.dart';
 import 'src/features/movies/presentation/movies_genre_list_screen.dart';
 import 'src/features/tv_shows/presentation/tv_genre_list_screen.dart';
 import 'src/features/detail/presentation/episode_detail_screen.dart';
+import 'src/core/models/movie.dart';
+import 'src/core/models/tv_show.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -127,6 +130,10 @@ final _router = GoRouter(
           name: 'movie-detail',
           builder: (context, state) {
             final item = state.extra; // Expecting a Movie
+            // Check if it's an anime movie (genre 16) to use the anime detail screen
+            if (item is Movie && (item.genreIds?.contains(16) ?? false)) {
+              return AnimeDetailScreen(item: item);
+            }
             return EnhancedDetailScreen(item: item);
           },
         ),
@@ -135,6 +142,10 @@ final _router = GoRouter(
           name: 'tv-detail',
           builder: (context, state) {
             final item = state.extra; // Expecting a TvShow
+            // Check if it's an anime TV show (genre 16) to use the anime detail screen
+            if (item is TvShow && (item.genreIds?.contains(16) ?? false)) {
+              return AnimeDetailScreen(item: item);
+            }
             return EnhancedDetailScreen(item: item);
           },
         ),

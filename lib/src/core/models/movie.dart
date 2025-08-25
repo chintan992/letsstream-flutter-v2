@@ -8,6 +8,7 @@ class Movie {
   final DateTime? releaseDate;
   final double voteAverage;
   final int voteCount;
+  final List<int>? genreIds;
 
   Movie({
     required this.id,
@@ -19,6 +20,7 @@ class Movie {
     required this.releaseDate,
     required this.voteAverage,
     required this.voteCount,
+    this.genreIds,
   });
 
   factory Movie.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,14 @@ class Movie {
       }
     }
 
+    List<int>? genreIds;
+    if (json['genre_ids'] is List) {
+      genreIds = (json['genre_ids'] as List)
+          .map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0)
+          .where((e) => e != 0)
+          .toList();
+    }
+
     return Movie(
       id: (json['id'] as num).toInt(),
       title: title,
@@ -48,6 +58,7 @@ class Movie {
       releaseDate: parsedDate,
       voteAverage: voteAverage,
       voteCount: voteCount,
+      genreIds: genreIds,
     );
   }
 
@@ -62,6 +73,7 @@ class Movie {
       'release_date': releaseDate?.toIso8601String(),
       'vote_average': voteAverage,
       'vote_count': voteCount,
+      'genre_ids': genreIds,
     };
   }
 }
