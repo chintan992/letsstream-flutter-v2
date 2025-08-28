@@ -34,6 +34,11 @@ class VideoPlayerState {
     int? episodeNumber,
     int? totalEpisodes,
   }) {
+    //print('VideoPlayerState.copyWith called with:');
+    //if (selectedSource != null) print('  selectedSource: ${selectedSource.name}');
+    //if (videoUrl != null) print('  videoUrl: $videoUrl');
+    //if (isSwitchingSource != null) print('  isSwitchingSource: $isSwitchingSource');
+
     return VideoPlayerState(
       sources: sources ?? this.sources,
       selectedSource: selectedSource ?? this.selectedSource,

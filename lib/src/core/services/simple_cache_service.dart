@@ -211,17 +211,69 @@ class SimpleCacheService {
       final keys = prefs.getKeys();
       final movieKeys = keys.where((key) => key.startsWith('${_keyPrefix}movies_')).length;
       final tvKeys = keys.where((key) => key.startsWith('${_keyPrefix}tv_')).length;
+      final stringKeys = keys.where((key) => key.startsWith('${_keyPrefix}string_')).length;
       
       return {
         'movies_entries': movieKeys,
         'tv_shows_entries': tvKeys,
+        'string_entries': stringKeys,
       };
     } catch (e) {
       _logger.e('Failed to get cache stats: $e');
       return {
         'movies_entries': 0,
         'tv_shows_entries': 0,
+        'string_entries': 0,
       };
+    }
+  }
+
+  /// Cache string with TTL
+  Future<void> cacheString({
+    required String key,
+    required String value,
+    Duration ttl = _defaultCacheDuration,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      final cacheData = {
+        'data': value,
+        'cachedAt': DateTime.now().millisecondsSinceEpoch,
+        'ttlMs': ttl.inMilliseconds,
+      };
+      
+      await prefs.setString('${_keyPrefix}string_$key', json.encode(cacheData));
+      _logger.d('Cached string with key: $key');
+    } catch (e) {
+      _logger.e('Failed to cache string: $e');
+    }
+  }
+  
+  /// Get cached string if valid
+  String? getCachedString(String key, SharedPreferences prefs) {
+    try {
+      final cachedJson = prefs.getString('${_keyPrefix}string_$key');
+      if (cachedJson == null) return null;
+      
+      final cacheData = json.decode(cachedJson) as Map<String, dynamic>;
+      final cachedAt = DateTime.fromMillisecondsSinceEpoch(cacheData['cachedAt']);
+      final ttl = Duration(milliseconds: cacheData['ttlMs']);
+      
+      // Check if expired
+      if (DateTime.now().isAfter(cachedAt.add(ttl))) {
+        // Remove expired entry
+        prefs.remove('${_keyPrefix}string_$key');
+        _logger.d('Removed expired cache entry for key: $key');
+        return null;
+      }
+      
+      final value = cacheData['data'] as String;
+      _logger.d('Retrieved string from cache with key: $key');
+      return value;
+    } catch (e) {
+      _logger.e('Failed to get cached string: $e');
+      return null;
     }
   }
 }

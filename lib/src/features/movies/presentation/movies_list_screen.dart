@@ -10,8 +10,10 @@ import 'package:lets_stream/src/shared/widgets/empty_state.dart';
 
 class MoviesListScreen extends ConsumerStatefulWidget {
   final String feed; // trending | now_playing | popular | top_rated
+  final int? genreId;
+  final String? genreName;
 
-  const MoviesListScreen({super.key, required this.feed});
+  const MoviesListScreen({super.key, required this.feed, this.genreId, this.genreName});
 
   @override
   ConsumerState<MoviesListScreen> createState() => _MoviesListScreenState();
@@ -41,22 +43,45 @@ class _MoviesListScreenState extends ConsumerState<MoviesListScreen> {
   Future<void> _load() async {
     final repo = ref.read(tmdbRepositoryProvider);
     List<Movie> pageItems;
-    switch (widget.feed) {
-      case 'trending':
-        pageItems = await repo.getTrendingMovies(page: _page);
-        break;
-      case 'now_playing':
-        pageItems = await repo.getNowPlayingMovies(page: _page);
-        break;
-      case 'popular':
-        pageItems = await repo.getPopularMovies(page: _page);
-        break;
-      case 'top_rated':
-        pageItems = await repo.getTopRatedMovies(page: _page);
-        break;
-      default:
-        pageItems = await repo.getTrendingMovies(page: _page);
+    
+    if (widget.genreId != null) {
+      // Fetch movies by genre
+      switch (widget.feed) {
+        case 'trending':
+          pageItems = await repo.getTrendingMoviesByGenre(widget.genreId!, page: _page);
+          break;
+        case 'now_playing':
+          pageItems = await repo.getNowPlayingMoviesByGenre(widget.genreId!, page: _page);
+          break;
+        case 'popular':
+          pageItems = await repo.getPopularMoviesByGenre(widget.genreId!, page: _page);
+          break;
+        case 'top_rated':
+          pageItems = await repo.getTopRatedMoviesByGenre(widget.genreId!, page: _page);
+          break;
+        default:
+          pageItems = await repo.getTrendingMoviesByGenre(widget.genreId!, page: _page);
+      }
+    } else {
+      // Fetch movies by feed
+      switch (widget.feed) {
+        case 'trending':
+          pageItems = await repo.getTrendingMovies(page: _page);
+          break;
+        case 'now_playing':
+          pageItems = await repo.getNowPlayingMovies(page: _page);
+          break;
+        case 'popular':
+          pageItems = await repo.getPopularMovies(page: _page);
+          break;
+        case 'top_rated':
+          pageItems = await repo.getTopRatedMovies(page: _page);
+          break;
+        default:
+          pageItems = await repo.getTrendingMovies(page: _page);
+      }
     }
+    
     setState(() {
       _items.addAll(pageItems);
       _hasMore = pageItems.isNotEmpty;
@@ -75,7 +100,9 @@ class _MoviesListScreenState extends ConsumerState<MoviesListScreen> {
   @override
   Widget build(BuildContext context) {
     final imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
-    final title = _titleForFeed(widget.feed);
+    final title = widget.genreName != null 
+        ? '${_titleForFeed(widget.feed)} ${widget.genreName}' 
+        : _titleForFeed(widget.feed);
 
     return Scaffold(
       appBar: AppBar(title: Text(title), centerTitle: true),
@@ -218,13 +245,13 @@ class _MoviesListScreenState extends ConsumerState<MoviesListScreen> {
   String _titleForFeed(String feed) {
     switch (feed) {
       case 'trending':
-        return 'Trending Movies';
+        return 'Trending';
       case 'now_playing':
         return 'Now Playing';
       case 'popular':
-        return 'Popular Movies';
+        return 'Popular';
       case 'top_rated':
-        return 'Top Rated Movies';
+        return 'Top Rated';
       default:
         return 'Movies';
     }
