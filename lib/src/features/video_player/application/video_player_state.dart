@@ -7,6 +7,9 @@ class VideoPlayerState {
   final String? errorMessage;
   final String? videoUrl;
   final bool isSwitchingSource;
+  final int? seasonNumber;
+  final int? episodeNumber;
+  final int totalEpisodes;
 
   const VideoPlayerState({
     this.sources = const [],
@@ -15,6 +18,9 @@ class VideoPlayerState {
     this.errorMessage,
     this.videoUrl,
     this.isSwitchingSource = false,
+    this.seasonNumber,
+    this.episodeNumber,
+    this.totalEpisodes = 0,
   });
 
   VideoPlayerState copyWith({
@@ -24,6 +30,9 @@ class VideoPlayerState {
     String? errorMessage,
     String? videoUrl,
     bool? isSwitchingSource,
+    int? seasonNumber,
+    int? episodeNumber,
+    int? totalEpisodes,
   }) {
     return VideoPlayerState(
       sources: sources ?? this.sources,
@@ -32,6 +41,9 @@ class VideoPlayerState {
       errorMessage: errorMessage ?? this.errorMessage,
       videoUrl: videoUrl ?? this.videoUrl,
       isSwitchingSource: isSwitchingSource ?? this.isSwitchingSource,
+      seasonNumber: seasonNumber ?? this.seasonNumber,
+      episodeNumber: episodeNumber ?? this.episodeNumber,
+      totalEpisodes: totalEpisodes ?? this.totalEpisodes,
     );
   }
 }

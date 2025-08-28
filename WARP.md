@@ -163,15 +163,12 @@ flutter:
 
 ## Ongoing Implementation Log
 
-- 2025-08-26: **FEATURE - Video Playback**
-  - Integrated an iframe-based video player using `webview_flutter`.
-  - Fetches video source URLs from a custom API endpoint.
-  - Implemented a source-switching dropdown menu that overlays the video player and auto-hides after 5 seconds of inactivity.
-  - Secured the iframe to only allow navigation to video URLs from the fetched sources.
-  - Added a "Watch Now" button to the `EpisodeDetailScreen` to launch the video player.
-  - Created a new `video_player` feature with its own notifier and state management.
-  - Added new models and services for fetching video sources.
-  - Fixed various bugs related to the `webview_flutter` package and state initialization.
+  - 2025-08-27: **FEATURE - Video Player UX Enhancements**
+    - Added a back button to the video player screen for easier navigation.
+    - Implemented next/previous episode navigation controls for TV shows, allowing users to switch episodes without leaving the player.
+    - Updated the video player's state management to track the current episode and total number of episodes in a season.
+    - Refined the UI to conditionally display episode navigation only for TV shows.
+    - Fixed all analysis warnings related to the changes.
 
 [Feature Request: Video Playback Integration]
 

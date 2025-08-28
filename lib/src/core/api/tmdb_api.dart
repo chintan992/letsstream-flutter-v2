@@ -6,6 +6,7 @@ import 'package:lets_stream/src/core/models/tmdb_response.dart';
 import 'package:lets_stream/src/core/models/video.dart';
 import 'package:lets_stream/src/core/models/cast_member.dart';
 import 'package:lets_stream/src/core/models/season.dart';
+import 'package:lets_stream/src/core/models/season_detail.dart';
 import 'package:lets_stream/src/core/models/episode.dart';
 
 class TmdbApi {
@@ -352,6 +353,15 @@ class TmdbApi {
       final response = await _get('/tv/$tvId/season/$seasonNumber');
       final episodes = (response.data['episodes'] as List?) ?? [];
       return episodes.map((e) => EpisodeSummary.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<SeasonDetail> getSeasonDetails(int tvId, int seasonNumber) async {
+    try {
+      final response = await _get('/tv/$tvId/season/$seasonNumber');
+      return SeasonDetail.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       rethrow;
     }

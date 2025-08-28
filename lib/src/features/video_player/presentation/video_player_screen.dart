@@ -1,8 +1,8 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lets_stream/src/features/video_player/application/video_player_notifier.dart';
 import 'package:webview_flutter/webview_flutter.dart' as webview_flutter;
 
@@ -89,8 +89,9 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
       episodeNumber: widget.episode,
     ));
     final state = ref.watch(provider);
+    final notifier = ref.read(provider.notifier);
 
-    if (state.videoUrl != null) {
+    if (state.videoUrl != null && _controller.platform.toString().isNotEmpty) {
       _controller.loadRequest(Uri.parse(state.videoUrl!));
     }
 
@@ -117,42 +118,75 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
               duration: const Duration(milliseconds: 300),
               child: Stack(
                 children: [
+                  Positioned(
+                    top: 40,
+                    left: 20,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => GoRouter.of(context).pop(),
+                    ),
+                  ),
                   if (!state.isLoading && state.errorMessage == null)
                     Positioned(
                       top: 40,
                       right: 20,
-                      child: PopupMenuButton<String>(
-                        onSelected: (String newKey) {
-                          final newSource = state.sources.firstWhere((s) => s.key == newKey);
-                          ref.read(provider.notifier).selectSource(newSource);
-                          _startHideControlsTimer();
-                        },
-                        itemBuilder: (BuildContext context) {
-                          return state.sources.map((source) {
-                            return PopupMenuItem<String>(
-                              value: source.key,
-                              child: Text(source.name),
-                            );
-                          }).toList();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withAlpha(153),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.source, color: Colors.white, size: 18),
-                              const SizedBox(width: 8),
-                              Text(
-                                state.selectedSource?.name ?? 'Select Source',
-                                style: const TextStyle(color: Colors.white, fontSize: 14),
+                      child: Row(
+                        children: [
+                          if (!widget.isMovie)
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha(153),
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                              const Icon(Icons.arrow_drop_down, color: Colors.white),
-                            ],
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.skip_previous, color: Colors.white),
+                                    onPressed: notifier.previousEpisode,
+                                  ),
+                                  Text('E${state.episodeNumber}', style: const TextStyle(color: Colors.white)),
+                                  IconButton(
+                                    icon: const Icon(Icons.skip_next, color: Colors.white),
+                                    onPressed: notifier.nextEpisode,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          const SizedBox(width: 10),
+                          PopupMenuButton<String>(
+                            onSelected: (String newKey) {
+                              final newSource = state.sources.firstWhere((s) => s.key == newKey);
+                              notifier.selectSource(newSource);
+                              _startHideControlsTimer();
+                            },
+                            itemBuilder: (BuildContext context) {
+                              return state.sources.map((source) {
+                                return PopupMenuItem<String>(
+                                  value: source.key,
+                                  child: Text(source.name),
+                                );
+                              }).toList();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha(153),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.source, color: Colors.white, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    state.selectedSource?.name ?? 'Select Source',
+                                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                                  ),
+                                  const Icon(Icons.arrow_drop_down, color: Colors.white),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                 ],
