@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lets_stream/src/core/api/tmdb_api.dart';
 import 'package:lets_stream/src/core/models/video_source.dart';
 import 'package:lets_stream/src/core/services/video_sources_provider.dart';
 import 'package:lets_stream/src/features/video_player/application/video_player_state.dart';
@@ -7,15 +8,16 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
   final Ref _ref;
   final int mediaId;
   final String mediaType;
-  final int? seasonNumber;
-  final int? episodeNumber;
 
   VideoPlayerNotifier(this._ref, {
     required this.mediaId,
     required this.mediaType,
-    this.seasonNumber,
-    this.episodeNumber,
-  }) : super(const VideoPlayerState()) {
+    int? seasonNumber,
+    int? episodeNumber,
+  }) : super(VideoPlayerState(
+          seasonNumber: seasonNumber,
+          episodeNumber: episodeNumber,
+        )) {
     getSources();
   }
 
@@ -23,7 +25,17 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
     try {
       state = state.copyWith(isLoading: true);
       final sources = await _ref.read(videoSourcesRepositoryProvider).getVideoSources();
-      state = state.copyWith(sources: sources, isLoading: false, selectedSource: sources.isNotEmpty ? sources.first : null);
+      
+      if (mediaType == 'tv' && state.seasonNumber != null) {
+        final seasonDetails = await TmdbApi.instance.getSeasonDetails(mediaId, state.seasonNumber!);
+        state = state.copyWith(totalEpisodes: seasonDetails.episodes.length);
+      }
+
+      state = state.copyWith(
+        sources: sources,
+        isLoading: false,
+        selectedSource: sources.isNotEmpty ? sources.first : null,
+      );
       _updateVideoUrl();
     } catch (e) {
       state = state.copyWith(errorMessage: e.toString(), isLoading: false);
@@ -38,6 +50,26 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
     });
   }
 
+  void nextEpisode() {
+    if (state.episodeNumber != null && state.episodeNumber! < state.totalEpisodes) {
+      state = state.copyWith(episodeNumber: state.episodeNumber! + 1, isSwitchingSource: true);
+      Future.delayed(const Duration(milliseconds: 500), () {
+        state = state.copyWith(isSwitchingSource: false);
+        _updateVideoUrl();
+      });
+    }
+  }
+
+  void previousEpisode() {
+    if (state.episodeNumber != null && state.episodeNumber! > 1) {
+      state = state.copyWith(episodeNumber: state.episodeNumber! - 1, isSwitchingSource: true);
+      Future.delayed(const Duration(milliseconds: 500), () {
+        state = state.copyWith(isSwitchingSource: false);
+        _updateVideoUrl();
+      });
+    }
+  }
+
   void _updateVideoUrl() {
     if (state.selectedSource != null) {
       String url;
@@ -47,8 +79,8 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
       } else {
         url = state.selectedSource!.tvUrlPattern
             .replaceAll('{id}', mediaId.toString())
-            .replaceAll('{season}', seasonNumber.toString())
-            .replaceAll('{episode}', episodeNumber.toString());
+            .replaceAll('{season}', state.seasonNumber.toString())
+            .replaceAll('{episode}', state.episodeNumber.toString());
       }
       state = state.copyWith(videoUrl: url);
     }
