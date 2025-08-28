@@ -11,28 +11,26 @@ import 'src/features/tv_shows/presentation/tv_list_screen.dart';
 import 'src/features/hub/presentation/hub_screens.dart';
 import 'src/features/anime/presentation/anime_screen.dart';
 import 'src/features/anime/presentation/anime_detail_screen.dart';
-import 'src/features/profile/presentation/profile_screen.dart' as feature_profile;
+import 'src/features/profile/presentation/profile_screen.dart'
+    as feature_profile;
 import 'src/features/search/presentation/search_screen.dart';
 import 'src/features/movies/presentation/movies_genre_list_screen.dart';
 import 'src/features/tv_shows/presentation/tv_genre_list_screen.dart';
 import 'src/features/detail/presentation/episode_detail_screen.dart';
+import 'src/features/video_player/presentation/video_player_screen.dart';
 import 'src/core/models/movie.dart';
 import 'src/core/models/tv_show.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Load environment variables
   await dotenv.load(fileName: ".env");
 
   // Initialize Firebase (Android auto-config via google-services.json)
   await Firebase.initializeApp();
-  
-  runApp(
-    const ProviderScope(
-      child: LetsStreamApp(),
-    ),
-  );
+
+  runApp(const ProviderScope(child: LetsStreamApp()));
 }
 
 class LetsStreamApp extends ConsumerWidget {
@@ -155,8 +153,10 @@ final _router = GoRouter(
           name: 'episode-detail',
           builder: (context, state) {
             final tvId = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
-            final season = int.tryParse(state.pathParameters['season'] ?? '1') ?? 1;
-            final epNumber = int.tryParse(state.pathParameters['ep'] ?? '1') ?? 1;
+            final season =
+                int.tryParse(state.pathParameters['season'] ?? '1') ?? 1;
+            final epNumber =
+                int.tryParse(state.pathParameters['ep'] ?? '1') ?? 1;
             // We don't have the list here; EpisodeDetailScreen will fetch the season if needed
             final idx = epNumber - 1;
             final safeIndex = idx < 0 ? 0 : idx;
@@ -168,6 +168,32 @@ final _router = GoRouter(
             );
           },
         ),
+        // Video player route (movie)
+        GoRoute(
+          path: '/watch/movie/:id',
+          name: 'watch-movie',
+          builder: (context, state) {
+            final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+            return VideoPlayerScreen(tmdbId: id, isMovie: true);
+          },
+        ),
+        // Video player route (tv episode)
+        GoRoute(
+          path: '/watch/tv/:id/season/:season/episode/:ep',
+          name: 'watch-tv',
+          builder: (context, state) {
+            final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+            final season =
+                int.tryParse(state.pathParameters['season'] ?? '1') ?? 1;
+            final ep = int.tryParse(state.pathParameters['ep'] ?? '1') ?? 1;
+            return VideoPlayerScreen(
+              tmdbId: id,
+              isMovie: false,
+              season: season,
+              episode: ep,
+            );
+          },
+        ),
       ],
     ),
   ],
@@ -176,7 +202,7 @@ final _router = GoRouter(
 // Main navigation shell with bottom navigation bar
 class MainNavigationScreen extends StatelessWidget {
   final Widget child;
-  
+
   const MainNavigationScreen({super.key, required this.child});
 
   @override

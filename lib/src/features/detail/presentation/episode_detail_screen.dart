@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lets_stream/src/core/models/episode.dart';
 import 'package:lets_stream/src/core/services/tmdb_repository_provider.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
+import 'package:go_router/go_router.dart';
 
 class EpisodeDetailScreen extends ConsumerStatefulWidget {
   final int tvId;
@@ -21,10 +22,10 @@ class EpisodeDetailScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<EpisodeDetailScreen> createState() => _EpisodeDetailScreenState();
+  ConsumerState<EpisodeDetailScreen> createState() => EpisodeDetailScreenState();
 }
 
-class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
+class EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
   List<EpisodeSummary>? _episodes;
   int _currentIndex = 0;
   bool _loading = false;
@@ -154,6 +155,31 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                             style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.6),
                           ),
                           const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.play_circle_fill),
+                              label: const Text('Watch Now'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.onPrimary,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              onPressed: () {
+                                      context.pushNamed(
+                                        'watch-tv',
+                                        pathParameters: {
+                                          'id': widget.tvId.toString(),
+                                          'season': widget.seasonNumber.toString(),
+                                          'ep': episode.episodeNumber.toString(),
+                                        },
+                                      );
+                                    },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [

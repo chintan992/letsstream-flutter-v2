@@ -163,6 +163,184 @@ flutter:
 
 ## Ongoing Implementation Log
 
+- 2025-08-26: **FEATURE - Video Playback**
+  - Integrated an iframe-based video player using `webview_flutter`.
+  - Fetches video source URLs from a custom API endpoint.
+  - Implemented a source-switching dropdown menu that overlays the video player and auto-hides after 5 seconds of inactivity.
+  - Secured the iframe to only allow navigation to video URLs from the fetched sources.
+  - Added a "Watch Now" button to the `EpisodeDetailScreen` to launch the video player.
+  - Created a new `video_player` feature with its own notifier and state management.
+  - Added new models and services for fetching video sources.
+  - Fixed various bugs related to the `webview_flutter` package and state initialization.
+
+[Feature Request: Video Playback Integration]
+
+- **Implement Video Playback:**
+  - Integrate an iframe-based video player to stream movies and series within the app.
+  - Fetch video source URLs from a custom API endpoint (see below for details).
+  - Implement a source-switching dropdown menu overlaying the video player, which auto-hides after 5 seconds of inactivity.
+  - Secure the iframe to only allow navigation to video URLs (prevent navigation outside video domains).
+  - Use the following custom video sources API to fetch available video providers and their URL patterns:
+    - Endpoint: `https://raw.githubusercontent.com/chintan992/letsstream2/refs/heads/main/src/utils/video-sources.json`
+    - The response contains a `videoSources` array, each with `key`, `name`, `movieUrlPattern`, and `tvUrlPattern` fields. Use `{id}`, `{season}`, and `{episode}` placeholders for TMDB IDs and episode info.
+  - Example usage:
+    - For a movie: Replace `{id}` in `movieUrlPattern` with the TMDB movie ID.
+    - For a TV episode: Replace `{id}`, `{season}`, and `{episode}` in `tvUrlPattern` with the TMDB show ID, season, and episode numbers.
+  - See user prompt for full JSON structure and example patterns.
+  - Fetch video source URLs from the provided custom API endpoint.
+  - Implement a source-switching dropdown menu that overlays the video player and auto-hides after 5 seconds of inactivity.
+  - Secure the iframe to only allow navigation to video URLs.
+  - Iframe which uses custom API to fetch video sources for movie/TV shows:
+      ${seriesId} = TMDB_ID
+      ${movieId} = TMDB_ID
+      Custom Video Sources to fetch iframe video url from https://raw.githubusercontent.com/chintan992/letsstream2/refs/heads/main/src/utils/video-sources.json 
+        - Response
+        ```
+        {
+            "videoSources": [
+            {
+            "key": "vidlink",
+            "name": "VidLink",
+            "movieUrlPattern": "https://vidlink.pro/movie/{id}?autoplay=true&title=true",
+            "tvUrlPattern": "https://vidlink.pro/tv/{id}/{season}/{episode}?autoplay=true&title=true"
+            },
+            {
+            "key": "pstream",
+            "name": "PStream",
+            "movieUrlPattern": "https://iframe.pstream.org/embed/tmdb-movie-{id}&logo=false",
+            "tvUrlPattern": "https://iframe.pstream.org/embed/tmdb-tv-{id}/{season}/{episode}&logo=false"
+            },
+            {
+            "key": "autoembed",
+            "name": "AutoEmbed",
+            "movieUrlPattern": "https://player.autoembed.cc/embed/movie/{id}?autoplay=true",
+            "tvUrlPattern": "https://player.autoembed.cc/embed/tv/{id}/{season}/{episode}?autoplay=true"
+            },
+            {
+            "key": "2embed",
+            "name": "2Embed",
+            "movieUrlPattern": "https://www.2embed.cc/embed/{id}",
+            "tvUrlPattern": "https://www.2embed.cc/embed/tv/{id}&s={season}&e={episode}"
+            },
+            {
+            "key": "multiembed",
+            "name": "MultiEmbed",
+            "movieUrlPattern": "https://multiembed.mov/video_id={id}&tmdb=1",
+            "tvUrlPattern": "https://multiembed.mov/video_id={id}&tmdb=1&s={season}&e={episode}"
+            },
+            {
+            "key": "2embed-org",
+            "name": "2Embed.org",
+            "movieUrlPattern": "https://2embed.org/embed/movie/{id}",
+            "tvUrlPattern": "https://2embed.org/embed/tv/{id}/{season}/{episode}"
+            },
+            {
+            "key": "autoembed-co",
+            "name": "AutoEmbed.co",
+            "movieUrlPattern": "https://autoembed.co/movie/tmdb/{id}",
+            "tvUrlPattern": "https://autoembed.co/tv/tmdb/{id}-{season}-{episode}"
+            },
+            {
+            "key": "vidsrc-xyz",
+            "name": "VidSrc.xyz",
+            "movieUrlPattern": "https://vidsrc.xyz/embed/movie?tmdb={id}&ds_lang=en",
+            "tvUrlPattern": "https://vidsrc.xyz/embed/tv?tmdb={id}&season={season}&episode={episode}&ds_lang=en"
+            },
+            {
+            "key": "moviesapi",
+            "name": "MoviesAPI",
+            "movieUrlPattern": "https://moviesapi.club/movie/{id}",
+            "tvUrlPattern": "https://moviesapi.club/tv/{id}-{season}-{episode}"
+            },
+            {
+            "key": "nontongo",
+            "name": "NontonGo",
+            "movieUrlPattern": "https://www.NontonGo.win/embed/movie/{id}",
+            "tvUrlPattern": "https://www.NontonGo.win/embed/tv/{id}/{season}/{episode}"
+            },
+            {
+            "key": "111movies",
+            "name": "111Movies",
+            "movieUrlPattern": "https://111movies.com/movie/{id}",
+            "tvUrlPattern": "https://111movies.com/tv/{id}/{season}/{episode}"
+            },
+            {
+            "key": "flicky",
+            "name": "Flicky",
+            "movieUrlPattern": "https://flicky.host/embed/movie?id={id}",
+            "tvUrlPattern": "https://flicky.host/embed/tv?id={id}/{season}/{episode}"
+            },
+            {
+            "key": "vidjoy",
+            "name": "VidJoy",
+            "movieUrlPattern": "https://vidjoy.pro/embed/movie/{id}",
+            "tvUrlPattern": "https://vidjoy.pro/embed/tv/{id}/{season}/{episode}"
+            },
+            {
+            "key": "embed-su",
+            "name": "Embed.su",
+            "movieUrlPattern": "https://embed.su/embed/movie/{id}",
+            "tvUrlPattern": "https://embed.su/embed/tv/{id}/{season}/{episode}"
+            },
+            {
+            "key": "primewire",
+            "name": "PrimeWire",
+            "movieUrlPattern": "https://www.primewire.tf/embed/movie?tmdb={id}",
+            "tvUrlPattern": "https://www.primewire.tf/embed/tv?tmdb={id}&season={season}&episode={episode}"
+            },
+            {
+            "key": "smashystream",
+            "name": "SmashyStream",
+            "movieUrlPattern": "https://embed.smashystream.com/playere.php?tmdb={id}",
+            "tvUrlPattern": "https://embed.smashystream.com/playere.php?tmdb={id}&season={season}&episode={episode}"
+            },
+            {
+            "key": "vidstream",
+            "name": "VidStream",
+            "movieUrlPattern": "https://vidstream.site/embed/movie/{id}",
+            "tvUrlPattern": "https://vidstream.site/embed/tv/{id}/{episode}"
+            },
+            {
+            "key": "videasy",
+            "name": "Videasy",
+            "movieUrlPattern": "https://player.videasy.net/movie/{id}",
+            "tvUrlPattern": "https://player.videasy.net/tv/{id}/{season}/{episode}"
+            },
+            {
+            "key": "vidsrc-wtf-2",
+            "name": "VidSrc.wtf (API 2)",
+            "movieUrlPattern": "https://vidsrc.wtf/api/2/movie?id={id}",
+            "tvUrlPattern": "https://vidsrc.wtf/api/2/tv?id={id}&s={season}&e={episode}"
+            },
+            {
+            "key": "vidsrc-wtf-3",
+            "name": "VidSrc.wtf (API 3)",
+            "movieUrlPattern": "https://vidsrc.wtf/api/3/movie?id={id}",
+            "tvUrlPattern": "https://vidsrc.wtf/api/3/tv?id={id}&s={season}&e={episode}"
+            },
+            {
+            "key": "vidfast",
+            "name": "VidFast",
+            "movieUrlPattern": "https://vidfast.pro/movie/{id}?autoPlay=true",
+            "tvUrlPattern": "https://vidfast.pro/tv/{id}/{season}/{episode}?autoPlay=true"
+            },
+            {
+            "key": "vidbinge",
+            "name": "VidBinge",
+            "movieUrlPattern": "https://vidbinge.dev/embed/movie/{id}",
+            "tvUrlPattern": "https://vidbinge.dev/embed/tv/{id}/{season}/{episode}"
+            }
+            ]
+          }
+        ```
+
+**Acceptance Criteria:**
+- Video player is embedded via iframe and supports switching between multiple sources.
+- Source dropdown overlays the player and auto-hides after 5 seconds of inactivity.
+- Only video URLs from the fetched sources are allowed in the iframe (navigation is restricted).
+- Video sources are fetched dynamically from the provided API endpoint.
+
+---
 - 2025-08-25: **UI/UX MODERNIZATION - Anime and TV Detail Screens Enhanced**
   - **AnimeDetailScreen**: Completely redesigned with modern Material Design 3 principles:
     - Floating hero poster with elevation effects
@@ -187,6 +365,25 @@ flutter:
     - Resolved syntax errors in animation duration specifications
     - Fixed missing parentheses in widget trees
     - Improved code structure and readability
+
+- 2025-08-25: **BRANDING - Logo Design and Implementation**
+  - **Logo Creation**: Designed comprehensive logo system for Let's Stream:
+    - Primary logo mark with purple play button and streaming waves
+    - Full logo with "Let's Stream" text
+    - App icon variants for different use cases
+  - **Implementation**: 
+    - Created reusable Flutter AppLogo widget
+    - Added SVG logo files for scalability
+    - Integrated logo into Home and Profile screens
+    - Updated app bar to use branded logo
+  - **Assets Management**:
+    - Created assets/images directory structure
+    - Added logo design specifications and documentation
+    - Updated pubspec.yaml to include asset directories
+  - **Design System**:
+    - Defined color palette (#6200EE primary purple, #1A1A1A dark background)
+    - Established streaming wave visual language
+    - Created comprehensive usage guidelines
 
 - 2025-08-25: TV seasons/episodes implemented and detail routing unified
   - EnhancedDetailScreen now supports TV seasons and episodes with:

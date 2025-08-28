@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lets_stream/src/features/home/application/home_notifier.dart';
 import 'package:lets_stream/src/shared/widgets/media_carousel.dart';
+import 'package:lets_stream/src/shared/widgets/app_logo.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -13,7 +14,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Let\'s Stream'),
+        title: const AppLogo(showText: true, size: 32),
         centerTitle: true,
         actions: [
           IconButton(
