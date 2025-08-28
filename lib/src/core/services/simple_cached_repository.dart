@@ -9,6 +9,7 @@ import 'package:lets_stream/src/core/models/episode.dart';
 import 'package:lets_stream/src/core/services/simple_cache_service.dart';
 import 'package:logger/logger.dart';
 import 'dart:io';
+import 'dart:convert';
 
 class SimpleCachedRepository {
   final TmdbApi _api = TmdbApi.instance;
@@ -419,5 +420,182 @@ class SimpleCachedRepository {
   /// Get cache statistics
   Future<Map<String, int>> getCacheStats() async {
     return await _cache.getCacheStats();
+  }
+
+  // GENRES
+  Future<Map<int, String>> getMovieGenres({bool forceRefresh = false}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cacheKey = 'movie_genres';
+      
+      // Check cache first (unless force refresh)
+      if (!forceRefresh) {
+        final cached = _cache.getCachedString(cacheKey, prefs);
+        if (cached != null) {
+          _logger.d('Retrieved movie genres from cache');
+          // Parse the cached JSON string back to Map
+          final List<dynamic> list = json.decode(cached);
+          return {for (var item in list) item['id'] as int: item['name'] as String};
+        }
+      }
+
+      // Check network connectivity
+      final isOnline = await _isOnline;
+      if (!isOnline) {
+        // Return cached data even if expired when offline
+        final cached = _cache.getCachedString(cacheKey, prefs);
+        if (cached != null) {
+          _logger.w('Offline: Using cached data for movie genres');
+          final List<dynamic> list = json.decode(cached);
+          return {for (var item in list) item['id'] as int: item['name'] as String};
+        } else {
+          throw Exception('No network connection and no cached data available');
+        }
+      }
+
+      // Fetch from API
+      final result = await _api.getMovieGenres();
+      
+      // Cache the result as JSON string
+      final jsonString = json.encode(
+        result.entries
+            .map((entry) => {'id': entry.key, 'name': entry.value})
+            .toList(),
+      );
+      await _cache.cacheString(
+        key: cacheKey,
+        value: jsonString,
+        ttl: _longCacheDuration,
+      );
+
+      return result;
+    } catch (e) {
+      _logger.e('Error in getMovieGenres: $e');
+      
+      // Try to return cached data as fallback
+      final prefs = await SharedPreferences.getInstance();
+      final cacheKey = 'movie_genres';
+      final cached = _cache.getCachedString(cacheKey, prefs);
+      if (cached != null) {
+        _logger.w('API failed: Using cached data for movie genres');
+        final List<dynamic> list = json.decode(cached);
+        return {for (var item in list) item['id'] as int: item['name'] as String};
+      }
+      
+      rethrow;
+    }
+  }
+
+  Future<Map<int, String>> getTvGenres({bool forceRefresh = false}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cacheKey = 'tv_genres';
+      
+      // Check cache first (unless force refresh)
+      if (!forceRefresh) {
+        final cached = _cache.getCachedString(cacheKey, prefs);
+        if (cached != null) {
+          _logger.d('Retrieved TV genres from cache');
+          // Parse the cached JSON string back to Map
+          final List<dynamic> list = json.decode(cached);
+          return {for (var item in list) item['id'] as int: item['name'] as String};
+        }
+      }
+
+      // Check network connectivity
+      final isOnline = await _isOnline;
+      if (!isOnline) {
+        // Return cached data even if expired when offline
+        final cached = _cache.getCachedString(cacheKey, prefs);
+        if (cached != null) {
+          _logger.w('Offline: Using cached data for TV genres');
+          final List<dynamic> list = json.decode(cached);
+          return {for (var item in list) item['id'] as int: item['name'] as String};
+        } else {
+          throw Exception('No network connection and no cached data available');
+        }
+      }
+
+      // Fetch from API
+      final result = await _api.getTvGenres();
+      
+      // Cache the result as JSON string
+      final jsonString = json.encode(
+        result.entries
+            .map((entry) => {'id': entry.key, 'name': entry.value})
+            .toList(),
+      );
+      await _cache.cacheString(
+        key: cacheKey,
+        value: jsonString,
+        ttl: _longCacheDuration,
+      );
+
+      return result;
+    } catch (e) {
+      _logger.e('Error in getTvGenres: $e');
+      
+      // Try to return cached data as fallback
+      final prefs = await SharedPreferences.getInstance();
+      final cacheKey = 'tv_genres';
+      final cached = _cache.getCachedString(cacheKey, prefs);
+      if (cached != null) {
+        _logger.w('API failed: Using cached data for TV genres');
+        final List<dynamic> list = json.decode(cached);
+        return {for (var item in list) item['id'] as int: item['name'] as String};
+      }
+      
+      rethrow;
+    }
+  }
+
+  // MOVIE GENRE-SPECIFIC FEEDS
+  Future<List<Movie>> getTrendingMoviesByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+    // Fetch all trending movies and filter by genre
+    final allTrending = await getTrendingMovies(page: page, forceRefresh: forceRefresh);
+    return allTrending.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+  }
+
+  Future<List<Movie>> getNowPlayingMoviesByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+    // Fetch all now playing movies and filter by genre
+    final allNowPlaying = await getNowPlayingMovies(page: page, forceRefresh: forceRefresh);
+    return allNowPlaying.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+  }
+
+  Future<List<Movie>> getPopularMoviesByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+    // Fetch all popular movies and filter by genre
+    final allPopular = await getPopularMovies(page: page, forceRefresh: forceRefresh);
+    return allPopular.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+  }
+
+  Future<List<Movie>> getTopRatedMoviesByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+    // Fetch all top rated movies and filter by genre
+    final allTopRated = await getTopRatedMovies(page: page, forceRefresh: forceRefresh);
+    return allTopRated.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+  }
+
+  // TV GENRE-SPECIFIC FEEDS
+  Future<List<TvShow>> getTrendingTvByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+    // Fetch all trending TV shows and filter by genre
+    final allTrending = await getTrendingTvShows(page: page, forceRefresh: forceRefresh);
+    return allTrending.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+  }
+
+  Future<List<TvShow>> getAiringTodayTvByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+    // Fetch all airing today TV shows and filter by genre
+    final allAiringToday = await getAiringTodayTvShows(page: page, forceRefresh: forceRefresh);
+    return allAiringToday.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+  }
+
+  Future<List<TvShow>> getPopularTvByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+    // Fetch all popular TV shows and filter by genre
+    final allPopular = await getPopularTvShows(page: page, forceRefresh: forceRefresh);
+    return allPopular.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+  }
+
+  Future<List<TvShow>> getTopRatedTvByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+    // Fetch all top rated TV shows and filter by genre
+    final allTopRated = await getTopRatedTvShows(page: page, forceRefresh: forceRefresh);
+    return allTopRated.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
   }
 }

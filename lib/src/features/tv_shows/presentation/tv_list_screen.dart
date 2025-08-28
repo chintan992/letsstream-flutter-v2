@@ -10,8 +10,10 @@ import 'package:lets_stream/src/shared/widgets/empty_state.dart';
 
 class TvListScreen extends ConsumerStatefulWidget {
   final String feed; // trending | airing_today | popular | top_rated
+  final int? genreId;
+  final String? genreName;
 
-  const TvListScreen({super.key, required this.feed});
+  const TvListScreen({super.key, required this.feed, this.genreId, this.genreName});
 
   @override
   ConsumerState<TvListScreen> createState() => _TvListScreenState();
@@ -41,22 +43,45 @@ class _TvListScreenState extends ConsumerState<TvListScreen> {
   Future<void> _load() async {
     final repo = ref.read(tmdbRepositoryProvider);
     List<TvShow> pageItems;
-    switch (widget.feed) {
-      case 'trending':
-        pageItems = await repo.getTrendingTvShows(page: _page);
-        break;
-      case 'airing_today':
-        pageItems = await repo.getAiringTodayTvShows(page: _page);
-        break;
-      case 'popular':
-        pageItems = await repo.getPopularTvShows(page: _page);
-        break;
-      case 'top_rated':
-        pageItems = await repo.getTopRatedTvShows(page: _page);
-        break;
-      default:
-        pageItems = await repo.getTrendingTvShows(page: _page);
+    
+    if (widget.genreId != null) {
+      // Fetch TV shows by genre
+      switch (widget.feed) {
+        case 'trending':
+          pageItems = await repo.getTrendingTvByGenre(widget.genreId!, page: _page);
+          break;
+        case 'airing_today':
+          pageItems = await repo.getAiringTodayTvByGenre(widget.genreId!, page: _page);
+          break;
+        case 'popular':
+          pageItems = await repo.getPopularTvByGenre(widget.genreId!, page: _page);
+          break;
+        case 'top_rated':
+          pageItems = await repo.getTopRatedTvByGenre(widget.genreId!, page: _page);
+          break;
+        default:
+          pageItems = await repo.getTrendingTvByGenre(widget.genreId!, page: _page);
+      }
+    } else {
+      // Fetch TV shows by feed
+      switch (widget.feed) {
+        case 'trending':
+          pageItems = await repo.getTrendingTvShows(page: _page);
+          break;
+        case 'airing_today':
+          pageItems = await repo.getAiringTodayTvShows(page: _page);
+          break;
+        case 'popular':
+          pageItems = await repo.getPopularTvShows(page: _page);
+          break;
+        case 'top_rated':
+          pageItems = await repo.getTopRatedTvShows(page: _page);
+          break;
+        default:
+          pageItems = await repo.getTrendingTvShows(page: _page);
+      }
     }
+    
     setState(() {
       _items.addAll(pageItems);
       _hasMore = pageItems.isNotEmpty;
@@ -75,7 +100,9 @@ class _TvListScreenState extends ConsumerState<TvListScreen> {
   @override
   Widget build(BuildContext context) {
     final imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
-    final title = _titleForFeed(widget.feed);
+    final title = widget.genreName != null 
+        ? '${_titleForFeed(widget.feed)} ${widget.genreName}' 
+        : _titleForFeed(widget.feed);
 
     return Scaffold(
       appBar: AppBar(title: Text(title), centerTitle: true),
@@ -217,13 +244,13 @@ class _TvListScreenState extends ConsumerState<TvListScreen> {
   String _titleForFeed(String feed) {
     switch (feed) {
       case 'trending':
-        return 'Trending TV Shows';
+        return 'Trending';
       case 'airing_today':
         return 'Airing Today';
       case 'popular':
-        return 'Popular TV Shows';
+        return 'Popular';
       case 'top_rated':
-        return 'Top Rated TV Shows';
+        return 'Top Rated';
       default:
         return 'TV Shows';
     }

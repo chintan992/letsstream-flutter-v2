@@ -366,4 +366,30 @@ class TmdbApi {
       rethrow;
     }
   }
+
+  Future<Map<int, String>> getMovieGenres() async {
+    try {
+      final response = await _get('/genre/movie/list');
+      final genres = (response.data['genres'] as List?) ?? [];
+      return {
+        for (var genre in genres) 
+          genre['id'] as int: genre['name'] as String
+      };
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<int, String>> getTvGenres() async {
+    try {
+      final response = await _get('/genre/tv/list');
+      final genres = (response.data['genres'] as List?) ?? [];
+      return {
+        for (var genre in genres) 
+          genre['id'] as int: genre['name'] as String
+      };
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

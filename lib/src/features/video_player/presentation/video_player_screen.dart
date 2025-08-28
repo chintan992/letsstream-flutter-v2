@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lets_stream/src/features/video_player/application/video_player_notifier.dart';
-import 'package:webview_flutter/webview_flutter.dart' as webview_flutter;
 
 class VideoPlayerScreen extends ConsumerStatefulWidget {
   final int tmdbId;
@@ -27,30 +27,10 @@ class VideoPlayerScreen extends ConsumerStatefulWidget {
 class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   bool _showControls = true;
   Timer? _hideControlsTimer;
-  late final webview_flutter.WebViewController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = webview_flutter.WebViewController()
-      ..setJavaScriptMode(webview_flutter.JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        webview_flutter.NavigationDelegate(
-          onNavigationRequest: (webview_flutter.NavigationRequest request) {
-            final state = ref.read(videoPlayerNotifierProvider((
-              mediaId: widget.tmdbId,
-              mediaType: widget.isMovie ? 'movie' : 'tv',
-              seasonNumber: widget.season,
-              episodeNumber: widget.episode,
-            )));
-
-            if (state.sources.any((s) => Uri.parse(request.url).host.contains(Uri.parse(s.movieUrlPattern).host))) {
-              return webview_flutter.NavigationDecision.navigate;
-            }
-            return webview_flutter.NavigationDecision.prevent;
-          },
-        ),
-      );
     _startHideControlsTimer();
   }
 
@@ -91,10 +71,6 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
     final state = ref.watch(provider);
     final notifier = ref.read(provider.notifier);
 
-    if (state.videoUrl != null && _controller.platform.toString().isNotEmpty) {
-      _controller.loadRequest(Uri.parse(state.videoUrl!));
-    }
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
@@ -106,10 +82,55 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
             else if (state.errorMessage != null)
               Center(child: Text(state.errorMessage!, style: const TextStyle(color: Colors.white)))
             else if (state.videoUrl != null)
-              AnimatedOpacity(
-                opacity: state.isSwitchingSource ? 0.5 : 1.0,
-                duration: const Duration(milliseconds: 300),
-                child: webview_flutter.WebViewWidget(controller: _controller),
+              InAppWebView(
+                key: ValueKey(state.videoUrl), // Add a key to force rebuild when URL changes
+                initialUrlRequest: URLRequest(url: WebUri(state.videoUrl!)),
+                initialSettings: InAppWebViewSettings(
+                  allowsPictureInPictureMediaPlayback: true,
+                  useShouldOverrideUrlLoading: true,
+                  domStorageEnabled: true,
+                  javaScriptEnabled: true,
+                  useWideViewPort: true,
+                  loadWithOverviewMode: true,
+                ),
+                shouldOverrideUrlLoading: (controller, navigationAction) async {
+                  final url = navigationAction.request.url.toString();
+                  //print('Navigation attempt to: $url');
+                  
+                  // Check if the URL is from any of our video sources
+                  final isAllowed = state.sources.any((source) {
+                    try {
+                      final movieHost = Uri.parse(source.movieUrlPattern).host;
+                      final tvHost = Uri.parse(source.tvUrlPattern).host;
+                      final urlUri = Uri.parse(url);
+                      final urlHost = urlUri.host;
+                      
+                      // Check if the URL host matches either the movie or TV host from the source
+                      final isAllowedHost = urlHost.contains(movieHost) || urlHost.contains(tvHost) || 
+                                          movieHost.contains(urlHost) || tvHost.contains(urlHost);
+                      
+                      //print('Checking source: ${source.name}, movieHost: $movieHost, tvHost: $tvHost, urlHost: $urlHost, isAllowed: $isAllowedHost');
+                      return isAllowedHost;
+                    } catch (e) {
+                      //('Error parsing URL for source ${source.name}: $e');
+                      return false;
+                    }
+                  });
+                  
+                  if (isAllowed) {
+                    //print('Allowing navigation to: $url');
+                    return NavigationActionPolicy.ALLOW;
+                  } else {
+                    //print('Blocking navigation to: $url');
+                    return NavigationActionPolicy.CANCEL;
+                  }
+                },
+                onLoadStart: (controller, url) {
+                  // Handle loading start if needed
+                },
+                onLoadStop: (controller, url) {
+                  // Handle loading stop if needed
+                },
               )
             else
               const Center(child: Text('No video URL found', style: TextStyle(color: Colors.white))),
@@ -153,9 +174,20 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                               ),
                             ),
                           const SizedBox(width: 10),
+                          IconButton(
+                            icon: const Icon(Icons.picture_in_picture_alt, color: Colors.white),
+                            onPressed: () {
+                              // Picture-in-Picture is handled automatically by the WebView
+                              // when allowsPictureInPictureMediaPlayback is set to true
+                              // No explicit action needed here
+                            },
+                          ),
+                          const SizedBox(width: 10),
                           PopupMenuButton<String>(
                             onSelected: (String newKey) {
+                              //print('Selected source with key: $newKey');
                               final newSource = state.sources.firstWhere((s) => s.key == newKey);
+                              //('Found source: ${newSource.name}');
                               notifier.selectSource(newSource);
                               _startHideControlsTimer();
                             },

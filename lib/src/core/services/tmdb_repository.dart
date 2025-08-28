@@ -75,6 +75,51 @@ class TmdbRepository {
     }
   }
 
+  Future<List<Movie>> getTrendingMoviesByGenre(int genreId, {int page = 1}) async {
+    try {
+      _logger.i('Fetching trending movies by genre $genreId (page $page)');
+      final result = await _api.getTrendingMovies(page: page);
+      // Filter by genre on client side since TMDB doesn't support genre filtering for trending
+      return result.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+    } catch (e) {
+      _logger.e('Error fetching trending movies by genre: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Movie>> getNowPlayingMoviesByGenre(int genreId, {int page = 1}) async {
+    try {
+      _logger.i('Fetching now playing movies by genre $genreId (page $page)');
+      final result = await _api.getNowPlayingMovies(page: page);
+      return result.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+    } catch (e) {
+      _logger.e('Error fetching now playing movies by genre: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Movie>> getPopularMoviesByGenre(int genreId, {int page = 1}) async {
+    try {
+      _logger.i('Fetching popular movies by genre $genreId (page $page)');
+      final result = await _api.getPopularMovies(page: page);
+      return result.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+    } catch (e) {
+      _logger.e('Error fetching popular movies by genre: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Movie>> getTopRatedMoviesByGenre(int genreId, {int page = 1}) async {
+    try {
+      _logger.i('Fetching top rated movies by genre $genreId (page $page)');
+      final result = await _api.getTopRatedMovies(page: page);
+      return result.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+    } catch (e) {
+      _logger.e('Error fetching top rated movies by genre: $e');
+      rethrow;
+    }
+  }
+
   Future<List<Movie>> getMoviesByGenres(List<int> genreIds, {int page = 1}) async {
     try {
       _logger.i('Fetching movies by genres ${genreIds.join(',')} (page $page)');
@@ -147,6 +192,51 @@ class TmdbRepository {
       return result;
     } catch (e) {
       _logger.e('Error fetching TV by genre: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<TvShow>> getTrendingTvByGenre(int genreId, {int page = 1}) async {
+    try {
+      _logger.i('Fetching trending TV by genre $genreId (page $page)');
+      final result = await _api.getTrendingTvShows(page: page);
+      // Filter by genre on client side since TMDB doesn't support genre filtering for trending
+      return result.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+    } catch (e) {
+      _logger.e('Error fetching trending TV by genre: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<TvShow>> getAiringTodayTvByGenre(int genreId, {int page = 1}) async {
+    try {
+      _logger.i('Fetching airing today TV by genre $genreId (page $page)');
+      final result = await _api.getAiringTodayTvShows(page: page);
+      return result.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+    } catch (e) {
+      _logger.e('Error fetching airing today TV by genre: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<TvShow>> getPopularTvByGenre(int genreId, {int page = 1}) async {
+    try {
+      _logger.i('Fetching popular TV by genre $genreId (page $page)');
+      final result = await _api.getPopularTvShows(page: page);
+      return result.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+    } catch (e) {
+      _logger.e('Error fetching popular TV by genre: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<TvShow>> getTopRatedTvByGenre(int genreId, {int page = 1}) async {
+    try {
+      _logger.i('Fetching top rated TV by genre $genreId (page $page)');
+      final result = await _api.getTopRatedTvShows(page: page);
+      return result.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+    } catch (e) {
+      _logger.e('Error fetching top rated TV by genre: $e');
       rethrow;
     }
   }
@@ -308,6 +398,30 @@ class TmdbRepository {
       return result;
     } catch (e) {
       _logger.e('Error fetching season episodes: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<int, String>> getMovieGenres() async {
+    try {
+      _logger.i('Fetching movie genres');
+      final result = await _api.getMovieGenres();
+      _logger.i('Fetched ${result.length} movie genres');
+      return result;
+    } catch (e) {
+      _logger.e('Error fetching movie genres: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<int, String>> getTvGenres() async {
+    try {
+      _logger.i('Fetching TV genres');
+      final result = await _api.getTvGenres();
+      _logger.i('Fetched ${result.length} TV genres');
+      return result;
+    } catch (e) {
+      _logger.e('Error fetching TV genres: $e');
       rethrow;
     }
   }

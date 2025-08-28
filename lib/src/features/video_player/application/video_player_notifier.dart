@@ -9,25 +9,33 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
   final int mediaId;
   final String mediaType;
 
-  VideoPlayerNotifier(this._ref, {
+  VideoPlayerNotifier(
+    this._ref, {
     required this.mediaId,
     required this.mediaType,
     int? seasonNumber,
     int? episodeNumber,
-  }) : super(VideoPlayerState(
-          seasonNumber: seasonNumber,
-          episodeNumber: episodeNumber,
-        )) {
+  }) : super(
+         VideoPlayerState(
+           seasonNumber: seasonNumber,
+           episodeNumber: episodeNumber,
+         ),
+       ) {
     getSources();
   }
 
   Future<void> getSources() async {
     try {
       state = state.copyWith(isLoading: true);
-      final sources = await _ref.read(videoSourcesRepositoryProvider).getVideoSources();
-      
+      final sources = await _ref
+          .read(videoSourcesRepositoryProvider)
+          .getVideoSources();
+
       if (mediaType == 'tv' && state.seasonNumber != null) {
-        final seasonDetails = await TmdbApi.instance.getSeasonDetails(mediaId, state.seasonNumber!);
+        final seasonDetails = await TmdbApi.instance.getSeasonDetails(
+          mediaId,
+          state.seasonNumber!,
+        );
         state = state.copyWith(totalEpisodes: seasonDetails.episodes.length);
       }
 
@@ -44,15 +52,18 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
 
   void selectSource(VideoSource source) {
     state = state.copyWith(isSwitchingSource: true);
-    Future.delayed(const Duration(milliseconds: 500), () {
-      state = state.copyWith(selectedSource: source, isSwitchingSource: false);
-      _updateVideoUrl();
-    });
+    // Immediately update the selected source and video URL
+    state = state.copyWith(selectedSource: source, isSwitchingSource: false);
+    _updateVideoUrl();
   }
 
   void nextEpisode() {
-    if (state.episodeNumber != null && state.episodeNumber! < state.totalEpisodes) {
-      state = state.copyWith(episodeNumber: state.episodeNumber! + 1, isSwitchingSource: true);
+    if (state.episodeNumber != null &&
+        state.episodeNumber! < state.totalEpisodes) {
+      state = state.copyWith(
+        episodeNumber: state.episodeNumber! + 1,
+        isSwitchingSource: true,
+      );
       Future.delayed(const Duration(milliseconds: 500), () {
         state = state.copyWith(isSwitchingSource: false);
         _updateVideoUrl();
@@ -62,7 +73,10 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
 
   void previousEpisode() {
     if (state.episodeNumber != null && state.episodeNumber! > 1) {
-      state = state.copyWith(episodeNumber: state.episodeNumber! - 1, isSwitchingSource: true);
+      state = state.copyWith(
+        episodeNumber: state.episodeNumber! - 1,
+        isSwitchingSource: true,
+      );
       Future.delayed(const Duration(milliseconds: 500), () {
         state = state.copyWith(isSwitchingSource: false);
         _updateVideoUrl();
@@ -74,28 +88,34 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
     if (state.selectedSource != null) {
       String url;
       if (mediaType == 'movie') {
-        url = state.selectedSource!.movieUrlPattern
-            .replaceAll('{id}', mediaId.toString());
+        url = state.selectedSource!.movieUrlPattern.replaceAll(
+          '{id}',
+          mediaId.toString(),
+        );
       } else {
         url = state.selectedSource!.tvUrlPattern
             .replaceAll('{id}', mediaId.toString())
             .replaceAll('{season}', state.seasonNumber.toString())
             .replaceAll('{episode}', state.episodeNumber.toString());
       }
+      // Add some debugging information
+      // sprint('Updating video URL to: $url');
       state = state.copyWith(videoUrl: url);
     }
   }
 }
 
-final videoPlayerNotifierProvider = StateNotifierProvider.autoDispose.family<
-    VideoPlayerNotifier,
-    VideoPlayerState,
-    ({int mediaId, String mediaType, int? seasonNumber, int? episodeNumber})>(
-  (ref, params) => VideoPlayerNotifier(
-    ref,
-    mediaId: params.mediaId,
-    mediaType: params.mediaType,
-    seasonNumber: params.seasonNumber,
-    episodeNumber: params.episodeNumber,
-  ),
-);
+final videoPlayerNotifierProvider = StateNotifierProvider.autoDispose
+    .family<
+      VideoPlayerNotifier,
+      VideoPlayerState,
+      ({int mediaId, String mediaType, int? seasonNumber, int? episodeNumber})
+    >(
+      (ref, params) => VideoPlayerNotifier(
+        ref,
+        mediaId: params.mediaId,
+        mediaType: params.mediaType,
+        seasonNumber: params.seasonNumber,
+        episodeNumber: params.episodeNumber,
+      ),
+    );
