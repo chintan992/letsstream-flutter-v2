@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/application/auth_providers.dart';
+import 'package:lets_stream/src/shared/widgets/app_logo.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -97,10 +98,10 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const Divider(),
           const _SectionHeader('About'),
-          const ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text("Let's Stream"),
-            subtitle: Text('A media discovery app built with Flutter'),
+          ListTile(
+            leading: const AppLogo(size: 24),
+            title: const Text("Let's Stream"),
+            subtitle: const Text('A media discovery app built with Flutter'),
           ),
         ],
       ),

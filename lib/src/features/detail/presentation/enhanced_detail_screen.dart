@@ -21,7 +21,8 @@ class EnhancedDetailScreen extends ConsumerStatefulWidget {
   const EnhancedDetailScreen({super.key, required this.item});
 
   @override
-  ConsumerState<EnhancedDetailScreen> createState() => _EnhancedDetailScreenState();
+  ConsumerState<EnhancedDetailScreen> createState() =>
+      _EnhancedDetailScreenState();
 }
 
 class _SeasonEpisodesView extends ConsumerStatefulWidget {
@@ -34,7 +35,8 @@ class _SeasonEpisodesView extends ConsumerStatefulWidget {
     required this.initialSeason,
   });
   @override
-  ConsumerState<_SeasonEpisodesView> createState() => _SeasonEpisodesViewState();
+  ConsumerState<_SeasonEpisodesView> createState() =>
+      _SeasonEpisodesViewState();
 }
 
 class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
@@ -94,9 +96,9 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
             const SizedBox(width: 12),
             Text(
               'Episodes',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -111,17 +113,16 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
               final season = widget.seasons[index];
               final isSelected = season.seasonNumber == _seasonNumber;
               return Padding(
-                padding: EdgeInsets.only(
-                  right: 8,
-                  left: index == 0 ? 0 : 0,
-                ),
+                padding: EdgeInsets.only(right: 8, left: index == 0 ? 0 : 0),
                 child: FilterChip(
                   label: Text(
-                    season.name.isNotEmpty 
-                        ? season.name 
+                    season.name.isNotEmpty
+                        ? season.name
                         : 'Season ${season.seasonNumber}',
-                    style: isSelected 
-                        ? TextStyle(color: Theme.of(context).colorScheme.onPrimary)
+                    style: isSelected
+                        ? TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          )
                         : null,
                   ),
                   selected: isSelected,
@@ -179,7 +180,9 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
             ),
             child: Text(
               'Failed to load episodes: $_error',
-              style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
             ),
           )
         else if ((_episodes?.isEmpty ?? true))
@@ -191,7 +194,9 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
             ),
             child: Text(
               'No episodes available',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           )
         else
@@ -205,7 +210,7 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
               final thumb = ep.stillPath != null && ep.stillPath!.isNotEmpty
                   ? '$imageBaseUrl/w300${ep.stillPath}'
                   : null;
-              
+
               return Card(
                 margin: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(
@@ -234,19 +239,31 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
                           child: Container(
                             width: 120,
                             height: 68,
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             child: thumb != null
                                 ? Image.network(
                                     thumb,
                                     width: 120,
                                     height: 68,
                                     fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return const ShimmerBox(width: 120, height: 68);
-                                    },
-                                    errorBuilder: (context, error, stackTrace) => 
-                                        const Icon(Icons.broken_image_outlined, size: 24),
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                          if (loadingProgress == null) {
+                                            return child;
+                                          }
+                                          return const ShimmerBox(
+                                            width: 120,
+                                            height: 68,
+                                          );
+                                        },
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(
+                                              Icons.broken_image_outlined,
+                                              size: 24,
+                                            ),
                                   )
                                 : const Icon(Icons.movie_outlined, size: 24),
                           ),
@@ -266,13 +283,17 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.primaryContainer,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primaryContainer,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
                                       '${ep.episodeNumber}',
                                       style: TextStyle(
-                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimaryContainer,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12,
                                       ),
@@ -282,7 +303,10 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
                                   Expanded(
                                     child: Text(
                                       ep.name,
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
                                             fontWeight: FontWeight.w600,
                                           ),
                                       maxLines: 1,
@@ -295,9 +319,16 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
                               // Episode air date
                               if (ep.airDate != null) ...[
                                 Text(
-                                  ep.airDate!.toLocal().toIso8601String().split('T').first,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ep.airDate!
+                                      .toLocal()
+                                      .toIso8601String()
+                                      .split('T')
+                                      .first,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                       ),
                                 ),
                                 const SizedBox(height: 4),
@@ -314,19 +345,25 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
                                     const SizedBox(width: 4),
                                     Text(
                                       ep.voteAverage.toStringAsFixed(1),
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
                               ],
                               // Episode overview
-                              if (ep.overview != null && ep.overview!.isNotEmpty) ...[
+                              if (ep.overview != null &&
+                                  ep.overview!.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Text(
                                   ep.overview!,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                         height: 1.4,
                                       ),
                                   maxLines: 2,
@@ -367,7 +404,7 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
       vsync: this,
     );
     _scrollController = ScrollController();
-    
+
     // Start animations
     _backgroundController.forward();
     Future.delayed(const Duration(milliseconds: 200), () {
@@ -461,8 +498,13 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                             height: double.infinity,
                           ),
                           errorWidget: (context, url, error) => Container(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                            child: const Icon(Icons.broken_image_outlined, size: 50),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            child: const Icon(
+                              Icons.broken_image_outlined,
+                              size: 50,
+                            ),
                           ),
                         ),
                       ),
@@ -499,17 +541,14 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
               ),
             ),
           ),
-          
+
           // Content
           SliverToBoxAdapter(
             child: AnimatedBuilder(
               animation: _contentController,
               builder: (context, child) => Transform.translate(
                 offset: Offset(0, 20 * (1 - _contentController.value)),
-                child: Opacity(
-                  opacity: _contentController.value,
-                  child: child,
-                ),
+                child: Opacity(opacity: _contentController.value, child: child),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -532,20 +571,22 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                                 child: CachedNetworkImage(
                                   imageUrl: fullPosterUrl,
                                   fit: BoxFit.cover,
-                                  placeholder: (context, url) => const ShimmerBox(
-                                    width: 120,
-                                    height: 180,
-                                  ),
-                                  errorWidget: (context, url, error) => Container(
-                                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                    child: const Icon(Icons.broken_image_outlined),
-                                  ),
+                                  placeholder: (context, url) =>
+                                      const ShimmerBox(width: 120, height: 180),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.surfaceContainerHighest,
+                                        child: const Icon(
+                                          Icons.broken_image_outlined,
+                                        ),
+                                      ),
                                 ),
                               ),
                             ),
                           ),
                         const SizedBox(width: 16),
-                        
                         // Title and metadata
                         Expanded(
                           child: Column(
@@ -553,43 +594,105 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                             children: [
                               Text(
                                 title,
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                               if (subtitle.isNotEmpty) ...[
                                 const SizedBox(height: 8),
                                 Text(
                                   subtitle,
-                                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
+                                  style: Theme.of(context).textTheme.bodyLarge
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
                                 ),
                               ],
                               const SizedBox(height: 12),
-                              
+                              // Watch Now button
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.play_circle_fill),
+                                label: const Text('Watch Now'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primary,
+                                  foregroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
+                                  textStyle: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  if (widget.item is Movie) {
+                                    context.pushNamed(
+                                      'watch-movie',
+                                      pathParameters: {'id': id.toString()},
+                                    );
+                                  } else if (widget.item is TvShow) {
+                                    // Default to first season/episode
+                                    context.pushNamed(
+                                      'watch-tv',
+                                      pathParameters: {
+                                        'id': id.toString(),
+                                        'season': '1',
+                                        'ep': '1',
+                                      },
+                                    );
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 12),
                               // Rating with animated stars
                               Row(
                                 children: [
                                   ...List.generate(5, (index) {
-                                    final filled = index < (voteAverage / 2).floor();
+                                    final filled =
+                                        index < (voteAverage / 2).floor();
                                     return AnimatedContainer(
-                                      duration: Duration(milliseconds: 200 + (index * 100)),
-                                      child: Icon(
-                                        filled ? Icons.star : Icons.star_outline,
-                                        color: filled ? Colors.amber : Colors.grey,
-                                        size: 20,
-                                      ),
-                                    ).animate(delay: Duration(milliseconds: 100 * index))
-                                      .scale(begin: const Offset(0, 0), duration: const Duration(milliseconds: 200))
-                                      .fadeIn();
+                                          duration: Duration(
+                                            milliseconds: 200 + (index * 100),
+                                          ),
+                                          child: Icon(
+                                            filled
+                                                ? Icons.star
+                                                : Icons.star_outline,
+                                            color: filled
+                                                ? Colors.amber
+                                                : Colors.grey,
+                                            size: 20,
+                                          ),
+                                        )
+                                        .animate(
+                                          delay: Duration(
+                                            milliseconds: 100 * index,
+                                          ),
+                                        )
+                                        .scale(
+                                          begin: const Offset(0, 0),
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
+                                        )
+                                        .fadeIn();
                                   }),
                                   const SizedBox(width: 8),
                                   Text(
                                     voteAverage.toStringAsFixed(1),
-                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(fontWeight: FontWeight.w500),
                                   ),
                                 ],
                               ),
@@ -598,33 +701,33 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Overview
                     _buildSection(
                       context,
                       'Overview',
                       Text(
                         overview,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          height: 1.6,
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.copyWith(height: 1.6),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Enhanced Trailers Section
                     _buildTrailersSection(context, repo, id),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Enhanced Cast Section
                     _buildCastSection(context, repo, id),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Seasons & Episodes (TV only)
                     if (widget.item is TvShow) ...[
                       _buildSeasonsSection(context, id),
@@ -633,7 +736,7 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
 
                     // Enhanced Similar Section
                     _buildSimilarSection(context, repo, id),
-                    
+
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -652,16 +755,18 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Row(
-            children: List.generate(3, (i) => const ShimmerBox(width: 100, height: 32))
-                .animate()
-                .fadeIn(),
+            children: List.generate(
+              3,
+              (i) => const ShimmerBox(width: 100, height: 32),
+            ).animate().fadeIn(),
           );
         }
         if (snapshot.hasError || (snapshot.data?.isEmpty ?? true)) {
           return const SizedBox.shrink();
         }
         final seasons = snapshot.data!;
-        int selectedSeason = seasons.last.seasonNumber; // default to latest season
+        int selectedSeason =
+            seasons.last.seasonNumber; // default to latest season
         return _SeasonEpisodesView(
           tvId: tvId,
           seasons: seasons,
@@ -677,9 +782,9 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         content,
@@ -701,9 +806,9 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             const SizedBox(width: 8),
             Text(
               'Trailers & Videos',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -714,8 +819,8 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             future: widget.item is Movie
                 ? repo.getMovieVideos(id)
                 : widget.item is TvShow
-                    ? repo.getTvVideos(id)
-                    : Future.value(const []),
+                ? repo.getTvVideos(id)
+                : Future.value(const []),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return ListView.builder(
@@ -731,7 +836,7 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                   ),
                 );
               }
-              
+
               if (snapshot.hasError) {
                 return Center(
                   child: Column(
@@ -753,11 +858,11 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                   ),
                 );
               }
-              
+
               final videos = (snapshot.data ?? const <Video>[])
                   .where((v) => v.site.toLowerCase() == 'youtube')
                   .toList();
-              
+
               if (videos.isEmpty) {
                 return Center(
                   child: Column(
@@ -779,7 +884,7 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                   ),
                 );
               }
-              
+
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: videos.length,
@@ -789,7 +894,10 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                     padding: const EdgeInsets.only(right: 12),
                     child: _buildTrailerCard(context, video)
                         .animate(delay: Duration(milliseconds: 100 * index))
-                        .slideX(begin: 0.2, duration: const Duration(milliseconds: 300))
+                        .slideX(
+                          begin: 0.2,
+                          duration: const Duration(milliseconds: 300),
+                        )
                         .fadeIn(),
                   );
                 },
@@ -802,8 +910,9 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
   }
 
   Widget _buildTrailerCard(BuildContext context, Video video) {
-    final thumbUrl = 'https://img.youtube.com/vi/${video.key}/maxresdefault.jpg';
-    
+    final thumbUrl =
+        'https://img.youtube.com/vi/${video.key}/maxresdefault.jpg';
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -836,14 +945,14 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                       width: 200,
                       height: 112,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => const ShimmerBox(
-                        width: 200,
-                        height: 112,
-                      ),
+                      placeholder: (context, url) =>
+                          const ShimmerBox(width: 200, height: 112),
                       errorWidget: (context, url, error) => Container(
                         width: 200,
                         height: 112,
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         child: const Icon(Icons.broken_image_outlined),
                       ),
                     ),
@@ -880,9 +989,9 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                   video.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 ),
               ),
             ],
@@ -906,9 +1015,9 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             const SizedBox(width: 8),
             Text(
               'Top Billed Cast',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -919,8 +1028,8 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             future: widget.item is Movie
                 ? repo.getMovieCast(id)
                 : widget.item is TvShow
-                    ? repo.getTvCast(id)
-                    : Future.value(const []),
+                ? repo.getTvCast(id)
+                : Future.value(const []),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return ListView.builder(
@@ -944,16 +1053,16 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                   ),
                 );
               }
-              
+
               if (snapshot.hasError) {
                 return const Center(child: Text('Failed to load cast'));
               }
-              
+
               final cast = snapshot.data ?? const <CastMember>[];
               if (cast.isEmpty) {
                 return const Center(child: Text('No cast available'));
               }
-              
+
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: cast.length,
@@ -963,7 +1072,10 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                     padding: const EdgeInsets.only(right: 12),
                     child: _buildCastCard(context, member)
                         .animate(delay: Duration(milliseconds: 100 * index))
-                        .slideY(begin: 0.2, duration: const Duration(milliseconds: 300))
+                        .slideY(
+                          begin: 0.2,
+                          duration: const Duration(milliseconds: 300),
+                        )
                         .fadeIn(),
                   );
                 },
@@ -977,7 +1089,8 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
 
   Widget _buildCastCard(BuildContext context, CastMember member) {
     final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
-    final imageUrl = (member.profilePath != null && member.profilePath!.isNotEmpty)
+    final imageUrl =
+        (member.profilePath != null && member.profilePath!.isNotEmpty)
         ? '$imageBaseUrl/w185${member.profilePath}'
         : null;
 
@@ -998,7 +1111,9 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             ),
             child: CircleAvatar(
               radius: 40,
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
               backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
               child: imageUrl == null
                   ? Icon(
@@ -1015,9 +1130,9 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 4),
           if (member.character != null && member.character!.isNotEmpty)
@@ -1049,9 +1164,9 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             const SizedBox(width: 8),
             Text(
               'More Like This',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -1062,8 +1177,8 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             future: widget.item is Movie
                 ? repo.getSimilarMovies(id)
                 : widget.item is TvShow
-                    ? repo.getSimilarTvShows(id)
-                    : Future.value(const []),
+                ? repo.getSimilarTvShows(id)
+                : Future.value(const []),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return ListView.builder(
@@ -1079,16 +1194,18 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                   ),
                 );
               }
-              
+
               if (snapshot.hasError) {
-                return const Center(child: Text('Failed to load similar content'));
+                return const Center(
+                  child: Text('Failed to load similar content'),
+                );
               }
-              
+
               final items = snapshot.data ?? const [];
               if (items.isEmpty) {
                 return const Center(child: Text('No similar titles available'));
               }
-              
+
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: items.length,
@@ -1098,7 +1215,10 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
                     padding: const EdgeInsets.only(right: 12),
                     child: _buildSimilarCard(context, item)
                         .animate(delay: Duration(milliseconds: 100 * index))
-                        .slideX(begin: 0.2, duration: const Duration(milliseconds: 300))
+                        .slideX(
+                          begin: 0.2,
+                          duration: const Duration(milliseconds: 300),
+                        )
                         .fadeIn(),
                   );
                 },
@@ -1120,9 +1240,10 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
                   EnhancedDetailScreen(item: item),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
               transitionDuration: const Duration(milliseconds: 300),
             ),
           );
@@ -1137,9 +1258,10 @@ class _EnhancedDetailScreenState extends ConsumerState<EnhancedDetailScreen>
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
                   EnhancedDetailScreen(item: item),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
               transitionDuration: const Duration(milliseconds: 300),
             ),
           );

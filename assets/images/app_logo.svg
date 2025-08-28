@@ -1,0 +1,25 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" rx="224" fill="#1a1a1a"/>
+  <g transform="translate(180, 180)">
+    <!-- Play button base -->
+    <rect x="0" y="0" width="280" height="280" rx="24" fill="#6200ee"/>
+    
+    <!-- Play arrow -->
+    <path d="M110 80 L110 200 L190 140 Z" fill="white"/>
+    
+    <!-- Streaming waves -->
+    <rect x="220" y="30" width="40" height="40" rx="4" fill="#6200ee" opacity="0.3"/>
+    <rect x="240" y="80" width="40" height="40" rx="4" fill="#6200ee" opacity="0.2"/>
+    <rect x="260" y="130" width="40" height="40" rx="4" fill="#6200ee" opacity="0.1"/>
+    
+    <!-- Dots for media types -->
+    <circle cx="40" cy="220" r="12" fill="#4caf50"/>
+    <circle cx="80" cy="220" r="12" fill="#ff9800"/>
+    <circle cx="120" cy="220" r="12" fill="#f44336"/>
+  </g>
+  
+  <!-- App name -->
+  <text x="512" y="850" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="120" font-weight="bold" fill="#ffffff">
+    Let's Stream
+  </text>
+</svg>

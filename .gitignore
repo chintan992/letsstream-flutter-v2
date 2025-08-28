@@ -47,3 +47,19 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# bmad files
+.bmad-core
+.claude
+.clinerules
+.crush
+.cursor
+.gemini
+.qwen
+.trae
+.vscode
+.windsurf
+docs
+web-bundles
+web
+.github
