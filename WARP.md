@@ -163,12 +163,14 @@ flutter:
 
 ## Ongoing Implementation Log
 
-  - 2025-08-27: **FEATURE - Video Player UX Enhancements**
-    - Added a back button to the video player screen for easier navigation.
-    - Implemented next/previous episode navigation controls for TV shows, allowing users to switch episodes without leaving the player.
-    - Updated the video player's state management to track the current episode and total number of episodes in a season.
-    - Refined the UI to conditionally display episode navigation only for TV shows.
-    - Fixed all analysis warnings related to the changes.
+  - 2025-08-27: **FEATURE - Video Player UX Enhancements & Full Playback Integration**
+    - **Video Playback**: Implemented an iframe-based video player to stream movies and TV shows, using a webview secured to only allow video content URLs.
+    - **Dynamic Source Switching**: Integrated a custom API to fetch a list of 20+ video sources. A dropdown menu allows users to switch between sources, which auto-hides after 5 seconds.
+    - **UX Enhancements**:
+        - Added a back button for easier navigation out of the player.
+        - Implemented next/previous episode controls for TV shows, enabling seamless binge-watching.
+    - **State Management**: Updated the video player's state to track the current episode, total episodes, and selected video source.
+    - **Code Quality**: Fixed all analysis warnings related to the new implementations.
 
 [Feature Request: Video Playback Integration]
 
