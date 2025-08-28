@@ -168,33 +168,33 @@ final _router = GoRouter(
             );
           },
         ),
-        // Video player route (movie)
-        GoRoute(
-          path: '/watch/movie/:id',
-          name: 'watch-movie',
-          builder: (context, state) {
-            final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
-            return VideoPlayerScreen(tmdbId: id, isMovie: true);
-          },
-        ),
-        // Video player route (tv episode)
-        GoRoute(
-          path: '/watch/tv/:id/season/:season/episode/:ep',
-          name: 'watch-tv',
-          builder: (context, state) {
-            final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
-            final season =
-                int.tryParse(state.pathParameters['season'] ?? '1') ?? 1;
-            final ep = int.tryParse(state.pathParameters['ep'] ?? '1') ?? 1;
-            return VideoPlayerScreen(
-              tmdbId: id,
-              isMovie: false,
-              season: season,
-              episode: ep,
-            );
-          },
-        ),
       ],
+    ),
+    // Video player route (movie) - TOP LEVEL
+    GoRoute(
+      path: '/watch/movie/:id',
+      name: 'watch-movie',
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+        return VideoPlayerScreen(tmdbId: id, isMovie: true);
+      },
+    ),
+    // Video player route (tv episode) - TOP LEVEL
+    GoRoute(
+      path: '/watch/tv/:id/season/:season/episode/:ep',
+      name: 'watch-tv',
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+        final season =
+            int.tryParse(state.pathParameters['season'] ?? '1') ?? 1;
+        final ep = int.tryParse(state.pathParameters['ep'] ?? '1') ?? 1;
+        return VideoPlayerScreen(
+          tmdbId: id,
+          isMovie: false,
+          season: season,
+          episode: ep,
+        );
+      },
     ),
   ],
 );
