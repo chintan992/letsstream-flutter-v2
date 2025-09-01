@@ -13,8 +13,11 @@ class SeasonsAndEpisodesSection extends ConsumerStatefulWidget {
   final int tvId;
   final List<SeasonSummary> seasons;
 
-  const SeasonsAndEpisodesSection(
-      {super.key, required this.tvId, required this.seasons});
+  const SeasonsAndEpisodesSection({
+    super.key,
+    required this.tvId,
+    required this.seasons,
+  });
 
   @override
   ConsumerState<SeasonsAndEpisodesSection> createState() =>
@@ -28,16 +31,20 @@ class _SeasonsAndEpisodesSectionState
   @override
   void initState() {
     super.initState();
-    _selectedSeason = widget.seasons.last.seasonNumber;
+    _selectedSeason = widget.seasons.isNotEmpty
+        ? widget.seasons.last.seasonNumber
+        : 1;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final episodesState = ref.watch(seasonEpisodesNotifierProvider((
-      tvId: widget.tvId,
-      seasonNumber: _selectedSeason,
-    )));
+    final episodesState = ref.watch(
+      seasonEpisodesNotifierProvider((
+        tvId: widget.tvId,
+        seasonNumber: _selectedSeason,
+      )),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,7 +75,9 @@ class _SeasonsAndEpisodesSectionState
         const SizedBox(width: 12),
         Text(
           'Episodes',
-          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -91,9 +100,7 @@ class _SeasonsAndEpisodesSectionState
                     ? season.name
                     : 'Season ${season.seasonNumber}',
                 style: isSelected
-                    ? TextStyle(
-                        color: theme.colorScheme.onPrimary,
-                      )
+                    ? TextStyle(color: theme.colorScheme.onPrimary)
                     : null,
               ),
               selected: isSelected,
@@ -113,7 +120,10 @@ class _SeasonsAndEpisodesSectionState
   }
 
   Widget _buildEpisodesList(
-      BuildContext context, ThemeData theme, SeasonEpisodesState state) {
+    BuildContext context,
+    ThemeData theme,
+    SeasonEpisodesState state,
+  ) {
     if (state.isLoading) {
       return _buildLoadingEpisodes();
     }
@@ -179,9 +189,7 @@ class _SeasonsAndEpisodesSectionState
       ),
       child: Text(
         'Failed to load episodes: $error',
-        style: TextStyle(
-          color: theme.colorScheme.onErrorContainer,
-        ),
+        style: TextStyle(color: theme.colorScheme.onErrorContainer),
       ),
     );
   }
@@ -195,15 +203,16 @@ class _SeasonsAndEpisodesSectionState
       ),
       child: Text(
         'No episodes available',
-        style: TextStyle(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
       ),
     );
   }
 
   Widget _buildEpisodeCard(
-      BuildContext context, ThemeData theme, EpisodeSummary ep) {
+    BuildContext context,
+    ThemeData theme,
+    EpisodeSummary ep,
+  ) {
     final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
     final thumb = ep.stillPath != null && ep.stillPath!.isNotEmpty
         ? '$imageBaseUrl/w300${ep.stillPath}'
@@ -217,9 +226,7 @@ class _SeasonsAndEpisodesSectionState
 
     return Card(
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
@@ -286,8 +293,9 @@ class _SeasonsAndEpisodesSectionState
                         Expanded(
                           child: Text(
                             ep.name,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -297,7 +305,11 @@ class _SeasonsAndEpisodesSectionState
                     const SizedBox(height: 4),
                     if (ep.airDate != null) ...[
                       Text(
-                        ep.airDate!.toLocal().toIso8601String().split('T').first,
+                        ep.airDate!
+                            .toLocal()
+                            .toIso8601String()
+                            .split('T')
+                            .first,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),

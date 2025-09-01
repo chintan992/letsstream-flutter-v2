@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'src/shared/theme/app_theme.dart';
+import 'src/shared/theme/theme_providers.dart';
 import 'src/features/home/presentation/home_screen.dart';
 import 'src/features/detail/presentation/enhanced_detail_screen.dart';
 import 'src/features/movies/presentation/movies_list_screen.dart';
@@ -38,12 +38,12 @@ class LetsStreamApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentTheme = ref.watch(currentThemeProvider);
+
     return MaterialApp.router(
       title: 'Let\'s Stream',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark, // Default to dark mode
+      theme: currentTheme,
       routerConfig: _router,
     );
   }
