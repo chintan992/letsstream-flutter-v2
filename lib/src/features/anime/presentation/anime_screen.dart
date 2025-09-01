@@ -40,12 +40,19 @@ class _AnimeScreenState extends ConsumerState<AnimeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Popular Anime Movies', style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                'Popular Anime Movies',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               const SizedBox(height: 8),
               _HorizontalList<Movie>(
                 future: _moviesFuture,
                 buildUrl: (m) => '$imageBaseUrl/w500${m.posterPath}',
-                onTap: (m) => context.pushNamed('movie-detail', pathParameters: {'id': m.id.toString()}, extra: m),
+                onTap: (m) => context.pushNamed(
+                  'movie-detail',
+                  pathParameters: {'id': m.id.toString()},
+                  extra: m,
+                ),
               ),
               Align(
                 alignment: Alignment.centerRight,
@@ -53,7 +60,11 @@ class _AnimeScreenState extends ConsumerState<AnimeScreen> {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const MoviesGenreListScreen(genreId: 16, genreName: 'Anime Movies'),
+                        builder: (_) => const MoviesGenreListScreen(
+                          genreId: 16,
+                          genreName: 'Anime Movies',
+                          feed: 'popular',
+                        ),
                       ),
                     );
                   },
@@ -61,12 +72,19 @@ class _AnimeScreenState extends ConsumerState<AnimeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              Text('Popular Anime TV', style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                'Popular Anime TV',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               const SizedBox(height: 8),
               _HorizontalList<TvShow>(
                 future: _tvFuture,
                 buildUrl: (t) => '$imageBaseUrl/w500${t.posterPath}',
-                onTap: (t) => context.pushNamed('tv-detail', pathParameters: {'id': t.id.toString()}, extra: t),
+                onTap: (t) => context.pushNamed(
+                  'tv-detail',
+                  pathParameters: {'id': t.id.toString()},
+                  extra: t,
+                ),
               ),
               Align(
                 alignment: Alignment.centerRight,
@@ -74,7 +92,10 @@ class _AnimeScreenState extends ConsumerState<AnimeScreen> {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const TvGenreListScreen(genreId: 16, genreName: 'Anime TV'),
+                        builder: (_) => const TvGenreListScreen(
+                          genreId: 16,
+                          genreName: 'Anime TV',
+                        ),
                       ),
                     );
                   },
@@ -94,7 +115,11 @@ class _HorizontalList<T> extends StatelessWidget {
   final String? Function(T) buildUrl;
   final void Function(T) onTap;
 
-  const _HorizontalList({required this.future, required this.buildUrl, required this.onTap});
+  const _HorizontalList({
+    required this.future,
+    required this.buildUrl,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -128,24 +153,32 @@ class _HorizontalList<T> extends StatelessWidget {
                           width: 120,
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                           ),
                           errorWidget: (context, url, error) => Container(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             child: const Icon(Icons.error),
                           ),
                         )
                       : Container(
                           width: 120,
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                          child: const Center(child: Icon(Icons.image_not_supported_outlined)),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          child: const Center(
+                            child: Icon(Icons.image_not_supported_outlined),
+                          ),
                         ),
                 ),
               );
-          },
-          separatorBuilder: (context, index) => const SizedBox(width: 12),
-          itemCount: items.length,
-        );
+            },
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            itemCount: items.length,
+          );
         },
       ),
     );

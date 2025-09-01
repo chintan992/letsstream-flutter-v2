@@ -32,7 +32,7 @@ class AppTheme {
       onSurfaceVariant: _darkTextSecondary,
     ),
     scaffoldBackgroundColor: _darkBackground,
-    
+
     // AppBar Theme
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
@@ -44,7 +44,7 @@ class AppTheme {
         color: _darkTextPrimary,
       ),
     ),
-    
+
     // Navigation Bar Theme
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: _darkSurface,
@@ -59,7 +59,7 @@ class AppTheme {
         return const IconThemeData(color: _darkTextSecondary);
       }),
     ),
-    
+
     // Elevated Button Theme
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -67,12 +67,10 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 4,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     ),
-    
+
     // Text Theme
     textTheme: const TextTheme(
       displayLarge: TextStyle(
@@ -105,21 +103,15 @@ class AppTheme {
         fontWeight: FontWeight.w600,
         color: _darkTextPrimary,
       ),
-      bodyLarge: TextStyle(
-        fontSize: 16,
-        color: _darkTextPrimary,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: 14,
-        color: _darkTextSecondary,
-      ),
+      bodyLarge: TextStyle(fontSize: 16, color: _darkTextPrimary),
+      bodyMedium: TextStyle(fontSize: 14, color: _darkTextSecondary),
       labelLarge: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: _darkTextPrimary,
       ),
     ),
-    
+
     // Input Decoration Theme
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -127,7 +119,7 @@ class AppTheme {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -144,11 +136,27 @@ class AppTheme {
       labelStyle: const TextStyle(color: _darkTextSecondary),
       hintStyle: TextStyle(color: _darkTextSecondary.withValues(alpha: 0.6)),
     ),
-    
+
     // Divider Theme
     dividerTheme: DividerThemeData(
       color: Colors.white.withValues(alpha: 0.1),
       thickness: 1,
+    ),
+
+    // Card Theme
+    cardTheme: CardThemeData(
+      elevation: 2,
+      color: _darkSurface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+
+    // TabBar Theme
+    tabBarTheme: const TabBarThemeData(
+      labelColor: _primaryColor,
+      unselectedLabelColor: _darkTextSecondary,
+      indicator: UnderlineTabIndicator(
+        borderSide: BorderSide(color: _primaryColor, width: 2),
+      ),
     ),
   );
 
@@ -166,7 +174,7 @@ class AppTheme {
       onSurfaceVariant: _lightTextSecondary,
     ),
     scaffoldBackgroundColor: _lightBackground,
-    
+
     // AppBar Theme
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
@@ -179,7 +187,7 @@ class AppTheme {
         color: _lightTextPrimary,
       ),
     ),
-    
+
     // Navigation Bar Theme
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: _lightSurface,
@@ -194,7 +202,7 @@ class AppTheme {
         return const IconThemeData(color: _lightTextSecondary);
       }),
     ),
-    
+
     // Elevated Button Theme
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -202,12 +210,10 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 2,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     ),
-    
+
     // Text Theme
     textTheme: const TextTheme(
       displayLarge: TextStyle(
@@ -240,21 +246,15 @@ class AppTheme {
         fontWeight: FontWeight.w600,
         color: _lightTextPrimary,
       ),
-      bodyLarge: TextStyle(
-        fontSize: 16,
-        color: _lightTextPrimary,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: 14,
-        color: _lightTextSecondary,
-      ),
+      bodyLarge: TextStyle(fontSize: 16, color: _lightTextPrimary),
+      bodyMedium: TextStyle(fontSize: 14, color: _lightTextSecondary),
       labelLarge: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: _lightTextPrimary,
       ),
     ),
-    
+
     // Input Decoration Theme
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -262,7 +262,7 @@ class AppTheme {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -279,11 +279,24 @@ class AppTheme {
       labelStyle: const TextStyle(color: _lightTextSecondary),
       hintStyle: TextStyle(color: _lightTextSecondary.withValues(alpha: 0.6)),
     ),
-    
+
     // Divider Theme
-    dividerTheme: DividerThemeData(
-      color: Colors.grey.shade300,
-      thickness: 1,
+    dividerTheme: DividerThemeData(color: Colors.grey.shade300, thickness: 1),
+
+    // Card Theme
+    cardTheme: CardThemeData(
+      elevation: 2,
+      color: _lightSurface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+
+    // TabBar Theme
+    tabBarTheme: const TabBarThemeData(
+      labelColor: _primaryColor,
+      unselectedLabelColor: _lightTextSecondary,
+      indicator: UnderlineTabIndicator(
+        borderSide: BorderSide(color: _primaryColor, width: 2),
+      ),
     ),
   );
 }
