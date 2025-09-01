@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
+import 'package:lets_stream/src/shared/widgets/optimized_image.dart';
 import 'package:lets_stream/src/shared/theme/tokens.dart';
 
 class MediaCard extends StatelessWidget {
@@ -18,27 +16,13 @@ class MediaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
-    final String? fullImageUrl =
-        (imagePath != null && imagePath!.isNotEmpty) ? '$imageBaseUrl/w500$imagePath' : null;
-
-    Widget imageWidget;
-    if (fullImageUrl != null) {
-      imageWidget = CachedNetworkImage(
-        imageUrl: fullImageUrl,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => const ShimmerBox(width: double.infinity, height: double.infinity),
-        errorWidget: (context, url, error) => Container(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: const Icon(Icons.error),
-        ),
-      );
-    } else {
-      imageWidget = Container(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: const Center(child: Icon(Icons.image_not_supported_outlined)),
-      );
-    }
+    final imageWidget = OptimizedImage(
+      imagePath: imagePath,
+      size: ImageSize.large,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+    );
 
     return Semantics(
       label: title,
