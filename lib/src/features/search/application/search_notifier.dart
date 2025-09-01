@@ -38,11 +38,25 @@ class SearchNotifier extends StateNotifier<SearchState> {
     }
 
     if (savedQuery.isEmpty) {
-      state = state.copyWith(query: '', filter: savedFilter, items: const [], page: 1, hasMore: false, error: null);
+      state = state.copyWith(
+        query: '',
+        filter: savedFilter,
+        items: const [],
+        page: 1,
+        hasMore: false,
+        error: null,
+      );
       return savedQuery;
     }
 
-    state = state.copyWith(query: savedQuery, filter: savedFilter, page: 1, items: const [], hasMore: false, error: null);
+    state = state.copyWith(
+      query: savedQuery,
+      filter: savedFilter,
+      page: 1,
+      items: const [],
+      hasMore: false,
+      error: null,
+    );
     // Trigger initial search without debounce
     await _search(page: 1, append: false);
     return savedQuery;
@@ -68,7 +82,13 @@ class SearchNotifier extends StateNotifier<SearchState> {
     }
 
     // Optimistically set the query immediately
-    state = state.copyWith(query: q, page: 1, items: const [], hasMore: false, error: null);
+    state = state.copyWith(
+      query: q,
+      page: 1,
+      items: const [],
+      hasMore: false,
+      error: null,
+    );
 
     _debounce = Timer(kSearchDebounce, () {
       _search(page: 1, append: false);
@@ -86,8 +106,42 @@ class SearchNotifier extends StateNotifier<SearchState> {
     _persistState();
   }
 
+  void setAdvancedFilters(SearchFilters filters) {
+    state = state.copyWith(advancedFilters: filters);
+    _persistState();
+  }
+
+  void updateGenreFilter(List<int> genres) {
+    final newFilters = state.advancedFilters.copyWith(genres: genres);
+    setAdvancedFilters(newFilters);
+  }
+
+  void updateYearFilter(int? year) {
+    final newFilters = state.advancedFilters.copyWith(releaseYear: year);
+    setAdvancedFilters(newFilters);
+  }
+
+  void updateRatingFilter(double? rating) {
+    final newFilters = state.advancedFilters.copyWith(minRating: rating);
+    setAdvancedFilters(newFilters);
+  }
+
+  void updateSortBy(SortBy sortBy) {
+    final newFilters = state.advancedFilters.copyWith(sortBy: sortBy);
+    setAdvancedFilters(newFilters);
+  }
+
+  void clearAdvancedFilters() {
+    setAdvancedFilters(state.advancedFilters.clear());
+  }
+
   Future<void> fetchNextPage() async {
-    if (state.isLoading || state.isLoadingMore || !state.hasMore || state.query.isEmpty) return;
+    if (state.isLoading ||
+        state.isLoadingMore ||
+        !state.hasMore ||
+        state.query.isEmpty) {
+      return;
+    }
     await _search(page: state.page + 1, append: true);
   }
 
@@ -105,17 +159,34 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
     try {
       final repo = ref.read(tmdbRepositoryProvider);
-      // Fetch movies and TV in parallel
+
+      // Use advanced filters if available
+      final apiParams = state.advancedFilters.toApiParams();
+
+      // Fetch movies and TV in parallel with filters
       final results = await Future.wait<List<dynamic>>([
-        repo.searchMovies(query, page: page),
-        repo.searchTvShows(query, page: page),
+        if (state.filter == SearchFilter.all ||
+            state.filter == SearchFilter.movies)
+          repo.searchMovies(query, page: page, additionalParams: apiParams),
+        if (state.filter == SearchFilter.all || state.filter == SearchFilter.tv)
+          repo.searchTvShows(query, page: page, additionalParams: apiParams),
       ]);
 
       // If another request began after this one, ignore these results
       if (currentRequest != _requestId) return;
 
-      final movies = (results[0] as List<Movie>);
-      final tvs = (results[1] as List<TvShow>);
+      List<Movie> movies = [];
+      List<TvShow> tvs = [];
+
+      if (state.filter == SearchFilter.all) {
+        movies = results[0] as List<Movie>;
+        tvs = results[1] as List<TvShow>;
+      } else if (state.filter == SearchFilter.movies) {
+        movies = results[0] as List<Movie>;
+      } else if (state.filter == SearchFilter.tv) {
+        tvs = results[0] as List<TvShow>;
+      }
+
       final merged = state.mergedSorted(movies, tvs);
 
       final newItems = append ? [...state.items, ...merged] : merged;
@@ -143,6 +214,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
   }
 }
 
-final searchNotifierProvider = StateNotifierProvider<SearchNotifier, SearchState>((ref) {
-  return SearchNotifier(ref);
-});
+final searchNotifierProvider =
+    StateNotifierProvider<SearchNotifier, SearchState>((ref) {
+      return SearchNotifier(ref);
+    });

@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lets_stream/src/core/models/movie.dart';
 import 'package:lets_stream/src/core/models/tv_show.dart';
 import 'package:lets_stream/src/core/services/tmdb_repository_provider.dart';
@@ -35,18 +37,21 @@ class HomeNotifier extends StateNotifier<AsyncValue<HomeState>> {
         maxConcurrent: 3,
       );
 
-      state = AsyncValue.data(
-        HomeState(
-          trendingMovies: results[0] as List<Movie>,
-          nowPlayingMovies: results[1] as List<Movie>,
-          popularMovies: results[2] as List<Movie>,
-          topRatedMovies: results[3] as List<Movie>,
-          trendingTvShows: results[4] as List<TvShow>,
-          airingTodayTvShows: results[5] as List<TvShow>,
-          popularTvShows: results[6] as List<TvShow>,
-          topRatedTvShows: results[7] as List<TvShow>,
-        ),
+      final homeState = HomeState(
+        trendingMovies: results[0] as List<Movie>,
+        nowPlayingMovies: results[1] as List<Movie>,
+        popularMovies: results[2] as List<Movie>,
+        topRatedMovies: results[3] as List<Movie>,
+        trendingTvShows: results[4] as List<TvShow>,
+        airingTodayTvShows: results[5] as List<TvShow>,
+        popularTvShows: results[6] as List<TvShow>,
+        topRatedTvShows: results[7] as List<TvShow>,
       );
+
+      // Preload images for the first few items in each carousel for better performance
+      _preloadImages(homeState);
+
+      state = AsyncValue.data(homeState);
     } catch (e, s) {
       state = AsyncValue.error(e, s);
     }
@@ -88,6 +93,75 @@ class HomeNotifier extends StateNotifier<AsyncValue<HomeState>> {
     }
 
     return results;
+  }
+
+  /// Preload images for the first few items in each carousel to improve perceived performance
+  void _preloadImages(HomeState homeState) {
+    final imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
+    if (imageBaseUrl.isEmpty) return;
+
+    // Collect poster paths from the first 3 items of each carousel
+    final posterPaths = <String>[];
+
+    // Movies
+    posterPaths.addAll(
+      homeState.trendingMovies
+          .take(3)
+          .map((m) => m.posterPath)
+          .whereType<String>(),
+    );
+    posterPaths.addAll(
+      homeState.nowPlayingMovies
+          .take(3)
+          .map((m) => m.posterPath)
+          .whereType<String>(),
+    );
+    posterPaths.addAll(
+      homeState.popularMovies
+          .take(3)
+          .map((m) => m.posterPath)
+          .whereType<String>(),
+    );
+    posterPaths.addAll(
+      homeState.topRatedMovies
+          .take(3)
+          .map((m) => m.posterPath)
+          .whereType<String>(),
+    );
+
+    // TV Shows
+    posterPaths.addAll(
+      homeState.trendingTvShows
+          .take(3)
+          .map((tv) => tv.posterPath)
+          .whereType<String>(),
+    );
+    posterPaths.addAll(
+      homeState.airingTodayTvShows
+          .take(3)
+          .map((tv) => tv.posterPath)
+          .whereType<String>(),
+    );
+    posterPaths.addAll(
+      homeState.popularTvShows
+          .take(3)
+          .map((tv) => tv.posterPath)
+          .whereType<String>(),
+    );
+    posterPaths.addAll(
+      homeState.topRatedTvShows
+          .take(3)
+          .map((tv) => tv.posterPath)
+          .whereType<String>(),
+    );
+
+    // Preload images using CachedNetworkImage's provider
+    for (final posterPath in posterPaths.toSet()) {
+      // Use Set to avoid duplicates
+      final imageUrl = '$imageBaseUrl/w500$posterPath';
+      // Create CachedNetworkImageProvider to preload and cache images
+      CachedNetworkImageProvider(imageUrl);
+    }
   }
 }
 

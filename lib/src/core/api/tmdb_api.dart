@@ -400,12 +400,18 @@ class TmdbApi {
   }
 
   // Search
-  Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
+  Future<List<Movie>> searchMovies(
+    String query, {
+    int page = 1,
+    Map<String, dynamic>? additionalParams,
+  }) async {
     try {
-      final response = await _get(
-        '/search/movie',
-        query: {'query': query, 'page': page},
-      );
+      final queryParams = <String, dynamic>{'query': query, 'page': page};
+      if (additionalParams != null) {
+        queryParams.addAll(additionalParams);
+      }
+
+      final response = await _get('/search/movie', query: queryParams);
       final tmdbResponse = TmdbResponse.fromJson(
         response.data as Map<String, dynamic>,
         (json) => Movie.fromJson(json),
@@ -416,12 +422,18 @@ class TmdbApi {
     }
   }
 
-  Future<List<TvShow>> searchTvShows(String query, {int page = 1}) async {
+  Future<List<TvShow>> searchTvShows(
+    String query, {
+    int page = 1,
+    Map<String, dynamic>? additionalParams,
+  }) async {
     try {
-      final response = await _get(
-        '/search/tv',
-        query: {'query': query, 'page': page},
-      );
+      final queryParams = <String, dynamic>{'query': query, 'page': page};
+      if (additionalParams != null) {
+        queryParams.addAll(additionalParams);
+      }
+
+      final response = await _get('/search/tv', query: queryParams);
       final tmdbResponse = TmdbResponse.fromJson(
         response.data as Map<String, dynamic>,
         (json) => TvShow.fromJson(json),

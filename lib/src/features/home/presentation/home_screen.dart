@@ -63,13 +63,78 @@ class HomeScreen extends ConsumerWidget {
     String title = 'Could not load content';
     String message = 'An unexpected error occurred. Please try again.';
     IconData icon = Icons.cloud_off_rounded;
+    List<Widget> additionalActions = [];
 
     if (error is ApiError) {
       title = _getErrorTitle(error);
       message = error.userFriendlyMessage;
       icon = _getErrorIcon(error);
+
+      // Add specific actions based on error type
+      error.maybeWhen(
+        network: (message, statusCode, details) {
+          additionalActions.add(
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  // Could implement connectivity check here
+                  ref.read(homeNotifierProvider.notifier).fetchData();
+                },
+                icon: const Icon(Icons.wifi),
+                label: const Text('Check Connection'),
+              ),
+            ),
+          );
+        },
+        offline: (message, details) {
+          additionalActions.add(
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  // Could implement connectivity check here
+                  ref.read(homeNotifierProvider.notifier).fetchData();
+                },
+                icon: const Icon(Icons.wifi),
+                label: const Text('Check Connection'),
+              ),
+            ),
+          );
+        },
+        rateLimit: (message, retryAfter, details) {
+          additionalActions.add(
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                'Please wait a moment before trying again',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        },
+        timeout: (message, details) {
+          additionalActions.add(
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  ref.read(homeNotifierProvider.notifier).fetchData();
+                },
+                icon: const Icon(Icons.timer),
+                label: const Text('Retry Now'),
+              ),
+            ),
+          );
+        },
+        orElse: () {}, // No additional actions for other error types
+      );
     } else {
-      message = error.toString();
+      message =
+          'Something went wrong. Please check your connection and try again.';
     }
 
     return Center(
@@ -78,25 +143,42 @@ class HomeScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: theme.colorScheme.secondary),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 48, color: theme.colorScheme.secondary),
+            ),
             const SizedBox(height: 24),
             Text(
               title,
-              style: theme.textTheme.headlineSmall,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               message,
               style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () =>
-                  ref.read(homeNotifierProvider.notifier).fetchData(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+            const SizedBox(height: 32),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FilledButton.icon(
+                  onPressed: () =>
+                      ref.read(homeNotifierProvider.notifier).fetchData(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try Again'),
+                ),
+                ...additionalActions,
+              ],
             ),
           ],
         ),

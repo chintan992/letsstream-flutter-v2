@@ -40,7 +40,7 @@ class SimpleCachedRepository {
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
         final cached = _cache.getCachedMoviesSync(cacheKey, prefs);
@@ -65,7 +65,7 @@ class SimpleCachedRepository {
 
       // Fetch from API
       final result = await apiCall();
-      
+
       // Cache the result
       await _cache.cacheMovies(
         key: cacheKey,
@@ -76,7 +76,7 @@ class SimpleCachedRepository {
       return result;
     } catch (e) {
       _logger.e('Error in _fetchMoviesWithCache for $cacheKey: $e');
-      
+
       // Try to return cached data as fallback
       final prefs = await SharedPreferences.getInstance();
       final cached = _cache.getCachedMoviesSync(cacheKey, prefs);
@@ -84,7 +84,7 @@ class SimpleCachedRepository {
         _logger.w('API failed: Using cached data for $cacheKey');
         return cached;
       }
-      
+
       rethrow;
     }
   }
@@ -98,12 +98,14 @@ class SimpleCachedRepository {
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
         final cached = _cache.getCachedTvShowsSync(cacheKey, prefs);
         if (cached != null) {
-          _logger.d('Retrieved ${cached.length} TV shows from cache: $cacheKey');
+          _logger.d(
+            'Retrieved ${cached.length} TV shows from cache: $cacheKey',
+          );
           return cached;
         }
       }
@@ -123,7 +125,7 @@ class SimpleCachedRepository {
 
       // Fetch from API
       final result = await apiCall();
-      
+
       // Cache the result
       await _cache.cacheTvShows(
         key: cacheKey,
@@ -134,7 +136,7 @@ class SimpleCachedRepository {
       return result;
     } catch (e) {
       _logger.e('Error in _fetchTvShowsWithCache for $cacheKey: $e');
-      
+
       // Try to return cached data as fallback
       final prefs = await SharedPreferences.getInstance();
       final cached = _cache.getCachedTvShowsSync(cacheKey, prefs);
@@ -142,13 +144,16 @@ class SimpleCachedRepository {
         _logger.w('API failed: Using cached data for $cacheKey');
         return cached;
       }
-      
+
       rethrow;
     }
   }
 
   // MOVIES
-  Future<List<Movie>> getTrendingMovies({int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getTrendingMovies({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchMoviesWithCache(
       cacheKey: 'trending_movies_$page',
       apiCall: () => _api.getTrendingMovies(page: page),
@@ -157,7 +162,10 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<Movie>> getNowPlayingMovies({int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getNowPlayingMovies({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchMoviesWithCache(
       cacheKey: 'now_playing_movies_$page',
       apiCall: () => _api.getNowPlayingMovies(page: page),
@@ -166,7 +174,10 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<Movie>> getPopularMovies({int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getPopularMovies({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchMoviesWithCache(
       cacheKey: 'popular_movies_$page',
       apiCall: () => _api.getPopularMovies(page: page),
@@ -175,7 +186,10 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<Movie>> getTopRatedMovies({int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getTopRatedMovies({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchMoviesWithCache(
       cacheKey: 'top_rated_movies_$page',
       apiCall: () => _api.getTopRatedMovies(page: page),
@@ -184,7 +198,11 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<Movie>> getMoviesByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getMoviesByGenre(
+    int genreId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchMoviesWithCache(
       cacheKey: 'movies_genre_${genreId}_$page',
       apiCall: () => _api.getMoviesByGenre(genreId, page: page),
@@ -193,7 +211,11 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<Movie>> getMoviesByGenres(List<int> genreIds, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getMoviesByGenres(
+    List<int> genreIds, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     final genreKey = genreIds.join(',');
     return _fetchMoviesWithCache(
       cacheKey: 'movies_genres_${genreKey}_$page',
@@ -203,7 +225,11 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<Movie>> getMovies({required String feed, int page = 1, bool forceRefresh = false}) {
+  Future<List<Movie>> getMovies({
+    required String feed,
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
     switch (feed) {
       case 'trending':
         return getTrendingMovies(page: page, forceRefresh: forceRefresh);
@@ -219,7 +245,10 @@ class SimpleCachedRepository {
   }
 
   // TV SHOWS
-  Future<List<TvShow>> getTrendingTvShows({int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getTrendingTvShows({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchTvShowsWithCache(
       cacheKey: 'trending_tv_$page',
       apiCall: () => _api.getTrendingTvShows(page: page),
@@ -228,7 +257,10 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<TvShow>> getAiringTodayTvShows({int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getAiringTodayTvShows({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchTvShowsWithCache(
       cacheKey: 'airing_today_tv_$page',
       apiCall: () => _api.getAiringTodayTvShows(page: page),
@@ -237,7 +269,10 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<TvShow>> getPopularTvShows({int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getPopularTvShows({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchTvShowsWithCache(
       cacheKey: 'popular_tv_$page',
       apiCall: () => _api.getPopularTvShows(page: page),
@@ -246,7 +281,10 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<TvShow>> getTopRatedTvShows({int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getTopRatedTvShows({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchTvShowsWithCache(
       cacheKey: 'top_rated_tv_$page',
       apiCall: () => _api.getTopRatedTvShows(page: page),
@@ -255,7 +293,11 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<TvShow>> getTvByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getTvByGenre(
+    int genreId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchTvShowsWithCache(
       cacheKey: 'tv_genre_${genreId}_$page',
       apiCall: () => _api.getTvByGenre(genreId, page: page),
@@ -264,7 +306,11 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<TvShow>> getTvByGenres(List<int> genreIds, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getTvByGenres(
+    List<int> genreIds, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     final genreKey = genreIds.join(',');
     return _fetchTvShowsWithCache(
       cacheKey: 'tv_genres_${genreKey}_$page',
@@ -275,7 +321,10 @@ class SimpleCachedRepository {
   }
 
   // ANIME
-  Future<List<Movie>> getAnimeMovies({int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getAnimeMovies({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchMoviesWithCache(
       cacheKey: 'anime_movies_$page',
       apiCall: () => _api.getAnimeMovies(page: page),
@@ -284,7 +333,10 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<TvShow>> getAnimeTvShows({int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getAnimeTvShows({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchTvShowsWithCache(
       cacheKey: 'anime_tv_$page',
       apiCall: () => _api.getAnimeTvShows(page: page),
@@ -294,10 +346,18 @@ class SimpleCachedRepository {
   }
 
   // SEARCH (no caching for search results as they're user-specific and dynamic)
-  Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
+  Future<List<Movie>> searchMovies(
+    String query, {
+    int page = 1,
+    Map<String, dynamic>? additionalParams,
+  }) async {
     try {
       _logger.i('Searching movies: "$query" (page $page)');
-      final result = await _api.searchMovies(query, page: page);
+      final result = await _api.searchMovies(
+        query,
+        page: page,
+        additionalParams: additionalParams,
+      );
       _logger.i('Found ${result.length} movies');
       return result;
     } catch (e) {
@@ -306,10 +366,18 @@ class SimpleCachedRepository {
     }
   }
 
-  Future<List<TvShow>> searchTvShows(String query, {int page = 1}) async {
+  Future<List<TvShow>> searchTvShows(
+    String query, {
+    int page = 1,
+    Map<String, dynamic>? additionalParams,
+  }) async {
     try {
       _logger.i('Searching TV shows: "$query" (page $page)');
-      final result = await _api.searchTvShows(query, page: page);
+      final result = await _api.searchTvShows(
+        query,
+        page: page,
+        additionalParams: additionalParams,
+      );
       _logger.i('Found ${result.length} TV shows');
       return result;
     } catch (e) {
@@ -319,7 +387,11 @@ class SimpleCachedRepository {
   }
 
   // SIMILAR (cached with shorter duration as they're content-specific)
-  Future<List<Movie>> getSimilarMovies(int movieId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getSimilarMovies(
+    int movieId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchMoviesWithCache(
       cacheKey: 'similar_movies_${movieId}_$page',
       apiCall: () => _api.getSimilarMovies(movieId, page: page),
@@ -328,7 +400,11 @@ class SimpleCachedRepository {
     );
   }
 
-  Future<List<TvShow>> getSimilarTvShows(int tvId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getSimilarTvShows(
+    int tvId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return _fetchTvShowsWithCache(
       cacheKey: 'similar_tv_${tvId}_$page',
       apiCall: () => _api.getSimilarTvShows(tvId, page: page),
@@ -399,7 +475,10 @@ class SimpleCachedRepository {
     }
   }
 
-  Future<List<EpisodeSummary>> getSeasonEpisodes(int tvId, int seasonNumber) async {
+  Future<List<EpisodeSummary>> getSeasonEpisodes(
+    int tvId,
+    int seasonNumber,
+  ) async {
     try {
       _logger.i('Fetching episodes for TV $tvId season $seasonNumber');
       final result = await _api.getSeasonEpisodes(tvId, seasonNumber);
@@ -442,7 +521,7 @@ class SimpleCachedRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cacheKey = 'movie_genres';
-      
+
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
         final cached = _cache.getCachedString(cacheKey, prefs);
@@ -450,7 +529,9 @@ class SimpleCachedRepository {
           _logger.d('Retrieved movie genres from cache');
           // Parse the cached JSON string back to Map
           final List<dynamic> list = json.decode(cached);
-          return {for (var item in list) item['id'] as int: item['name'] as String};
+          return {
+            for (var item in list) item['id'] as int: item['name'] as String,
+          };
         }
       }
 
@@ -462,7 +543,9 @@ class SimpleCachedRepository {
         if (cached != null) {
           _logger.w('Offline: Using cached data for movie genres');
           final List<dynamic> list = json.decode(cached);
-          return {for (var item in list) item['id'] as int: item['name'] as String};
+          return {
+            for (var item in list) item['id'] as int: item['name'] as String,
+          };
         } else {
           throw Exception('No network connection and no cached data available');
         }
@@ -470,7 +553,7 @@ class SimpleCachedRepository {
 
       // Fetch from API
       final result = await _api.getMovieGenres();
-      
+
       // Cache the result as JSON string
       final jsonString = json.encode(
         result.entries
@@ -486,7 +569,7 @@ class SimpleCachedRepository {
       return result;
     } catch (e) {
       _logger.e('Error in getMovieGenres: $e');
-      
+
       // Try to return cached data as fallback
       final prefs = await SharedPreferences.getInstance();
       final cacheKey = 'movie_genres';
@@ -494,9 +577,11 @@ class SimpleCachedRepository {
       if (cached != null) {
         _logger.w('API failed: Using cached data for movie genres');
         final List<dynamic> list = json.decode(cached);
-        return {for (var item in list) item['id'] as int: item['name'] as String};
+        return {
+          for (var item in list) item['id'] as int: item['name'] as String,
+        };
       }
-      
+
       rethrow;
     }
   }
@@ -505,7 +590,7 @@ class SimpleCachedRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cacheKey = 'tv_genres';
-      
+
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
         final cached = _cache.getCachedString(cacheKey, prefs);
@@ -513,7 +598,9 @@ class SimpleCachedRepository {
           _logger.d('Retrieved TV genres from cache');
           // Parse the cached JSON string back to Map
           final List<dynamic> list = json.decode(cached);
-          return {for (var item in list) item['id'] as int: item['name'] as String};
+          return {
+            for (var item in list) item['id'] as int: item['name'] as String,
+          };
         }
       }
 
@@ -525,7 +612,9 @@ class SimpleCachedRepository {
         if (cached != null) {
           _logger.w('Offline: Using cached data for TV genres');
           final List<dynamic> list = json.decode(cached);
-          return {for (var item in list) item['id'] as int: item['name'] as String};
+          return {
+            for (var item in list) item['id'] as int: item['name'] as String,
+          };
         } else {
           throw Exception('No network connection and no cached data available');
         }
@@ -533,7 +622,7 @@ class SimpleCachedRepository {
 
       // Fetch from API
       final result = await _api.getTvGenres();
-      
+
       // Cache the result as JSON string
       final jsonString = json.encode(
         result.entries
@@ -549,7 +638,7 @@ class SimpleCachedRepository {
       return result;
     } catch (e) {
       _logger.e('Error in getTvGenres: $e');
-      
+
       // Try to return cached data as fallback
       final prefs = await SharedPreferences.getInstance();
       final cacheKey = 'tv_genres';
@@ -557,60 +646,134 @@ class SimpleCachedRepository {
       if (cached != null) {
         _logger.w('API failed: Using cached data for TV genres');
         final List<dynamic> list = json.decode(cached);
-        return {for (var item in list) item['id'] as int: item['name'] as String};
+        return {
+          for (var item in list) item['id'] as int: item['name'] as String,
+        };
       }
-      
+
       rethrow;
     }
   }
 
   // MOVIE GENRE-SPECIFIC FEEDS
-  Future<List<Movie>> getTrendingMoviesByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getTrendingMoviesByGenre(
+    int genreId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     // Fetch all trending movies and filter by genre
-    final allTrending = await getTrendingMovies(page: page, forceRefresh: forceRefresh);
-    return allTrending.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+    final allTrending = await getTrendingMovies(
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+    return allTrending
+        .where((movie) => movie.genreIds?.contains(genreId) ?? false)
+        .toList();
   }
 
-  Future<List<Movie>> getNowPlayingMoviesByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getNowPlayingMoviesByGenre(
+    int genreId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     // Fetch all now playing movies and filter by genre
-    final allNowPlaying = await getNowPlayingMovies(page: page, forceRefresh: forceRefresh);
-    return allNowPlaying.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+    final allNowPlaying = await getNowPlayingMovies(
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+    return allNowPlaying
+        .where((movie) => movie.genreIds?.contains(genreId) ?? false)
+        .toList();
   }
 
-  Future<List<Movie>> getPopularMoviesByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getPopularMoviesByGenre(
+    int genreId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     // Fetch all popular movies and filter by genre
-    final allPopular = await getPopularMovies(page: page, forceRefresh: forceRefresh);
-    return allPopular.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+    final allPopular = await getPopularMovies(
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+    return allPopular
+        .where((movie) => movie.genreIds?.contains(genreId) ?? false)
+        .toList();
   }
 
-  Future<List<Movie>> getTopRatedMoviesByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> getTopRatedMoviesByGenre(
+    int genreId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     // Fetch all top rated movies and filter by genre
-    final allTopRated = await getTopRatedMovies(page: page, forceRefresh: forceRefresh);
-    return allTopRated.where((movie) => movie.genreIds?.contains(genreId) ?? false).toList();
+    final allTopRated = await getTopRatedMovies(
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+    return allTopRated
+        .where((movie) => movie.genreIds?.contains(genreId) ?? false)
+        .toList();
   }
 
   // TV GENRE-SPECIFIC FEEDS
-  Future<List<TvShow>> getTrendingTvByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getTrendingTvByGenre(
+    int genreId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     // Fetch all trending TV shows and filter by genre
-    final allTrending = await getTrendingTvShows(page: page, forceRefresh: forceRefresh);
-    return allTrending.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+    final allTrending = await getTrendingTvShows(
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+    return allTrending
+        .where((tv) => tv.genreIds?.contains(genreId) ?? false)
+        .toList();
   }
 
-  Future<List<TvShow>> getAiringTodayTvByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getAiringTodayTvByGenre(
+    int genreId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     // Fetch all airing today TV shows and filter by genre
-    final allAiringToday = await getAiringTodayTvShows(page: page, forceRefresh: forceRefresh);
-    return allAiringToday.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+    final allAiringToday = await getAiringTodayTvShows(
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+    return allAiringToday
+        .where((tv) => tv.genreIds?.contains(genreId) ?? false)
+        .toList();
   }
 
-  Future<List<TvShow>> getPopularTvByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getPopularTvByGenre(
+    int genreId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     // Fetch all popular TV shows and filter by genre
-    final allPopular = await getPopularTvShows(page: page, forceRefresh: forceRefresh);
-    return allPopular.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+    final allPopular = await getPopularTvShows(
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+    return allPopular
+        .where((tv) => tv.genreIds?.contains(genreId) ?? false)
+        .toList();
   }
 
-  Future<List<TvShow>> getTopRatedTvByGenre(int genreId, {int page = 1, bool forceRefresh = false}) async {
+  Future<List<TvShow>> getTopRatedTvByGenre(
+    int genreId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     // Fetch all top rated TV shows and filter by genre
-    final allTopRated = await getTopRatedTvShows(page: page, forceRefresh: forceRefresh);
-    return allTopRated.where((tv) => tv.genreIds?.contains(genreId) ?? false).toList();
+    final allTopRated = await getTopRatedTvShows(
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+    return allTopRated
+        .where((tv) => tv.genreIds?.contains(genreId) ?? false)
+        .toList();
   }
 }
