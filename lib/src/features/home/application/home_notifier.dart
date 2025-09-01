@@ -17,17 +17,23 @@ class HomeNotifier extends StateNotifier<AsyncValue<HomeState>> {
     try {
       final tmdbRepository = ref.read(tmdbRepositoryProvider);
 
-      // Fetch all data concurrently
-      final results = await Future.wait([
-        tmdbRepository.getTrendingMovies(),
-        tmdbRepository.getNowPlayingMovies(),
-        tmdbRepository.getPopularMovies(),
-        tmdbRepository.getTopRatedMovies(),
-        tmdbRepository.getTrendingTvShows(),
-        tmdbRepository.getAiringTodayTvShows(),
-        tmdbRepository.getPopularTvShows(),
-        tmdbRepository.getTopRatedTvShows(),
-      ]);
+      // Define API calls with controlled concurrency to avoid overwhelming the API
+      final apiCalls = [
+        () => tmdbRepository.getTrendingMovies(),
+        () => tmdbRepository.getNowPlayingMovies(),
+        () => tmdbRepository.getPopularMovies(),
+        () => tmdbRepository.getTopRatedMovies(),
+        () => tmdbRepository.getTrendingTvShows(),
+        () => tmdbRepository.getAiringTodayTvShows(),
+        () => tmdbRepository.getPopularTvShows(),
+        () => tmdbRepository.getTopRatedTvShows(),
+      ];
+
+      // Execute API calls with controlled concurrency (max 3 concurrent requests)
+      final results = await _executeWithConcurrencyLimit(
+        apiCalls,
+        maxConcurrent: 3,
+      );
 
       state = AsyncValue.data(
         HomeState(
@@ -45,9 +51,47 @@ class HomeNotifier extends StateNotifier<AsyncValue<HomeState>> {
       state = AsyncValue.error(e, s);
     }
   }
+
+  /// Execute API calls with controlled concurrency to prevent overwhelming the API
+  Future<List<dynamic>> _executeWithConcurrencyLimit(
+    List<Future<dynamic> Function()> apiCalls, {
+    int maxConcurrent = 3,
+  }) async {
+    final results = <dynamic>[];
+    final semaphore = List.generate(maxConcurrent, (_) => true);
+
+    for (final apiCall in apiCalls) {
+      // Wait for an available slot
+      while (semaphore.where((available) => available).isEmpty) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+
+      // Find and occupy an available slot
+      final slotIndex = semaphore.indexWhere((available) => available);
+      semaphore[slotIndex] = false;
+
+      // Execute the API call
+      apiCall()
+          .then((result) {
+            results.add(result);
+            semaphore[slotIndex] = true; // Free the slot
+          })
+          .catchError((error) {
+            results.add(error);
+            semaphore[slotIndex] = true; // Free the slot even on error
+          });
+    }
+
+    // Wait for all calls to complete
+    while (results.length < apiCalls.length) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    return results;
+  }
 }
 
 final homeNotifierProvider =
     StateNotifierProvider<HomeNotifier, AsyncValue<HomeState>>((ref) {
-  return HomeNotifier(ref);
-});
+      return HomeNotifier(ref);
+    });

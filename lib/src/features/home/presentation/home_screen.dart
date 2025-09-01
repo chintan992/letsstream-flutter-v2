@@ -6,6 +6,7 @@ import 'package:lets_stream/src/features/home/application/home_state.dart';
 import 'package:lets_stream/src/shared/widgets/media_carousel.dart';
 import 'package:lets_stream/src/shared/widgets/app_logo.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
+import 'package:lets_stream/src/core/models/api_error.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -57,38 +58,77 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildErrorWidget(BuildContext context, WidgetRef ref, Object error) {
     final theme = Theme.of(context);
+
+    // Get user-friendly error message
+    String title = 'Could not load content';
+    String message = 'An unexpected error occurred. Please try again.';
+    IconData icon = Icons.cloud_off_rounded;
+
+    if (error is ApiError) {
+      title = _getErrorTitle(error);
+      message = error.userFriendlyMessage;
+      icon = _getErrorIcon(error);
+    } else {
+      message = error.toString();
+    }
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.cloud_off_rounded,
-              size: 64,
-              color: theme.colorScheme.secondary,
-            ),
+            Icon(icon, size: 64, color: theme.colorScheme.secondary),
             const SizedBox(height: 24),
             Text(
-              'Could not load content',
+              title,
               style: theme.textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              error.toString(),
+              message,
               style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: () =>
                   ref.read(homeNotifierProvider.notifier).fetchData(),
-              child: const Text('Retry'),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  String _getErrorTitle(ApiError error) {
+    return error.when(
+      network: (message, statusCode, details) => 'Connection Problem',
+      timeout: (message, details) => 'Request Timeout',
+      rateLimit: (message, retryAfter, details) => 'Too Many Requests',
+      unauthorized: (message, details) => 'Authentication Error',
+      notFound: (message, details) => 'Content Not Found',
+      server: (message, statusCode, details) => 'Server Error',
+      parsing: (message, details) => 'Data Error',
+      unknown: (message, details) => 'Unexpected Error',
+      offline: (message, details) => 'Offline Mode',
+    );
+  }
+
+  IconData _getErrorIcon(ApiError error) {
+    return error.when(
+      network: (message, statusCode, details) => Icons.wifi_off,
+      timeout: (message, details) => Icons.timer_off,
+      rateLimit: (message, retryAfter, details) => Icons.speed,
+      unauthorized: (message, details) => Icons.lock,
+      notFound: (message, details) => Icons.search_off,
+      server: (message, statusCode, details) => Icons.cloud_off,
+      parsing: (message, details) => Icons.bug_report,
+      unknown: (message, details) => Icons.error,
+      offline: (message, details) => Icons.signal_wifi_off,
     );
   }
 

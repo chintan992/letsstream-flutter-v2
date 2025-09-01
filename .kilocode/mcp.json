@@ -1,19 +1,5 @@
 {
   "mcpServers": {
-    "websearch": {
-      "command": "cmd",
-      "args": [
-        "/c",
-        "npx",
-        "websearch-mcp"
-      ],
-      "environment": {
-        "API_URL": "http://localhost:3001",
-        "MAX_SEARCH_RESULT": "1"
-      },
-      "alwaysAllow": [
-        "web_search"
-      ]
-    }
+    
   }
 }
