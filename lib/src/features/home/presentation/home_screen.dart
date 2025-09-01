@@ -81,10 +81,10 @@ class HomeScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => ref.read(homeNotifierProvider.notifier).fetchData(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+            ElevatedButton(
+              onPressed: () =>
+                  ref.read(homeNotifierProvider.notifier).fetchData(),
+              child: const Text('Retry'),
             ),
           ],
         ),
@@ -92,47 +92,68 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  List<_CarouselConfig> _getCarouselConfigurations(BuildContext context, HomeState state) {
+  List<_CarouselConfig> _getCarouselConfigurations(
+    BuildContext context,
+    HomeState state,
+  ) {
     return [
       _CarouselConfig(
         title: 'Trending Movies',
         items: state.trendingMovies,
-        onViewAll: () => context.pushNamed('movies-list', pathParameters: {'feed': 'trending'}),
+        onViewAll: () => context.pushNamed(
+          'movies-list',
+          pathParameters: {'feed': 'trending'},
+        ),
       ),
       _CarouselConfig(
         title: 'Now Playing',
         items: state.nowPlayingMovies,
-        onViewAll: () => context.pushNamed('movies-list', pathParameters: {'feed': 'now_playing'}),
+        onViewAll: () => context.pushNamed(
+          'movies-list',
+          pathParameters: {'feed': 'now_playing'},
+        ),
       ),
       _CarouselConfig(
         title: 'Popular Movies',
         items: state.popularMovies,
-        onViewAll: () => context.pushNamed('movies-list', pathParameters: {'feed': 'popular'}),
+        onViewAll: () => context.pushNamed(
+          'movies-list',
+          pathParameters: {'feed': 'popular'},
+        ),
       ),
       _CarouselConfig(
         title: 'Top Rated Movies',
         items: state.topRatedMovies,
-        onViewAll: () => context.pushNamed('movies-list', pathParameters: {'feed': 'top_rated'}),
+        onViewAll: () => context.pushNamed(
+          'movies-list',
+          pathParameters: {'feed': 'top_rated'},
+        ),
       ),
       _CarouselConfig(
         title: 'Trending TV Shows',
         items: state.trendingTvShows,
-        onViewAll: () => context.pushNamed('tv-list', pathParameters: {'feed': 'trending'}),
+        onViewAll: () =>
+            context.pushNamed('tv-list', pathParameters: {'feed': 'trending'}),
       ),
       _CarouselConfig(
         title: 'Airing Today',
         items: state.airingTodayTvShows,
-        onViewAll: () => context.pushNamed('tv-list', pathParameters: {'feed': 'airing_today'}),
+        onViewAll: () => context.pushNamed(
+          'tv-list',
+          pathParameters: {'feed': 'airing_today'},
+        ),
       ),
       _CarouselConfig(
         title: 'Popular TV Shows',
         items: state.popularTvShows,
-        onViewAll: () => context.pushNamed('tv-list', pathParameters: {'feed': 'popular'}),
+        onViewAll: () =>
+            context.pushNamed('tv-list', pathParameters: {'feed': 'popular'}),
       ),
       _CarouselConfig(
         title: 'Top Rated TV Shows',
         items: state.topRatedTvShows,
-        onViewAll: () => context.pushNamed('tv-list', pathParameters: {'feed': 'top_rated'}),
+        onViewAll: () =>
+            context.pushNamed('tv-list', pathParameters: {'feed': 'top_rated'}),
       ),
     ];
   }
@@ -164,7 +185,10 @@ class _HomeScreenLoading extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ShimmerBox(width: 150, height: textTheme.headlineSmall!.fontSize!),
+                ShimmerBox(
+                  width: 150,
+                  height: textTheme.headlineSmall!.fontSize!,
+                ),
                 ShimmerBox(width: 70, height: textTheme.bodyMedium!.fontSize!),
               ],
             ),
