@@ -81,7 +81,11 @@ final _router = GoRouter(
             final idStr = state.pathParameters['id'];
             final name = state.uri.queryParameters['name'] ?? 'Genre';
             final id = int.tryParse(idStr ?? '0') ?? 0;
-            return MoviesGenreListScreen(genreId: id, genreName: name);
+            return MoviesGenreListScreen(
+              genreId: id,
+              genreName: name,
+              feed: 'popular',
+            );
           },
         ),
         GoRoute(
@@ -185,8 +189,7 @@ final _router = GoRouter(
       name: 'watch-tv',
       builder: (context, state) {
         final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
-        final season =
-            int.tryParse(state.pathParameters['season'] ?? '1') ?? 1;
+        final season = int.tryParse(state.pathParameters['season'] ?? '1') ?? 1;
         final ep = int.tryParse(state.pathParameters['ep'] ?? '1') ?? 1;
         return VideoPlayerScreen(
           tmdbId: id,

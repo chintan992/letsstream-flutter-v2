@@ -203,6 +203,21 @@ class SimpleCachedRepository {
     );
   }
 
+  Future<List<Movie>> getMovies({required String feed, int page = 1, bool forceRefresh = false}) {
+    switch (feed) {
+      case 'trending':
+        return getTrendingMovies(page: page, forceRefresh: forceRefresh);
+      case 'now_playing':
+        return getNowPlayingMovies(page: page, forceRefresh: forceRefresh);
+      case 'popular':
+        return getPopularMovies(page: page, forceRefresh: forceRefresh);
+      case 'top_rated':
+        return getTopRatedMovies(page: page, forceRefresh: forceRefresh);
+      default:
+        return getTrendingMovies(page: page, forceRefresh: forceRefresh);
+    }
+  }
+
   // TV SHOWS
   Future<List<TvShow>> getTrendingTvShows({int page = 1, bool forceRefresh = false}) async {
     return _fetchTvShowsWithCache(
