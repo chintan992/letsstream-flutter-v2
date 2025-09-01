@@ -57,7 +57,13 @@ class _PosterThumb extends StatelessWidget {
           fit: BoxFit.cover,
           placeholder: (context, url) => Container(
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            child: const Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))),
+            child: const Center(
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
           ),
           errorWidget: (context, url, error) => Container(
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -103,6 +109,130 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
   }
 
+  void _showFilterDialog(BuildContext context, WidgetRef ref) {
+    final searchState = ref.watch(searchNotifierProvider);
+    final notifier = ref.read(searchNotifierProvider.notifier);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Advanced Filters',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                if (searchState.advancedFilters.hasActiveFilters)
+                  TextButton(
+                    onPressed: () {
+                      notifier.clearAdvancedFilters();
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Clear All'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Sort By
+            Text('Sort by', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            SegmentedButton<SortBy>(
+              segments: const [
+                ButtonSegment(value: SortBy.popularity, label: Text('Popular')),
+                ButtonSegment(value: SortBy.releaseDate, label: Text('Latest')),
+                ButtonSegment(value: SortBy.rating, label: Text('Rating')),
+                ButtonSegment(value: SortBy.title, label: Text('Title')),
+              ],
+              selected: {searchState.advancedFilters.sortBy},
+              onSelectionChanged: (selection) {
+                notifier.updateSortBy(selection.first);
+              },
+            ),
+            const SizedBox(height: 24),
+            // Release Year
+            Text(
+              'Release Year',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    initialValue: searchState.advancedFilters.releaseYear
+                        ?.toString(),
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. 2023',
+                      labelText: 'Year',
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      final year = int.tryParse(value);
+                      notifier.updateYearFilter(year);
+                    },
+                  ),
+                ),
+                if (searchState.advancedFilters.releaseYear != null)
+                  IconButton(
+                    onPressed: () => notifier.updateYearFilter(null),
+                    icon: const Icon(Icons.clear),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            // Minimum Rating
+            Text(
+              'Minimum Rating',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Slider(
+                    value: searchState.advancedFilters.minRating ?? 0,
+                    min: 0,
+                    max: 10,
+                    divisions: 20,
+                    label: (searchState.advancedFilters.minRating ?? 0)
+                        .toStringAsFixed(1),
+                    onChanged: (value) {
+                      notifier.updateRatingFilter(value > 0 ? value : null);
+                    },
+                  ),
+                ),
+                if (searchState.advancedFilters.minRating != null)
+                  IconButton(
+                    onPressed: () => notifier.updateRatingFilter(null),
+                    icon: const Icon(Icons.clear),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            // Apply Button
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Apply Filters'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchNotifierProvider);
@@ -114,18 +244,37 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           decoration: InputDecoration(
             hintText: 'Search movies or TV shows',
             border: InputBorder.none,
-            suffixIcon: IconButton(
-              tooltip: 'Clear',
-              onPressed: () {
-                _controller.clear();
-                ref.read(searchNotifierProvider.notifier).onQueryChanged('');
-              },
-              icon: const Icon(Icons.clear),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Clear',
+                  onPressed: () {
+                    _controller.clear();
+                    ref
+                        .read(searchNotifierProvider.notifier)
+                        .onQueryChanged('');
+                  },
+                  icon: const Icon(Icons.clear),
+                ),
+                IconButton(
+                  tooltip: 'Filters',
+                  onPressed: () => _showFilterDialog(context, ref),
+                  icon: Icon(
+                    Icons.filter_list,
+                    color: searchState.advancedFilters.hasActiveFilters
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                  ),
+                ),
+              ],
             ),
           ),
           textInputAction: TextInputAction.search,
-          onChanged: (value) => ref.read(searchNotifierProvider.notifier).onQueryChanged(value),
-          onSubmitted: (value) => ref.read(searchNotifierProvider.notifier).onQueryChanged(value),
+          onChanged: (value) =>
+              ref.read(searchNotifierProvider.notifier).onQueryChanged(value),
+          onSubmitted: (value) =>
+              ref.read(searchNotifierProvider.notifier).onQueryChanged(value),
         ),
       ),
       body: Builder(
@@ -136,7 +285,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Try searching for', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Try searching for',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
@@ -147,7 +299,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           label: Text(s),
                           onPressed: () {
                             _controller.text = s;
-                            ref.read(searchNotifierProvider.notifier).onQueryChanged(s);
+                            ref
+                                .read(searchNotifierProvider.notifier)
+                                .onQueryChanged(s);
                           },
                         ),
                     ],
@@ -188,10 +342,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Error: ${searchState.error}') ,
+                  Text('Error: ${searchState.error}'),
                   const SizedBox(height: 8),
                   FilledButton(
-                    onPressed: () => ref.read(searchNotifierProvider.notifier).retry(),
+                    onPressed: () =>
+                        ref.read(searchNotifierProvider.notifier).retry(),
                     child: const Text('Retry'),
                   ),
                 ],
@@ -199,11 +354,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             );
           }
           if (searchState.items.isEmpty) {
-            return const EmptyState(message: 'No results', icon: Icons.search_off_outlined);
+            return const EmptyState(
+              message: 'No results',
+              icon: Icons.search_off_outlined,
+            );
           }
 
           final visibleItems = searchState.filteredItems();
-          final itemCount = visibleItems.length + ((searchState.isLoadingMore || searchState.hasMore) ? 1 : 0);
+          final itemCount =
+              visibleItems.length +
+              ((searchState.isLoadingMore || searchState.hasMore) ? 1 : 0);
           final imageBase = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
 
           return Column(
@@ -212,12 +372,26 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: SegmentedButton<SearchFilter>(
                   segments: const [
-                    ButtonSegment(value: SearchFilter.all, label: Text('All'), icon: Icon(Icons.all_inclusive)),
-                    ButtonSegment(value: SearchFilter.movies, label: Text('Movies'), icon: Icon(Icons.movie_outlined)),
-                    ButtonSegment(value: SearchFilter.tv, label: Text('TV'), icon: Icon(Icons.tv_outlined)),
+                    ButtonSegment(
+                      value: SearchFilter.all,
+                      label: Text('All'),
+                      icon: Icon(Icons.all_inclusive),
+                    ),
+                    ButtonSegment(
+                      value: SearchFilter.movies,
+                      label: Text('Movies'),
+                      icon: Icon(Icons.movie_outlined),
+                    ),
+                    ButtonSegment(
+                      value: SearchFilter.tv,
+                      label: Text('TV'),
+                      icon: Icon(Icons.tv_outlined),
+                    ),
                   ],
                   selected: {searchState.filter},
-                  onSelectionChanged: (selection) => ref.read(searchNotifierProvider.notifier).setFilter(selection.first),
+                  onSelectionChanged: (selection) => ref
+                      .read(searchNotifierProvider.notifier)
+                      .setFilter(selection.first),
                 ),
               ),
               const SizedBox(height: 8),
@@ -238,96 +412,111 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     await ref.read(searchNotifierProvider.notifier).retry();
                   },
                   child: ListView.separated(
-                  controller: _scrollController,
-                  itemCount: itemCount,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    if (index >= visibleItems.length) {
-                      if (searchState.isLoadingMore) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
+                    controller: _scrollController,
+                    itemCount: itemCount,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      if (index >= visibleItems.length) {
+                        if (searchState.isLoadingMore) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        if (searchState.hasMore) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Center(
+                              child: OutlinedButton.icon(
+                                onPressed: () => ref
+                                    .read(searchNotifierProvider.notifier)
+                                    .fetchNextPage(),
+                                icon: const Icon(Icons.expand_more),
+                                label: const Text('Load more'),
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
                       }
-                      if (searchState.hasMore) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Center(
-                            child: OutlinedButton.icon(
-                              onPressed: () => ref.read(searchNotifierProvider.notifier).fetchNextPage(),
-                              icon: const Icon(Icons.expand_more),
-                              label: const Text('Load more'),
+                      final item = visibleItems[index];
+                      if (item is Movie) {
+                        final title = item.title.isNotEmpty
+                            ? item.title
+                            : 'Untitled Movie';
+                        final posterPath = item.posterPath;
+                        final imageUrl =
+                            (posterPath != null && posterPath.isNotEmpty)
+                            ? '$imageBase/w154$posterPath'
+                            : null;
+                        final year = item.releaseDate?.year;
+                        final rating = item.voteAverage;
+                        final subtitle = [
+                          if (year != null) year.toString(),
+                          if (rating > 0) '${rating.toStringAsFixed(1)} ★',
+                        ].join(' • ');
+
+                        return Semantics(
+                          label:
+                              '$title${year != null ? ' • $year' : ''} • Movie',
+                          hint: 'Opens details',
+                          button: true,
+                          child: ListTile(
+                            leading: _PosterThumb(imageUrl: imageUrl),
+                            title: Text(title),
+                            subtitle: subtitle.isNotEmpty
+                                ? Text(subtitle)
+                                : null,
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => context.pushNamed(
+                              'movie-detail',
+                              pathParameters: {'id': item.id.toString()},
+                              extra: item,
                             ),
                           ),
                         );
+                      } else if (item is TvShow) {
+                        final title = item.name.isNotEmpty
+                            ? item.name
+                            : 'Untitled TV Show';
+                        final posterPath = item.posterPath;
+                        final imageUrl =
+                            (posterPath != null && posterPath.isNotEmpty)
+                            ? '$imageBase/w154$posterPath'
+                            : null;
+                        final year = item.firstAirDate?.year;
+                        final rating = item.voteAverage;
+                        final subtitle = [
+                          if (year != null) year.toString(),
+                          if (rating > 0) '${rating.toStringAsFixed(1)} ★',
+                        ].join(' • ');
+                        return Semantics(
+                          label:
+                              '$title${year != null ? ' • $year' : ''} • TV show',
+                          hint: 'Opens details',
+                          button: true,
+                          child: ListTile(
+                            leading: _PosterThumb(imageUrl: imageUrl),
+                            title: Text(title),
+                            subtitle: subtitle.isNotEmpty
+                                ? Text(subtitle)
+                                : null,
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => context.pushNamed(
+                              'tv-detail',
+                              pathParameters: {'id': item.id.toString()},
+                              extra: item,
+                            ),
+                          ),
+                        );
+                      } else {
+                        return const SizedBox.shrink();
                       }
-                      return const SizedBox.shrink();
-                    }
-                    final item = visibleItems[index];
-                    if (item is Movie) {
-                      final title = item.title.isNotEmpty ? item.title : 'Untitled Movie';
-                      final posterPath = item.posterPath;
-                      final imageUrl = (posterPath != null && posterPath.isNotEmpty)
-                          ? '$imageBase/w154$posterPath'
-                          : null;
-                      final year = item.releaseDate?.year;
-                      final rating = item.voteAverage;
-                      final subtitle = [
-                        if (year != null) year.toString(),
-                        if (rating > 0) '${rating.toStringAsFixed(1)} ★',
-                      ].join(' • ');
-
-                      return Semantics(
-                        label: '$title${year != null ? ' • $year' : ''} • Movie',
-                        hint: 'Opens details',
-                        button: true,
-                        child: ListTile(
-                          leading: _PosterThumb(imageUrl: imageUrl),
-                          title: Text(title),
-                          subtitle: subtitle.isNotEmpty ? Text(subtitle) : null,
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => context.pushNamed(
-                            'movie-detail',
-                            pathParameters: {'id': item.id.toString()},
-                            extra: item,
-                          ),
-                        ),
-                      );
-                    } else if (item is TvShow) {
-                      final title = item.name.isNotEmpty ? item.name : 'Untitled TV Show';
-                      final posterPath = item.posterPath;
-                      final imageUrl = (posterPath != null && posterPath.isNotEmpty)
-                          ? '$imageBase/w154$posterPath'
-                          : null;
-                      final year = item.firstAirDate?.year;
-                      final rating = item.voteAverage;
-                      final subtitle = [
-                        if (year != null) year.toString(),
-                        if (rating > 0) '${rating.toStringAsFixed(1)} ★',
-                      ].join(' • ');
-                      return Semantics(
-                        label: '$title${year != null ? ' • $year' : ''} • TV show',
-                        hint: 'Opens details',
-                        button: true,
-                        child: ListTile(
-                          leading: _PosterThumb(imageUrl: imageUrl),
-                          title: Text(title),
-                          subtitle: subtitle.isNotEmpty ? Text(subtitle) : null,
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => context.pushNamed(
-                            'tv-detail',
-                            pathParameters: {'id': item.id.toString()},
-                            extra: item,
-                          ),
-                        ),
-                      );
-                    } else {
-                      return const SizedBox.shrink();
-                    }
-                  },
+                    },
+                  ),
                 ),
               ),
-            ),
             ],
           );
         },
@@ -335,4 +524,3 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 }
-

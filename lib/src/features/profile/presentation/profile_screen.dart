@@ -4,6 +4,7 @@ import '../../auth/application/auth_providers.dart';
 import 'package:lets_stream/src/shared/widgets/app_logo.dart';
 import 'package:lets_stream/src/shared/theme/theme_providers.dart';
 import 'package:lets_stream/src/shared/theme/theme_model.dart';
+import 'package:lets_stream/src/core/services/cache_service.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -110,9 +111,59 @@ class ProfileScreen extends ConsumerWidget {
             onTap: () =>
                 _showThemeSelector(context, ref, currentTheme, themeNotifier),
           ),
-          const ListTile(
-            leading: Icon(Icons.delete_outline),
-            title: Text('Clear cache'),
+          ListTile(
+            leading: const Icon(Icons.delete_outline),
+            title: const Text('Clear cache'),
+            subtitle: const Text('Clear all cached data'),
+            onTap: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Clear Cache'),
+                  content: const Text(
+                    'This will clear all cached movie and TV show data. '
+                    'The app will need to re-download content from the internet. '
+                    'Are you sure you want to continue?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                      child: const Text('Clear'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirmed == true && context.mounted) {
+                try {
+                  await CacheService.instance.clearAllCache();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Cache cleared successfully'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to clear cache: $e'),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              }
+            },
           ),
           const Divider(),
           const _SectionHeader('About'),

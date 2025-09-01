@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lets_stream/src/shared/widgets/optimized_image.dart';
 import 'package:lets_stream/src/shared/theme/tokens.dart';
 
-class MediaCard extends StatelessWidget {
+class MediaCard extends StatefulWidget {
   final String title;
   final String? imagePath;
   final VoidCallback onTap;
@@ -15,17 +15,48 @@ class MediaCard extends StatelessWidget {
   });
 
   @override
+  State<MediaCard> createState() => _MediaCardState();
+}
+
+class _MediaCardState extends State<MediaCard> {
+  bool _isVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Delay image loading slightly to improve initial scroll performance
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _isVisible = true;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final imageWidget = OptimizedImage(
-      imagePath: imagePath,
-      size: ImageSize.large,
-      fit: BoxFit.cover,
-      width: double.infinity,
-      height: double.infinity,
-    );
+    final imageWidget = _isVisible
+        ? OptimizedImage(
+            imagePath: widget.imagePath,
+            size: ImageSize.large,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          )
+        : Container(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
 
     return Semantics(
-      label: title,
+      label: widget.title,
       hint: 'Opens details',
       button: true,
       child: Container(
@@ -46,7 +77,7 @@ class MediaCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(Tokens.radiusM),
           child: InkWell(
             borderRadius: BorderRadius.circular(Tokens.radiusM),
-            onTap: onTap,
+            onTap: widget.onTap,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(Tokens.radiusM),
               child: imageWidget,
