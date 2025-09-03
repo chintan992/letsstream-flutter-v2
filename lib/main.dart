@@ -82,6 +82,8 @@ class LetsStreamApp extends ConsumerWidget {
 }
 
 // Basic router configuration
+
+// Basic router configuration
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
@@ -94,9 +96,9 @@ final _router = GoRouter(
           builder: (context, state) => const HomeScreen(),
         ),
         GoRoute(
-          path: '/movies',
-          name: 'movies',
-          builder: (context, state) => const MoviesScreen(),
+          path: '/hub',
+          name: 'hub',
+          builder: (context, state) => const HubScreen(),
         ),
         GoRoute(
           path: '/movies/:feed',
@@ -119,11 +121,6 @@ final _router = GoRouter(
               feed: 'popular',
             );
           },
-        ),
-        GoRoute(
-          path: '/tv-shows',
-          name: 'tv-shows',
-          builder: (context, state) => const TvShowsScreen(),
         ),
         GoRoute(
           path: '/tv-shows/:feed',
@@ -254,14 +251,9 @@ class MainNavigationScreen extends StatelessWidget {
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.movie_outlined),
-            selectedIcon: Icon(Icons.movie),
-            label: 'Movies',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.tv_outlined),
-            selectedIcon: Icon(Icons.tv),
-            label: 'TV Shows',
+            icon: Icon(Icons.video_library_outlined),
+            selectedIcon: Icon(Icons.video_library),
+            label: 'Hub',
           ),
           NavigationDestination(
             icon: Icon(Icons.animation_outlined),
@@ -280,10 +272,9 @@ class MainNavigationScreen extends StatelessWidget {
 
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/movies')) return 1;
-    if (location.startsWith('/tv-shows')) return 2;
-    if (location.startsWith('/anime')) return 3;
-    if (location.startsWith('/profile')) return 4;
+    if (location.startsWith('/hub')) return 1;
+    if (location.startsWith('/anime')) return 2;
+    if (location.startsWith('/profile')) return 3;
     return 0;
   }
 
@@ -293,42 +284,14 @@ class MainNavigationScreen extends StatelessWidget {
         context.goNamed('home');
         break;
       case 1:
-        context.goNamed('movies');
+        context.goNamed('hub');
         break;
       case 2:
-        context.goNamed('tv-shows');
-        break;
-      case 3:
         context.goNamed('anime');
         break;
-      case 4:
+      case 3:
         context.goNamed('profile');
         break;
     }
   }
 }
-
-// Placeholder screens - to be moved to their respective feature folders
-// HomeScreen is now implemented in lib/src/features/home/presentation/home_screen.dart
-
-class MoviesScreen extends StatelessWidget {
-  const MoviesScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MoviesHubScreen();
-  }
-}
-
-class TvShowsScreen extends StatelessWidget {
-  const TvShowsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const TvHubScreen();
-  }
-}
-
-// Replaced by feature implementation in lib/src/features/anime/presentation/anime_screen.dart
-
-// Profile implemented in feature module (see import alias feature_profile)

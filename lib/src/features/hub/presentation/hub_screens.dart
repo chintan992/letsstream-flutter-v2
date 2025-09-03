@@ -1,21 +1,61 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lets_stream/src/features/hub/application/hub_notifier.dart';
 import 'package:lets_stream/src/shared/widgets/media_carousel.dart';
 
-class MoviesHubScreen extends ConsumerWidget {
-  const MoviesHubScreen({super.key});
+class HubScreen extends ConsumerWidget {
+  const HubScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hubState = ref.watch(hubNotifierProvider);
+    final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Movies'), centerTitle: true),
-      body: hubState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _MoviesHubBody(state: hubState),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                title: const Text('Hub'),
+                pinned: true,
+                floating: true,
+                actions: const [_SearchButton()],
+                flexibleSpace: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      color: Colors.black.withOpacity(0.2),
+                    ),
+                  ),
+                ),
+                bottom: TabBar(
+                  tabs: const [
+                    Tab(text: 'Movies'),
+                    Tab(text: 'TV Shows'),
+                  ],
+                  labelStyle: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  unselectedLabelStyle: textTheme.titleMedium,
+                ),
+              ),
+            ];
+          },
+          body: hubState.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : TabBarView(
+                  children: [
+                    _MoviesHubBody(state: hubState),
+                    _TvHubBody(state: hubState),
+                  ],
+                ),
+        ),
+      ),
     );
   }
 }
@@ -28,6 +68,7 @@ class _MoviesHubBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -57,22 +98,6 @@ class _MoviesHubBody extends ConsumerWidget {
   }
 }
 
-class TvHubScreen extends ConsumerWidget {
-  const TvHubScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final hubState = ref.watch(hubNotifierProvider);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('TV Shows'), centerTitle: true),
-      body: hubState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _TvHubBody(state: hubState),
-    );
-  }
-}
-
 class _TvHubBody extends ConsumerWidget {
   final HubState state;
 
@@ -81,6 +106,7 @@ class _TvHubBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -110,3 +136,15 @@ class _TvHubBody extends ConsumerWidget {
   }
 }
 
+class _SearchButton extends StatelessWidget {
+  const _SearchButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: () => context.pushNamed('search'),
+      icon: const Icon(Icons.search),
+      tooltip: 'Search',
+    );
+  }
+}
