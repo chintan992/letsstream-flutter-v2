@@ -18,6 +18,11 @@ class CacheService {
 
   CacheService._();
 
+  bool _isInitialized = false;
+
+  /// Check if the service is initialized
+  bool get isInitialized => _isInitialized;
+
   /// Initialize Hive and open boxes
   Future<void> initialize() async {
     try {
@@ -32,6 +37,7 @@ class CacheService {
       _moviesBox = await Hive.openBox<CacheEntry>(_moviesBoxName);
       _tvShowsBox = await Hive.openBox<CacheEntry>(_tvShowsBoxName);
 
+      _isInitialized = true;
       _logger.i('Cache service initialized successfully');
     } catch (e) {
       _logger.e('Failed to initialize cache service: $e');
@@ -72,9 +78,7 @@ class CacheService {
         return null;
       }
 
-      final movies = (entry.data)
-          .map((json) => Movie.fromJson(json))
-          .toList();
+      final movies = (entry.data).map((json) => Movie.fromJson(json)).toList();
 
       _logger.d('Retrieved ${movies.length} movies from cache with key: $key');
       return movies;
@@ -133,12 +137,18 @@ class CacheService {
 
   /// Clear all cached data
   Future<void> clearAllCache() async {
+    if (!_isInitialized) {
+      _logger.w('Cache service not initialized, cannot clear cache');
+      return;
+    }
+
     try {
       await _moviesBox.clear();
       await _tvShowsBox.clear();
       _logger.i('Cleared all cache data');
     } catch (e) {
       _logger.e('Failed to clear cache: $e');
+      rethrow;
     }
   }
 

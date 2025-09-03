@@ -25,6 +25,9 @@ class OptimizedImage extends StatelessWidget {
   final int? memCacheWidth;
   final int? memCacheHeight;
   final Duration? cacheDuration;
+  final bool enableNetworkAwareLoading;
+  final bool enableProgressiveLoading;
+  final bool enablePreloading;
 
   const OptimizedImage({
     super.key,
@@ -41,6 +44,9 @@ class OptimizedImage extends StatelessWidget {
     this.memCacheWidth,
     this.memCacheHeight,
     this.cacheDuration,
+    this.enableNetworkAwareLoading = true,
+    this.enableProgressiveLoading = true,
+    this.enablePreloading = false,
   });
 
   @override
@@ -52,27 +58,29 @@ class OptimizedImage extends StatelessWidget {
       return _buildFallbackWidget(context);
     }
 
-    Widget imageWidget = CachedNetworkImage(
-      imageUrl: fullImageUrl,
-      fit: fit,
-      width: width,
-      height: height,
-      memCacheWidth: memCacheWidth ?? _getOptimalMemCacheWidth(context),
-      memCacheHeight: memCacheHeight ?? _getOptimalMemCacheHeight(context),
-      maxWidthDiskCache: _getMaxDiskCacheWidth(context),
-      maxHeightDiskCache: _getMaxDiskCacheHeight(context),
-      fadeInDuration: enableFadeIn ? fadeInDuration : Duration.zero,
-      fadeOutDuration: enableFadeIn
-          ? const Duration(milliseconds: 100)
-          : Duration.zero,
-      placeholder: (context, url) => placeholder ?? _buildPlaceholder(),
-      errorWidget: (context, url, error) =>
-          errorWidget ?? _buildErrorWidget(context),
-      httpHeaders: const {
-        'User-Agent': 'LetsStream/1.0.0',
-        'Accept': 'image/webp,image/*,*/*;q=0.8',
-      },
-    );
+    // Network-aware size selection
+    final effectiveSize = enableNetworkAwareLoading
+        ? _getNetworkAwareSize(size)
+        : size;
+
+    final optimizedUrl = _buildImageUrlWithSize(imageBaseUrl, effectiveSize);
+
+    Widget imageWidget;
+
+    if (enableProgressiveLoading) {
+      imageWidget = _buildProgressiveImageWidget(
+        context,
+        optimizedUrl,
+        effectiveSize,
+      );
+    } else {
+      imageWidget = _buildStandardImageWidget(context, optimizedUrl);
+    }
+
+    // Preload if enabled
+    if (enablePreloading) {
+      _preloadImage(optimizedUrl);
+    }
 
     if (borderRadius != null) {
       imageWidget = ClipRRect(borderRadius: borderRadius!, child: imageWidget);
@@ -93,6 +101,119 @@ class OptimizedImage extends StatelessWidget {
     };
 
     return '$baseUrl/$sizeSuffix$imagePath';
+  }
+
+  String _buildImageUrlWithSize(String baseUrl, ImageSize imageSize) {
+    final sizeSuffix = switch (imageSize) {
+      ImageSize.small => 'w154',
+      ImageSize.medium => 'w342',
+      ImageSize.large => 'w500',
+      ImageSize.xlarge => 'w780',
+      ImageSize.original => 'original',
+    };
+
+    return '$baseUrl/$sizeSuffix$imagePath';
+  }
+
+  ImageSize _getNetworkAwareSize(ImageSize baseSize) {
+    // For now, use a simple heuristic
+    // In a real implementation, you could check connectivity here
+    // and adjust image size accordingly
+
+    // Reduce image quality on smaller screens to save bandwidth
+    return baseSize;
+  }
+
+  ImageSize _getSmallerSize(ImageSize size) {
+    return switch (size) {
+      ImageSize.small => ImageSize.small,
+      ImageSize.medium => ImageSize.small,
+      ImageSize.large => ImageSize.medium,
+      ImageSize.xlarge => ImageSize.large,
+      ImageSize.original => ImageSize.xlarge,
+    };
+  }
+
+  Widget _buildProgressiveImageWidget(
+    BuildContext context,
+    String url,
+    ImageSize effectiveSize,
+  ) {
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: fit,
+      width: width,
+      height: height,
+      memCacheWidth: memCacheWidth ?? _getOptimalMemCacheWidth(context),
+      memCacheHeight: memCacheHeight ?? _getOptimalMemCacheHeight(context),
+      maxWidthDiskCache: _getMaxDiskCacheWidth(context),
+      maxHeightDiskCache: _getMaxDiskCacheHeight(context),
+      fadeInDuration: enableFadeIn ? fadeInDuration : Duration.zero,
+      fadeOutDuration: enableFadeIn
+          ? const Duration(milliseconds: 100)
+          : Duration.zero,
+      placeholder: (context, url) =>
+          placeholder ?? _buildProgressivePlaceholder(context, effectiveSize),
+      errorWidget: (context, url, error) =>
+          errorWidget ?? _buildErrorWidget(context),
+      httpHeaders: _getOptimizedHeaders(),
+    );
+  }
+
+  Widget _buildStandardImageWidget(BuildContext context, String url) {
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: fit,
+      width: width,
+      height: height,
+      memCacheWidth: memCacheWidth ?? _getOptimalMemCacheWidth(context),
+      memCacheHeight: memCacheHeight ?? _getOptimalMemCacheHeight(context),
+      maxWidthDiskCache: _getMaxDiskCacheWidth(context),
+      maxHeightDiskCache: _getMaxDiskCacheHeight(context),
+      fadeInDuration: enableFadeIn ? fadeInDuration : Duration.zero,
+      fadeOutDuration: enableFadeIn
+          ? const Duration(milliseconds: 100)
+          : Duration.zero,
+      placeholder: (context, url) => placeholder ?? _buildPlaceholder(),
+      errorWidget: (context, url, error) =>
+          errorWidget ?? _buildErrorWidget(context),
+      httpHeaders: _getOptimizedHeaders(),
+    );
+  }
+
+  Map<String, String> _getOptimizedHeaders() {
+    return const {
+      'User-Agent': 'LetsStream/1.0.0',
+      'Accept': 'image/webp,image/avif,image/*,*/*;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+    };
+  }
+
+  Widget _buildProgressivePlaceholder(
+    BuildContext context,
+    ImageSize effectiveSize,
+  ) {
+    // Start with a very small placeholder, then progressively load higher quality
+    final smallUrl = _buildImageUrlWithSize(
+      dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '',
+      _getSmallerSize(effectiveSize),
+    );
+
+    return CachedNetworkImage(
+      imageUrl: smallUrl,
+      fit: fit,
+      width: width,
+      height: height,
+      placeholder: (context, url) => _buildPlaceholder(),
+      errorWidget: (context, url, error) => _buildPlaceholder(),
+      httpHeaders: _getOptimizedHeaders(),
+    );
+  }
+
+  void _preloadImage(String url) {
+    // Preload the image in the background
+    // Note: CachedNetworkImageProvider handles caching automatically
+    CachedNetworkImageProvider(url, headers: _getOptimizedHeaders());
   }
 
   int? _getOptimalMemCacheWidth(BuildContext context) {
@@ -181,6 +302,8 @@ class PosterImage extends StatelessWidget {
   final double? width;
   final double? height;
   final BorderRadius? borderRadius;
+  final bool enableProgressiveLoading;
+  final bool enablePreloading;
 
   const PosterImage({
     super.key,
@@ -189,6 +312,8 @@ class PosterImage extends StatelessWidget {
     this.width,
     this.height,
     this.borderRadius,
+    this.enableProgressiveLoading = true,
+    this.enablePreloading = false,
   });
 
   @override
@@ -200,6 +325,8 @@ class PosterImage extends StatelessWidget {
       height: height,
       borderRadius: borderRadius ?? BorderRadius.circular(8),
       fit: BoxFit.cover,
+      enableProgressiveLoading: enableProgressiveLoading,
+      enablePreloading: enablePreloading,
     );
 
     if (onTap != null) {
@@ -225,6 +352,8 @@ class BackdropImage extends StatelessWidget {
   final double? width;
   final double? height;
   final BorderRadius? borderRadius;
+  final bool enableProgressiveLoading;
+  final bool enablePreloading;
 
   const BackdropImage({
     super.key,
@@ -233,6 +362,8 @@ class BackdropImage extends StatelessWidget {
     this.width,
     this.height,
     this.borderRadius,
+    this.enableProgressiveLoading = true,
+    this.enablePreloading = false,
   });
 
   @override
@@ -244,6 +375,8 @@ class BackdropImage extends StatelessWidget {
       height: height,
       borderRadius: borderRadius ?? BorderRadius.circular(12),
       fit: BoxFit.cover,
+      enableProgressiveLoading: enableProgressiveLoading,
+      enablePreloading: enablePreloading,
     );
 
     if (onTap != null) {
@@ -259,5 +392,80 @@ class BackdropImage extends StatelessWidget {
     }
 
     return imageWidget;
+  }
+}
+
+// Utility class for preloading images
+class ImagePreloader {
+  static final Map<String, bool> _preloadedImages = {};
+
+  /// Preload a single image
+  static Future<void> preloadImage(
+    String imageUrl, {
+    Map<String, String>? headers,
+  }) async {
+    if (_preloadedImages.containsKey(imageUrl)) return;
+
+    try {
+      CachedNetworkImageProvider(
+        imageUrl,
+        headers: headers ?? _getDefaultHeaders(),
+      ).resolve(ImageConfiguration.empty);
+      _preloadedImages[imageUrl] = true;
+    } catch (e) {
+      // Ignore preloading errors
+    }
+  }
+
+  /// Preload multiple images concurrently
+  static Future<void> preloadImages(
+    List<String> imageUrls, {
+    Map<String, String>? headers,
+  }) async {
+    final futures = imageUrls.map((url) => preloadImage(url, headers: headers));
+    await Future.wait(futures);
+  }
+
+  /// Preload images for a list of items with poster paths
+  static Future<void> preloadPosters(
+    List<String?> posterPaths, {
+    required String baseUrl,
+    ImageSize size = ImageSize.medium,
+    Map<String, String>? headers,
+  }) async {
+    final imageUrls = posterPaths
+        .where((path) => path != null && path.isNotEmpty)
+        .map((path) => _buildImageUrl(baseUrl, path!, size))
+        .toList();
+
+    await preloadImages(imageUrls, headers: headers ?? _getDefaultHeaders());
+  }
+
+  static String _buildImageUrl(
+    String baseUrl,
+    String imagePath,
+    ImageSize size,
+  ) {
+    final sizeSuffix = switch (size) {
+      ImageSize.small => 'w154',
+      ImageSize.medium => 'w342',
+      ImageSize.large => 'w500',
+      ImageSize.xlarge => 'w780',
+      ImageSize.original => 'original',
+    };
+    return '$baseUrl/$sizeSuffix$imagePath';
+  }
+
+  static Map<String, String> _getDefaultHeaders() {
+    return const {
+      'User-Agent': 'LetsStream/1.0.0',
+      'Accept': 'image/webp,image/avif,image/*,*/*;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+    };
+  }
+
+  /// Clear preloaded images cache
+  static void clearCache() {
+    _preloadedImages.clear();
   }
 }

@@ -104,7 +104,10 @@ class _MoviesListScreenState extends ConsumerState<MoviesListScreen> {
 
     if (state.movies.isEmpty) {
       return const EmptyState(
-        message: 'No movies found',
+        type: EmptyStateType.noResults,
+        title: 'No movies found',
+        message:
+            'Try adjusting your search criteria or check back later for new content.',
         icon: Icons.movie_outlined,
       );
     }
