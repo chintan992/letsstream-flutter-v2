@@ -15,12 +15,16 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final homeAsyncValue = ref.watch(homeNotifierProvider);
 
-    return Scaffold(
-      appBar: const _HomeAppBar(),
-      body: homeAsyncValue.when(
-        data: (state) => _HomeContent(state: state),
-        loading: () => const _HomeScreenLoading(),
-        error: (error, stack) => _HomeErrorWidget(error: error, ref: ref),
+    return Semantics(
+      label: 'Let\'s Stream Home',
+      hint: 'Browse trending movies and TV shows',
+      child: Scaffold(
+        appBar: const _HomeAppBar(),
+        body: homeAsyncValue.when(
+          data: (state) => _HomeContent(state: state),
+          loading: () => const _HomeScreenLoading(),
+          error: (error, stack) => _HomeErrorWidget(error: error, ref: ref),
+        ),
       ),
     );
   }

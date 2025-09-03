@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lets_stream/src/shared/widgets/optimized_image.dart';
 import 'package:lets_stream/src/shared/theme/tokens.dart';
+import 'package:lets_stream/src/core/services/accessibility_service.dart';
 
 class MediaCard extends StatefulWidget {
   final String title;
@@ -36,6 +37,11 @@ class _MediaCardState extends State<MediaCard> {
 
   @override
   Widget build(BuildContext context) {
+    final accessibilityService = AccessibilityService();
+    final touchTargetSize = accessibilityService.getRecommendedTouchTargetSize(
+      context,
+    );
+
     final imageWidget = _isVisible
         ? OptimizedImage(
             imagePath: widget.imagePath,
@@ -57,11 +63,16 @@ class _MediaCardState extends State<MediaCard> {
 
     return Semantics(
       label: widget.title,
-      hint: 'Opens details',
+      hint: 'Double tap to open details',
       button: true,
+      image: true,
       child: Container(
         width: Tokens.posterCardWidth,
         margin: const EdgeInsets.only(right: Tokens.spaceM),
+        constraints: BoxConstraints(
+          minHeight: touchTargetSize,
+          minWidth: touchTargetSize,
+        ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(Tokens.radiusM),
           boxShadow: [
@@ -78,6 +89,9 @@ class _MediaCardState extends State<MediaCard> {
           child: InkWell(
             borderRadius: BorderRadius.circular(Tokens.radiusM),
             onTap: widget.onTap,
+            focusColor: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.1),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(Tokens.radiusM),
               child: imageWidget,
