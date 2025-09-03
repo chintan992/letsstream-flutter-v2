@@ -31,9 +31,32 @@ class _SeasonsAndEpisodesSectionState
   @override
   void initState() {
     super.initState();
-    _selectedSeason = widget.seasons.isNotEmpty
-        ? widget.seasons.last.seasonNumber
-        : 1;
+    _selectedSeason = _getInitialSeason();
+  }
+
+  int _getInitialSeason() {
+    if (widget.seasons.isEmpty) {
+      return 1;
+    }
+
+    // Find the last season with episodes or the most recent season
+    final lastSeason = widget.seasons.last;
+    if (lastSeason.seasonNumber > 0) {
+      return lastSeason.seasonNumber;
+    }
+
+    // Fallback: find the highest season number
+    final validSeasons = widget.seasons
+        .where((season) => season.seasonNumber > 0)
+        .toList();
+
+    if (validSeasons.isNotEmpty) {
+      return validSeasons
+          .map((season) => season.seasonNumber)
+          .reduce((a, b) => a > b ? a : b);
+    }
+
+    return 1;
   }
 
   @override
