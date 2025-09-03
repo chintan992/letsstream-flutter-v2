@@ -6,7 +6,7 @@ import 'package:lets_stream/src/features/home/application/home_state.dart';
 import 'package:lets_stream/src/shared/widgets/media_carousel.dart';
 import 'package:lets_stream/src/shared/widgets/app_logo.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
-import 'package:lets_stream/src/core/models/api_error.dart';
+import 'package:lets_stream/src/core/services/error_handling_service.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -89,34 +89,6 @@ class HomeScreen extends ConsumerWidget {
             context.pushNamed('tv-list', pathParameters: {'feed': 'top_rated'}),
       ),
     ];
-  }
-
-  static String _getErrorTitle(ApiError error) {
-    return error.when(
-      network: (message, statusCode, details) => 'Connection Problem',
-      timeout: (message, details) => 'Request Timeout',
-      rateLimit: (message, retryAfter, details) => 'Too Many Requests',
-      unauthorized: (message, details) => 'Authentication Error',
-      notFound: (message, details) => 'Content Not Found',
-      server: (message, statusCode, details) => 'Server Error',
-      parsing: (message, details) => 'Data Error',
-      unknown: (message, details) => 'Unexpected Error',
-      offline: (message, details) => 'Offline Mode',
-    );
-  }
-
-  static IconData _getErrorIcon(ApiError error) {
-    return error.when(
-      network: (message, statusCode, details) => Icons.wifi_off,
-      timeout: (message, details) => Icons.timer_off,
-      rateLimit: (message, retryAfter, details) => Icons.speed,
-      unauthorized: (message, details) => Icons.lock,
-      notFound: (message, details) => Icons.search_off,
-      server: (message, statusCode, details) => Icons.cloud_off,
-      parsing: (message, details) => Icons.bug_report,
-      unknown: (message, details) => Icons.error,
-      offline: (message, details) => Icons.signal_wifi_off,
-    );
   }
 }
 
@@ -251,132 +223,12 @@ class _HomeErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final errorHandlingService = ErrorHandlingService();
 
-    // Get user-friendly error message
-    String title = 'Could not load content';
-    String message = 'An unexpected error occurred. Please try again.';
-    IconData icon = Icons.cloud_off_rounded;
-    List<Widget> additionalActions = [];
-
-    if (error is ApiError) {
-      title = HomeScreen._getErrorTitle(error as ApiError);
-      message = (error as ApiError).userFriendlyMessage;
-      icon = HomeScreen._getErrorIcon(error as ApiError);
-
-      // Add specific actions based on error type
-      (error as ApiError).maybeWhen(
-        network: (message, statusCode, details) {
-          additionalActions.add(
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  // Could implement connectivity check here
-                  ref.read(homeNotifierProvider.notifier).fetchData();
-                },
-                icon: const Icon(Icons.wifi),
-                label: const Text('Check Connection'),
-              ),
-            ),
-          );
-        },
-        offline: (message, details) {
-          additionalActions.add(
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  // Could implement connectivity check here
-                  ref.read(homeNotifierProvider.notifier).fetchData();
-                },
-                icon: const Icon(Icons.wifi),
-                label: const Text('Check Connection'),
-              ),
-            ),
-          );
-        },
-        rateLimit: (message, retryAfter, details) {
-          additionalActions.add(
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text(
-                'Please wait a moment before trying again',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        },
-        timeout: (message, details) {
-          additionalActions.add(
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  ref.read(homeNotifierProvider.notifier).fetchData();
-                },
-                icon: const Icon(Icons.timer),
-                label: const Text('Retry Now'),
-              ),
-            ),
-          );
-        },
-        orElse: () {}, // No additional actions for other error types
-      );
-    } else {
-      message =
-          'Something went wrong. Please check your connection and try again.';
-    }
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.3,
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 48, color: theme.colorScheme.secondary),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              title,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              style: theme.textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FilledButton.icon(
-                  onPressed: () =>
-                      ref.read(homeNotifierProvider.notifier).fetchData(),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Try Again'),
-                ),
-                ...additionalActions,
-              ],
-            ),
-          ],
-        ),
-      ),
+    return errorHandlingService.buildErrorWidget(
+      context,
+      error: error,
+      onRetry: () => ref.read(homeNotifierProvider.notifier).fetchData(),
     );
   }
 }

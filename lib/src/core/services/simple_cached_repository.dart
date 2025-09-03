@@ -244,6 +244,25 @@ class SimpleCachedRepository {
     }
   }
 
+  Future<List<TvShow>> getTvShows({
+    required String feed,
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    switch (feed) {
+      case 'trending':
+        return getTrendingTvShows(page: page, forceRefresh: forceRefresh);
+      case 'airing_today':
+        return getAiringTodayTvShows(page: page, forceRefresh: forceRefresh);
+      case 'popular':
+        return getPopularTvShows(page: page, forceRefresh: forceRefresh);
+      case 'top_rated':
+        return getTopRatedTvShows(page: page, forceRefresh: forceRefresh);
+      default:
+        return getTrendingTvShows(page: page, forceRefresh: forceRefresh);
+    }
+  }
+
   // TV SHOWS
   Future<List<TvShow>> getTrendingTvShows({
     int page = 1,

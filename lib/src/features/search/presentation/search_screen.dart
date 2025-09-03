@@ -283,8 +283,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  EmptyState.search(),
+                  const SizedBox(height: 32),
                   Text(
                     'Try searching for',
                     style: Theme.of(context).textTheme.titleMedium,
@@ -338,25 +339,29 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             );
           }
           if (searchState.error != null && searchState.items.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Error: ${searchState.error}'),
-                  const SizedBox(height: 8),
-                  FilledButton(
-                    onPressed: () =>
-                        ref.read(searchNotifierProvider.notifier).retry(),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
+            return EmptyState.error(
+              errorMessage: searchState.error,
+              actions: [
+                FilledButton.icon(
+                  onPressed: () =>
+                      ref.read(searchNotifierProvider.notifier).retry(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ],
             );
           }
           if (searchState.items.isEmpty) {
-            return const EmptyState(
-              message: 'No results',
-              icon: Icons.search_off_outlined,
+            return EmptyState.noResults(
+              query: searchState.query,
+              actions: [
+                FilledButton.icon(
+                  onPressed: () =>
+                      ref.read(searchNotifierProvider.notifier).retry(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try Again'),
+                ),
+              ],
             );
           }
 

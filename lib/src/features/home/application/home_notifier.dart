@@ -5,6 +5,7 @@ import 'package:lets_stream/src/core/models/movie.dart';
 import 'package:lets_stream/src/core/models/tv_show.dart';
 import 'package:lets_stream/src/core/services/tmdb_repository_provider.dart';
 import 'package:lets_stream/src/features/home/application/home_state.dart';
+import 'package:lets_stream/src/core/services/image_prefetch_service.dart';
 
 class HomeNotifier extends StateNotifier<AsyncValue<HomeState>> {
   final Ref ref;
@@ -50,6 +51,9 @@ class HomeNotifier extends StateNotifier<AsyncValue<HomeState>> {
 
       // Preload images for the first few items in each carousel for better performance
       _preloadImages(homeState);
+
+      // Pre-fetch images for better user experience
+      _prefetchImages(homeState);
 
       state = AsyncValue.data(homeState);
     } catch (e, s) {
@@ -161,6 +165,43 @@ class HomeNotifier extends StateNotifier<AsyncValue<HomeState>> {
       final imageUrl = '$imageBaseUrl/w500$posterPath';
       // Create CachedNetworkImageProvider to preload and cache images
       CachedNetworkImageProvider(imageUrl);
+    }
+  }
+
+  /// Pre-fetch images for better user experience
+  Future<void> _prefetchImages(HomeState homeState) async {
+    final prefetchService = ImagePrefetchService();
+
+    // Pre-fetch trending movies
+    if (homeState.trendingMovies.isNotEmpty) {
+      await prefetchService.prefetchMovieImages(
+        homeState.trendingMovies,
+        maxImages: 8,
+      );
+    }
+
+    // Pre-fetch popular movies
+    if (homeState.popularMovies.isNotEmpty) {
+      await prefetchService.prefetchMovieImages(
+        homeState.popularMovies,
+        maxImages: 6,
+      );
+    }
+
+    // Pre-fetch trending TV shows
+    if (homeState.trendingTvShows.isNotEmpty) {
+      await prefetchService.prefetchTvShowImages(
+        homeState.trendingTvShows,
+        maxImages: 8,
+      );
+    }
+
+    // Pre-fetch popular TV shows
+    if (homeState.popularTvShows.isNotEmpty) {
+      await prefetchService.prefetchTvShowImages(
+        homeState.popularTvShows,
+        maxImages: 6,
+      );
     }
   }
 }

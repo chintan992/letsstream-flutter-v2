@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'src/shared/theme/theme_providers.dart';
+import 'src/core/services/cache_service.dart';
+import 'src/core/services/offline_service.dart';
+import 'src/core/models/hive_adapters.dart';
 import 'src/features/home/presentation/home_screen.dart';
 import 'src/features/detail/presentation/enhanced_detail_screen.dart';
 import 'src/features/movies/presentation/movies_list_screen.dart';
@@ -30,7 +34,35 @@ void main() async {
   // Initialize Firebase (Android auto-config via google-services.json)
   await Firebase.initializeApp();
 
+  // Initialize Hive and services
+  await _initializeServices();
+
   runApp(const ProviderScope(child: LetsStreamApp()));
+}
+
+/// Initialize all required services
+Future<void> _initializeServices() async {
+  try {
+    // Initialize Hive
+    await Hive.initFlutter();
+
+    // Register Hive adapters
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(MovieAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(TvShowAdapter());
+    }
+
+    // Initialize services
+    await CacheService.instance.initialize();
+    await OfflineService().initialize();
+
+    debugPrint('All services initialized successfully');
+  } catch (e) {
+    debugPrint('Failed to initialize services: $e');
+    // Continue with app startup even if services fail to initialize
+  }
 }
 
 class LetsStreamApp extends ConsumerWidget {
