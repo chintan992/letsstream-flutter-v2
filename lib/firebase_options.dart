@@ -64,8 +64,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1080273996839',
     projectId: 'lets-stream-c09e3',
     storageBucket: 'lets-stream-c09e3.firebasestorage.app',
-    iosClientId: '1080273996839-qff6gds1asp26pvc06au1fnko8kvge41.apps.googleusercontent.com',
-    iosBundleId: 'com.example.letsStream',
+    iosClientId:
+        '1080273996839-qff6gds1asp26pvc06au1fnko8kvge41.apps.googleusercontent.com',
+    iosBundleId: 'com.reddragon.letsstream',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -74,8 +75,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1080273996839',
     projectId: 'lets-stream-c09e3',
     storageBucket: 'lets-stream-c09e3.firebasestorage.app',
-    iosClientId: '1080273996839-qff6gds1asp26pvc06au1fnko8kvge41.apps.googleusercontent.com',
-    iosBundleId: 'com.example.letsStream',
+    iosClientId:
+        '1080273996839-qff6gds1asp26pvc06au1fnko8kvge41.apps.googleusercontent.com',
+    iosBundleId: 'com.reddragon.letsstream',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

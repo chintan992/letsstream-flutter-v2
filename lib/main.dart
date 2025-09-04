@@ -7,6 +7,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'src/shared/theme/theme_providers.dart';
 import 'src/core/services/cache_service.dart';
 import 'src/core/services/offline_service.dart';
+import 'src/core/services/terms_acceptance_service.dart';
+import 'src/shared/widgets/terms_acceptance_dialog.dart';
 import 'src/core/models/hive_adapters.dart';
 import 'src/features/home/presentation/home_screen.dart';
 import 'src/features/detail/presentation/enhanced_detail_screen.dart';
@@ -65,18 +67,67 @@ Future<void> _initializeServices() async {
   }
 }
 
-class LetsStreamApp extends ConsumerWidget {
+class LetsStreamApp extends ConsumerStatefulWidget {
   const LetsStreamApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LetsStreamApp> createState() => _LetsStreamAppState();
+}
+
+class _LetsStreamAppState extends ConsumerState<LetsStreamApp> {
+  bool _termsAccepted = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkTermsAcceptance();
+  }
+
+  Future<void> _checkTermsAcceptance() async {
+    final accepted = await TermsAcceptanceService.instance.hasAcceptedAll();
+    setState(() {
+      _termsAccepted = accepted;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentTheme = ref.watch(currentThemeProvider);
+
+    if (_isLoading) {
+      return MaterialApp(
+        title: 'Let\'s Stream',
+        debugShowCheckedModeBanner: false,
+        theme: currentTheme,
+        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
+    }
 
     return MaterialApp.router(
       title: 'Let\'s Stream',
       debugShowCheckedModeBanner: false,
       theme: currentTheme,
       routerConfig: _router,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            child!,
+            if (!_termsAccepted)
+              Container(
+                color: Colors.black.withAlpha(128),
+                child: TermsAcceptanceDialog(
+                  onAccepted: () {
+                    setState(() {
+                      _termsAccepted = true;
+                    });
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
