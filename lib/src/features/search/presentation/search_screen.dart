@@ -121,113 +121,118 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.8,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Advanced Filters',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                if (searchState.advancedFilters.hasActiveFilters)
-                  TextButton(
-                    onPressed: () {
-                      notifier.clearAdvancedFilters();
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Clear All'),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Advanced Filters',
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Sort By
-            Text('Sort by', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            SegmentedButton<SortBy>(
-              segments: const [
-                ButtonSegment(value: SortBy.popularity, label: Text('Popular')),
-                ButtonSegment(value: SortBy.releaseDate, label: Text('Latest')),
-                ButtonSegment(value: SortBy.rating, label: Text('Rating')),
-                ButtonSegment(value: SortBy.title, label: Text('Title')),
-              ],
-              selected: {searchState.advancedFilters.sortBy},
-              onSelectionChanged: (selection) {
-                notifier.updateSortBy(selection.first);
-              },
-            ),
-            const SizedBox(height: 24),
-            // Release Year
-            Text(
-              'Release Year',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    initialValue: searchState.advancedFilters.releaseYear
-                        ?.toString(),
-                    decoration: const InputDecoration(
-                      hintText: 'e.g. 2023',
-                      labelText: 'Year',
+                  if (searchState.advancedFilters.hasActiveFilters)
+                    TextButton(
+                      onPressed: () {
+                        notifier.clearAdvancedFilters();
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Clear All'),
                     ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      final year = int.tryParse(value);
-                      notifier.updateYearFilter(year);
-                    },
-                  ),
-                ),
-                if (searchState.advancedFilters.releaseYear != null)
-                  IconButton(
-                    onPressed: () => notifier.updateYearFilter(null),
-                    icon: const Icon(Icons.clear),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            // Minimum Rating
-            Text(
-              'Minimum Rating',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: Slider(
-                    value: searchState.advancedFilters.minRating ?? 0,
-                    min: 0,
-                    max: 10,
-                    divisions: 20,
-                    label: (searchState.advancedFilters.minRating ?? 0)
-                        .toStringAsFixed(1),
-                    onChanged: (value) {
-                      notifier.updateRatingFilter(value > 0 ? value : null);
-                    },
-                  ),
-                ),
-                if (searchState.advancedFilters.minRating != null)
-                  IconButton(
-                    onPressed: () => notifier.updateRatingFilter(null),
-                    icon: const Icon(Icons.clear),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            // Apply Button
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Apply Filters'),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              // Sort By
+              Text('Sort by', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SegmentedButton<SortBy>(
+                segments: const [
+                  ButtonSegment(value: SortBy.popularity, label: Text('Popular')),
+                  ButtonSegment(value: SortBy.releaseDate, label: Text('Latest')),
+                  ButtonSegment(value: SortBy.rating, label: Text('Rating')),
+                  ButtonSegment(value: SortBy.title, label: Text('Title')),
+                ],
+                selected: {searchState.advancedFilters.sortBy},
+                onSelectionChanged: (selection) {
+                  notifier.updateSortBy(selection.first);
+                },
+              ),
+              const SizedBox(height: 24),
+              // Release Year
+              Text(
+                'Release Year',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: searchState.advancedFilters.releaseYear
+                          ?.toString(),
+                      decoration: const InputDecoration(
+                        hintText: 'e.g. 2023',
+                        labelText: 'Year',
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        final year = int.tryParse(value);
+                        notifier.updateYearFilter(year);
+                      },
+                    ),
+                  ),
+                  if (searchState.advancedFilters.releaseYear != null)
+                    IconButton(
+                      onPressed: () => notifier.updateYearFilter(null),
+                      icon: const Icon(Icons.clear),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Minimum Rating
+              Text(
+                'Minimum Rating',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: Slider(
+                      value: searchState.advancedFilters.minRating ?? 0,
+                      min: 0,
+                      max: 10,
+                      divisions: 20,
+                      label: (searchState.advancedFilters.minRating ?? 0)
+                          .toStringAsFixed(1),
+                      onChanged: (value) {
+                        notifier.updateRatingFilter(value > 0 ? value : null);
+                      },
+                    ),
+                  ),
+                  if (searchState.advancedFilters.minRating != null)
+                    IconButton(
+                      onPressed: () => notifier.updateRatingFilter(null),
+                      icon: const Icon(Icons.clear),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Genres
+              _GenreFilterSection(),
+              const SizedBox(height: 24),
+              // Apply Button
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Apply Filters'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -526,6 +531,89 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+class _GenreFilterSection extends ConsumerWidget {
+  const _GenreFilterSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchState = ref.watch(searchNotifierProvider);
+    final notifier = ref.read(searchNotifierProvider.notifier);
+    final movieGenres = searchState.movieGenres.entries.toList();
+    final tvGenres = searchState.tvGenres.entries.toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Genres', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        if (searchState.filter == SearchFilter.all ||
+            searchState.filter == SearchFilter.movies)
+          _buildGenreChips(
+            context,
+            'Movies',
+            movieGenres,
+            searchState.advancedFilters.selectedMovieGenreIds,
+            (id, selected) {
+              final current = searchState.advancedFilters.selectedMovieGenreIds.toList();
+              if (selected) {
+                current.add(id);
+              } else {
+                current.remove(id);
+              }
+              notifier.updateMovieGenreFilter(current);
+            },
+          ),
+        if (searchState.filter == SearchFilter.all ||
+            searchState.filter == SearchFilter.tv)
+          _buildGenreChips(
+            context,
+            'TV Shows',
+            tvGenres,
+            searchState.advancedFilters.selectedTvGenreIds,
+            (id, selected) {
+              final current = searchState.advancedFilters.selectedTvGenreIds.toList();
+              if (selected) {
+                current.add(id);
+              } else {
+                current.remove(id);
+              }
+              notifier.updateTvGenreFilter(current);
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildGenreChips(
+    BuildContext context,
+    String title,
+    List<MapEntry<int, String>> genres,
+    List<int> selectedGenres,
+    void Function(int, bool) onSelected,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: genres.map((genre) {
+            return FilterChip(
+              label: Text(genre.value),
+              selected: selectedGenres.contains(genre.key),
+              onSelected: (selected) {
+                onSelected(genre.key, selected);
+              },
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }

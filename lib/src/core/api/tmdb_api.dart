@@ -584,6 +584,48 @@ class TmdbApi {
       rethrow;
     }
   }
+
+  Future<List<Movie>> getMoviesByWatchProvider(int providerId, {int page = 1}) async {
+    try {
+      final response = await _get(
+        '/discover/movie',
+        query: {
+          'with_watch_providers': '$providerId',
+          'watch_region': 'US',
+          'page': page,
+          'sort_by': 'popularity.desc',
+        },
+      );
+      final tmdbResponse = TmdbResponse.fromJson(
+        response.data as Map<String, dynamic>,
+        (json) => Movie.fromJson(json),
+      );
+      return tmdbResponse.results;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<List<TvShow>> getTvShowsByWatchProvider(int providerId, {int page = 1}) async {
+    try {
+      final response = await _get(
+        '/discover/tv',
+        query: {
+          'with_watch_providers': '$providerId',
+          'watch_region': 'US',
+          'page': page,
+          'sort_by': 'popularity.desc',
+        },
+      );
+      final tmdbResponse = TmdbResponse.fromJson(
+        response.data as Map<String, dynamic>,
+        (json) => TvShow.fromJson(json),
+      );
+      return tmdbResponse.results;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 // Dio Interceptors

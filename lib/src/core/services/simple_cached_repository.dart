@@ -795,4 +795,30 @@ class SimpleCachedRepository {
         .where((tv) => tv.genreIds?.contains(genreId) ?? false)
         .toList();
   }
+
+  Future<List<Movie>> getMoviesByWatchProvider(
+    int providerId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    return _fetchMoviesWithCache(
+      cacheKey: 'movies_provider_${providerId}_$page',
+      apiCall: () => _api.getMoviesByWatchProvider(providerId, page: page),
+      cacheDuration: _mediumCacheDuration,
+      forceRefresh: forceRefresh,
+    );
+  }
+
+  Future<List<TvShow>> getTvShowsByWatchProvider(
+    int providerId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    return _fetchTvShowsWithCache(
+      cacheKey: 'tv_shows_provider_${providerId}_$page',
+      apiCall: () => _api.getTvShowsByWatchProvider(providerId, page: page),
+      cacheDuration: _mediumCacheDuration,
+      forceRefresh: forceRefresh,
+    );
+  }
 }

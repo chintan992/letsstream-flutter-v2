@@ -29,7 +29,7 @@ class HubScreen extends ConsumerWidget {
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: Container(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withAlpha(51),
                     ),
                   ),
                 ),
@@ -92,6 +92,21 @@ class _MoviesHubBody extends ConsumerWidget {
             items: state.topRatedMovies,
             onViewAll: () => context.pushNamed('movies-list', pathParameters: {'feed': 'top_rated'}),
           ),
+          MediaCarousel(
+            title: 'Action',
+            items: state.actionMovies,
+            onViewAll: () => context.pushNamed('movies-genre', pathParameters: {'id': '28'}, queryParameters: {'name': 'Action'}),
+          ),
+          MediaCarousel(
+            title: 'Comedy',
+            items: state.comedyMovies,
+            onViewAll: () => context.pushNamed('movies-genre', pathParameters: {'id': '35'}, queryParameters: {'name': 'Comedy'}),
+          ),
+          MediaCarousel(
+            title: 'Horror',
+            items: state.horrorMovies,
+            onViewAll: () => context.pushNamed('movies-genre', pathParameters: {'id': '27'}, queryParameters: {'name': 'Horror'}),
+          ),
         ],
       ),
     );
@@ -129,6 +144,16 @@ class _TvHubBody extends ConsumerWidget {
             title: 'Top Rated',
             items: state.topRatedTvShows,
             onViewAll: () => context.pushNamed('tv-list', pathParameters: {'feed': 'top_rated'}),
+          ),
+          MediaCarousel(
+            title: 'Netflix',
+            items: state.netflixShows,
+            onViewAll: () => context.pushNamed('tv-list', pathParameters: {'feed': 'netflix'}),
+          ),
+          MediaCarousel(
+            title: 'Amazon Prime Video',
+            items: state.amazonPrimeShows,
+            onViewAll: () => context.pushNamed('tv-list', pathParameters: {'feed': 'amazon_prime'}),
           ),
         ],
       ),
