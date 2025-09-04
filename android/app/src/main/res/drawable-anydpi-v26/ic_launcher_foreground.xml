@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!--
+    REFINEMENT NOTE:
+    The gradient has been removed and replaced with a single monochrome fill color.
+    You can change the android:fillColor below to one of the suggested options.
+    - Off-white: #FFFFFF
+    - Light Gray (Cool): #F1F5F9 (Currently selected)
+    - Light Gray (Cooler): #E2E8F0
+    - Light Gray (Warm): #F3F4F6
+    -->
+    <path
+        android:pathData="M54,54m-45,0a45,45 0,1 1,90 0a45,45 0,1 1,-90 0"
+        android:fillColor="#F1F5F9"/>
+
+    <!--
+    OPTIMIZATION NOTE:
+    The original 'L' and 'S' were drawn with three separate paths.
+    They have been combined into a single, continuous path for efficiency.
+    The 'S' curve has also been refined using cubic Bézier curves (C) for a smoother shape.
+    -->
+    <path
+        android:pathData="M28,30 V70 H50 C66,70 66,54 50,54 C34,54 34,30 58,30"
+        android:strokeWidth="6"
+        android:strokeColor="#2563EB"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+
+    <!--
+    OPTIMIZATION NOTE:
+    The inner shadow effect, originally two paths, is now a single path that mirrors the main shape.
+    -->
+    <path
+        android:pathData="M30,32 V68 H48 C64,68 64,56 48,56 C36,56 36,32 56,32"
+        android:strokeWidth="2"
+        android:strokeColor="#60A5FA"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+
+</vector>
+

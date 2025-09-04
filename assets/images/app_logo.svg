@@ -1,25 +1,18 @@
-<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1024" height="1024" rx="224" fill="#1a1a1a"/>
-  <g transform="translate(180, 180)">
-    <!-- Play button base -->
-    <rect x="0" y="0" width="280" height="280" rx="24" fill="#6200ee"/>
-    
-    <!-- Play arrow -->
-    <path d="M110 80 L110 200 L190 140 Z" fill="white"/>
-    
-    <!-- Streaming waves -->
-    <rect x="220" y="30" width="40" height="40" rx="4" fill="#6200ee" opacity="0.3"/>
-    <rect x="240" y="80" width="40" height="40" rx="4" fill="#6200ee" opacity="0.2"/>
-    <rect x="260" y="130" width="40" height="40" rx="4" fill="#6200ee" opacity="0.1"/>
-    
-    <!-- Dots for media types -->
-    <circle cx="40" cy="220" r="12" fill="#4caf50"/>
-    <circle cx="80" cy="220" r="12" fill="#ff9800"/>
-    <circle cx="120" cy="220" r="12" fill="#f44336"/>
+<svg width="512" height="192" viewBox="0 0 512 192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#007BFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8A2BE2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, 0)">
+    <rect width="192" height="192" rx="48" fill="#121212"/>
+    <g transform="translate(48, 48) scale(0.5)">
+      <path d="M64 0 C99.346 0 128 28.654 128 64 C128 99.346 99.346 128 64 128 C28.654 128 0 99.346 0 64 C0 28.654 28.654 0 64 0 Z M64 16 C37.49 16 16 37.49 16 64 C16 90.51 37.49 112 64 112 C90.51 112 112 90.51 112 64 C112 37.49 90.51 16 64 16 Z" fill="url(#logoGradient)"/>
+      <path d="M56 48 L80 64 L56 80 Z" fill="#FFFFFF"/>
+    </g>
   </g>
-  
-  <!-- App name -->
-  <text x="512" y="850" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="120" font-weight="bold" fill="#ffffff">
+  <text x="352" y="110" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="60" font-weight="bold" fill="#FFFFFF">
     Let's Stream
   </text>
 </svg>

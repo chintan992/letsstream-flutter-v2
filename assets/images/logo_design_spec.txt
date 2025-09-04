@@ -1,42 +1,17 @@
-# Let's Stream Logo Design Specification
+# Let's Stream Logo Design Specification (v2)
 
 ## Primary Logo
-- **Shape**: Rounded square (64x64 pixels minimum)
-- **Background**: Dark charcoal gray (#1A1A1A)
-- **Primary Element**: Purple play button (#6200EE) with white arrow
-- **Accent Elements**: Three vertical streaming waves in decreasing opacity (30%, 20%, 10%)
-- **Text**: "Let's Stream" in white Roboto Bold, size proportional to logo
+- **Shape**: Stylized 'S' play button.
+- **Color**: Gradient from blue (#007BFF) to purple (#8A2BE2).
+- **Background**: Dark grey (#121212).
+- **Text**: "Let's Stream" in white Roboto Bold.
 
 ## App Icon
-- **Shape**: Rounded square with 24px corner radius
-- **Background**: Dark charcoal gray (#1A1A1A)
-- **Primary Element**: Purple play button (#6200EE) with white arrow
-- **Accent Elements**: Three small vertical bars representing streaming waves
+- **Shape**: Rounded square.
+- **Background**: Dark grey (#121212).
+- **Primary Element**: Stylized 'S' play button with a blue-to-purple gradient.
 
 ## Color Palette
-- Primary Purple: #6200EE
-- Dark Background: #1A1A1A
+- Primary Gradient: Blue (#007BFF) to Purple (#8A2BE2)
+- Dark Background: #121212
 - White Text: #FFFFFF
-- Streaming Wave Opacities: 30%, 20%, 10%
-
-## Design Elements
-1. Play button represents media playback
-2. Vertical bars represent streaming/data flow
-3. Modern, clean aesthetic
-4. Good contrast for accessibility
-5. Scalable design that works from 48px to 1024px
-
-## Required Sizes
-- 48x48px - Notification icons
-- 72x72px - Launcher icons (MDPI)
-- 96x96px - Launcher icons (HDPI)
-- 144x144px - Launcher icons (XHDPI)
-- 192x192px - Launcher icons (XXHDPI)
-- 512x512px - High-res marketing
-- 1024x1024px - App store listings
-
-This design represents a modern streaming service with:
-- Play button symbolizing media playback
-- Streaming waves representing data flow
-- Clean, accessible color scheme
-- Scalable vector-based design
