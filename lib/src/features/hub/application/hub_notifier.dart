@@ -20,6 +20,11 @@ class HubState with _$HubState {
     @Default([]) List<TvShow> topRatedTvShows,
     @Default({}) Map<int, String> movieGenres,
     @Default({}) Map<int, String> tvGenres,
+    @Default([]) List<Movie> actionMovies,
+    @Default([]) List<Movie> comedyMovies,
+    @Default([]) List<Movie> horrorMovies,
+    @Default([]) List<TvShow> netflixShows,
+    @Default([]) List<TvShow> amazonPrimeShows,
     @Default(true) bool isLoading,
     Object? error,
   }) = _HubState;
@@ -46,6 +51,11 @@ class HubNotifier extends StateNotifier<HubState> {
         _repo.getTopRatedTvShows(),
         _repo.getMovieGenres(),
         _repo.getTvGenres(),
+        _repo.getMoviesByGenre(28), // Action
+        _repo.getMoviesByGenre(35), // Comedy
+        _repo.getMoviesByGenre(27), // Horror
+        _repo.getTvShowsByWatchProvider(8), // Netflix
+        _repo.getTvShowsByWatchProvider(9), // Amazon Prime Video
       ]);
 
       state = state.copyWith(
@@ -59,6 +69,11 @@ class HubNotifier extends StateNotifier<HubState> {
         topRatedTvShows: results[7] as List<TvShow>,
         movieGenres: results[8] as Map<int, String>,
         tvGenres: results[9] as Map<int, String>,
+        actionMovies: results[10] as List<Movie>,
+        comedyMovies: results[11] as List<Movie>,
+        horrorMovies: results[12] as List<Movie>,
+        netflixShows: results[13] as List<TvShow>,
+        amazonPrimeShows: results[14] as List<TvShow>,
         isLoading: false,
       );
     } catch (e) {

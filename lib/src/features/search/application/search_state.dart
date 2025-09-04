@@ -10,12 +10,16 @@ class SearchFilters {
   final int? releaseYear;
   final double? minRating;
   final SortBy sortBy;
+  final List<int> selectedMovieGenreIds;
+  final List<int> selectedTvGenreIds;
 
   const SearchFilters({
     this.genres = const [],
     this.releaseYear,
     this.minRating,
     this.sortBy = SortBy.popularity,
+    this.selectedMovieGenreIds = const [],
+    this.selectedTvGenreIds = const [],
   });
 
   SearchFilters copyWith({
@@ -23,12 +27,16 @@ class SearchFilters {
     int? releaseYear,
     double? minRating,
     SortBy? sortBy,
+    List<int>? selectedMovieGenreIds,
+    List<int>? selectedTvGenreIds,
   }) {
     return SearchFilters(
       genres: genres ?? this.genres,
       releaseYear: releaseYear ?? this.releaseYear,
       minRating: minRating ?? this.minRating,
       sortBy: sortBy ?? this.sortBy,
+      selectedMovieGenreIds: selectedMovieGenreIds ?? this.selectedMovieGenreIds,
+      selectedTvGenreIds: selectedTvGenreIds ?? this.selectedTvGenreIds,
     );
   }
 
@@ -84,6 +92,8 @@ class SearchState {
   final List<dynamic> items; // Movie or TvShow
   final SearchFilter filter;
   final SearchFilters advancedFilters;
+  final Map<int, String> movieGenres;
+  final Map<int, String> tvGenres;
 
   const SearchState({
     this.query = '',
@@ -95,6 +105,8 @@ class SearchState {
     this.items = const [],
     this.filter = SearchFilter.all,
     this.advancedFilters = const SearchFilters(),
+    this.movieGenres = const {},
+    this.tvGenres = const {},
   });
 
   bool get isEmptyQuery => query.trim().isEmpty;
@@ -109,6 +121,8 @@ class SearchState {
     List<dynamic>? items,
     SearchFilter? filter,
     SearchFilters? advancedFilters,
+    Map<int, String>? movieGenres,
+    Map<int, String>? tvGenres,
   }) {
     return SearchState(
       query: query ?? this.query,
@@ -120,6 +134,8 @@ class SearchState {
       items: items ?? this.items,
       filter: filter ?? this.filter,
       advancedFilters: advancedFilters ?? this.advancedFilters,
+      movieGenres: movieGenres ?? this.movieGenres,
+      tvGenres: tvGenres ?? this.tvGenres,
     );
   }
 

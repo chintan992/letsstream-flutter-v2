@@ -26,6 +26,11 @@ mixin _$HubState {
   List<TvShow> get topRatedTvShows => throw _privateConstructorUsedError;
   Map<int, String> get movieGenres => throw _privateConstructorUsedError;
   Map<int, String> get tvGenres => throw _privateConstructorUsedError;
+  List<Movie> get actionMovies => throw _privateConstructorUsedError;
+  List<Movie> get comedyMovies => throw _privateConstructorUsedError;
+  List<Movie> get horrorMovies => throw _privateConstructorUsedError;
+  List<TvShow> get netflixShows => throw _privateConstructorUsedError;
+  List<TvShow> get amazonPrimeShows => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   Object? get error => throw _privateConstructorUsedError;
 
@@ -50,6 +55,11 @@ abstract class $HubStateCopyWith<$Res> {
       List<TvShow> topRatedTvShows,
       Map<int, String> movieGenres,
       Map<int, String> tvGenres,
+      List<Movie> actionMovies,
+      List<Movie> comedyMovies,
+      List<Movie> horrorMovies,
+      List<TvShow> netflixShows,
+      List<TvShow> amazonPrimeShows,
       bool isLoading,
       Object? error});
 }
@@ -77,6 +87,11 @@ class _$HubStateCopyWithImpl<$Res, $Val extends HubState>
     Object? topRatedTvShows = null,
     Object? movieGenres = null,
     Object? tvGenres = null,
+    Object? actionMovies = null,
+    Object? comedyMovies = null,
+    Object? horrorMovies = null,
+    Object? netflixShows = null,
+    Object? amazonPrimeShows = null,
     Object? isLoading = null,
     Object? error = freezed,
   }) {
@@ -121,6 +136,26 @@ class _$HubStateCopyWithImpl<$Res, $Val extends HubState>
           ? _value.tvGenres
           : tvGenres // ignore: cast_nullable_to_non_nullable
               as Map<int, String>,
+      actionMovies: null == actionMovies
+          ? _value.actionMovies
+          : actionMovies // ignore: cast_nullable_to_non_nullable
+              as List<Movie>,
+      comedyMovies: null == comedyMovies
+          ? _value.comedyMovies
+          : comedyMovies // ignore: cast_nullable_to_non_nullable
+              as List<Movie>,
+      horrorMovies: null == horrorMovies
+          ? _value.horrorMovies
+          : horrorMovies // ignore: cast_nullable_to_non_nullable
+              as List<Movie>,
+      netflixShows: null == netflixShows
+          ? _value.netflixShows
+          : netflixShows // ignore: cast_nullable_to_non_nullable
+              as List<TvShow>,
+      amazonPrimeShows: null == amazonPrimeShows
+          ? _value.amazonPrimeShows
+          : amazonPrimeShows // ignore: cast_nullable_to_non_nullable
+              as List<TvShow>,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -149,6 +184,11 @@ abstract class _$$HubStateImplCopyWith<$Res>
       List<TvShow> topRatedTvShows,
       Map<int, String> movieGenres,
       Map<int, String> tvGenres,
+      List<Movie> actionMovies,
+      List<Movie> comedyMovies,
+      List<Movie> horrorMovies,
+      List<TvShow> netflixShows,
+      List<TvShow> amazonPrimeShows,
       bool isLoading,
       Object? error});
 }
@@ -174,6 +214,11 @@ class __$$HubStateImplCopyWithImpl<$Res>
     Object? topRatedTvShows = null,
     Object? movieGenres = null,
     Object? tvGenres = null,
+    Object? actionMovies = null,
+    Object? comedyMovies = null,
+    Object? horrorMovies = null,
+    Object? netflixShows = null,
+    Object? amazonPrimeShows = null,
     Object? isLoading = null,
     Object? error = freezed,
   }) {
@@ -218,6 +263,26 @@ class __$$HubStateImplCopyWithImpl<$Res>
           ? _value._tvGenres
           : tvGenres // ignore: cast_nullable_to_non_nullable
               as Map<int, String>,
+      actionMovies: null == actionMovies
+          ? _value._actionMovies
+          : actionMovies // ignore: cast_nullable_to_non_nullable
+              as List<Movie>,
+      comedyMovies: null == comedyMovies
+          ? _value._comedyMovies
+          : comedyMovies // ignore: cast_nullable_to_non_nullable
+              as List<Movie>,
+      horrorMovies: null == horrorMovies
+          ? _value._horrorMovies
+          : horrorMovies // ignore: cast_nullable_to_non_nullable
+              as List<Movie>,
+      netflixShows: null == netflixShows
+          ? _value._netflixShows
+          : netflixShows // ignore: cast_nullable_to_non_nullable
+              as List<TvShow>,
+      amazonPrimeShows: null == amazonPrimeShows
+          ? _value._amazonPrimeShows
+          : amazonPrimeShows // ignore: cast_nullable_to_non_nullable
+              as List<TvShow>,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -241,6 +306,11 @@ class _$HubStateImpl implements _HubState {
       final List<TvShow> topRatedTvShows = const [],
       final Map<int, String> movieGenres = const {},
       final Map<int, String> tvGenres = const {},
+      final List<Movie> actionMovies = const [],
+      final List<Movie> comedyMovies = const [],
+      final List<Movie> horrorMovies = const [],
+      final List<TvShow> netflixShows = const [],
+      final List<TvShow> amazonPrimeShows = const [],
       this.isLoading = true,
       this.error})
       : _trendingMovies = trendingMovies,
@@ -252,7 +322,12 @@ class _$HubStateImpl implements _HubState {
         _popularTvShows = popularTvShows,
         _topRatedTvShows = topRatedTvShows,
         _movieGenres = movieGenres,
-        _tvGenres = tvGenres;
+        _tvGenres = tvGenres,
+        _actionMovies = actionMovies,
+        _comedyMovies = comedyMovies,
+        _horrorMovies = horrorMovies,
+        _netflixShows = netflixShows,
+        _amazonPrimeShows = amazonPrimeShows;
 
   final List<Movie> _trendingMovies;
   @override
@@ -346,6 +421,52 @@ class _$HubStateImpl implements _HubState {
     return EqualUnmodifiableMapView(_tvGenres);
   }
 
+  final List<Movie> _actionMovies;
+  @override
+  @JsonKey()
+  List<Movie> get actionMovies {
+    if (_actionMovies is EqualUnmodifiableListView) return _actionMovies;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_actionMovies);
+  }
+
+  final List<Movie> _comedyMovies;
+  @override
+  @JsonKey()
+  List<Movie> get comedyMovies {
+    if (_comedyMovies is EqualUnmodifiableListView) return _comedyMovies;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_comedyMovies);
+  }
+
+  final List<Movie> _horrorMovies;
+  @override
+  @JsonKey()
+  List<Movie> get horrorMovies {
+    if (_horrorMovies is EqualUnmodifiableListView) return _horrorMovies;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_horrorMovies);
+  }
+
+  final List<TvShow> _netflixShows;
+  @override
+  @JsonKey()
+  List<TvShow> get netflixShows {
+    if (_netflixShows is EqualUnmodifiableListView) return _netflixShows;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_netflixShows);
+  }
+
+  final List<TvShow> _amazonPrimeShows;
+  @override
+  @JsonKey()
+  List<TvShow> get amazonPrimeShows {
+    if (_amazonPrimeShows is EqualUnmodifiableListView)
+      return _amazonPrimeShows;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_amazonPrimeShows);
+  }
+
   @override
   @JsonKey()
   final bool isLoading;
@@ -354,7 +475,7 @@ class _$HubStateImpl implements _HubState {
 
   @override
   String toString() {
-    return 'HubState(trendingMovies: $trendingMovies, nowPlayingMovies: $nowPlayingMovies, popularMovies: $popularMovies, topRatedMovies: $topRatedMovies, trendingTvShows: $trendingTvShows, airingTodayTvShows: $airingTodayTvShows, popularTvShows: $popularTvShows, topRatedTvShows: $topRatedTvShows, movieGenres: $movieGenres, tvGenres: $tvGenres, isLoading: $isLoading, error: $error)';
+    return 'HubState(trendingMovies: $trendingMovies, nowPlayingMovies: $nowPlayingMovies, popularMovies: $popularMovies, topRatedMovies: $topRatedMovies, trendingTvShows: $trendingTvShows, airingTodayTvShows: $airingTodayTvShows, popularTvShows: $popularTvShows, topRatedTvShows: $topRatedTvShows, movieGenres: $movieGenres, tvGenres: $tvGenres, actionMovies: $actionMovies, comedyMovies: $comedyMovies, horrorMovies: $horrorMovies, netflixShows: $netflixShows, amazonPrimeShows: $amazonPrimeShows, isLoading: $isLoading, error: $error)';
   }
 
   @override
@@ -381,6 +502,16 @@ class _$HubStateImpl implements _HubState {
             const DeepCollectionEquality()
                 .equals(other._movieGenres, _movieGenres) &&
             const DeepCollectionEquality().equals(other._tvGenres, _tvGenres) &&
+            const DeepCollectionEquality()
+                .equals(other._actionMovies, _actionMovies) &&
+            const DeepCollectionEquality()
+                .equals(other._comedyMovies, _comedyMovies) &&
+            const DeepCollectionEquality()
+                .equals(other._horrorMovies, _horrorMovies) &&
+            const DeepCollectionEquality()
+                .equals(other._netflixShows, _netflixShows) &&
+            const DeepCollectionEquality()
+                .equals(other._amazonPrimeShows, _amazonPrimeShows) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             const DeepCollectionEquality().equals(other.error, error));
@@ -399,6 +530,11 @@ class _$HubStateImpl implements _HubState {
       const DeepCollectionEquality().hash(_topRatedTvShows),
       const DeepCollectionEquality().hash(_movieGenres),
       const DeepCollectionEquality().hash(_tvGenres),
+      const DeepCollectionEquality().hash(_actionMovies),
+      const DeepCollectionEquality().hash(_comedyMovies),
+      const DeepCollectionEquality().hash(_horrorMovies),
+      const DeepCollectionEquality().hash(_netflixShows),
+      const DeepCollectionEquality().hash(_amazonPrimeShows),
       isLoading,
       const DeepCollectionEquality().hash(error));
 
@@ -421,6 +557,11 @@ abstract class _HubState implements HubState {
       final List<TvShow> topRatedTvShows,
       final Map<int, String> movieGenres,
       final Map<int, String> tvGenres,
+      final List<Movie> actionMovies,
+      final List<Movie> comedyMovies,
+      final List<Movie> horrorMovies,
+      final List<TvShow> netflixShows,
+      final List<TvShow> amazonPrimeShows,
       final bool isLoading,
       final Object? error}) = _$HubStateImpl;
 
@@ -444,6 +585,16 @@ abstract class _HubState implements HubState {
   Map<int, String> get movieGenres;
   @override
   Map<int, String> get tvGenres;
+  @override
+  List<Movie> get actionMovies;
+  @override
+  List<Movie> get comedyMovies;
+  @override
+  List<Movie> get horrorMovies;
+  @override
+  List<TvShow> get netflixShows;
+  @override
+  List<TvShow> get amazonPrimeShows;
   @override
   bool get isLoading;
   @override

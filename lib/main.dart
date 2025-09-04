@@ -141,6 +141,16 @@ final _router = GoRouter(
           },
         ),
         GoRoute(
+          path: '/tv-shows/netflix',
+          name: 'tv-netflix',
+          builder: (context, state) => const TvListScreen(feed: 'netflix'),
+        ),
+        GoRoute(
+          path: '/tv-shows/amazon_prime',
+          name: 'tv-amazon-prime',
+          builder: (context, state) => const TvListScreen(feed: 'amazon_prime'),
+        ),
+        GoRoute(
           path: '/anime',
           name: 'anime',
           builder: (context, state) => const AnimeScreen(),

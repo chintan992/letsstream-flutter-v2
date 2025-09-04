@@ -16,7 +16,16 @@ class SearchNotifier extends StateNotifier<SearchState> {
   Timer? _debounce;
   int _requestId = 0; // helps ignore stale responses
 
-  SearchNotifier(this.ref) : super(const SearchState());
+  SearchNotifier(this.ref) : super(const SearchState()) {
+    _fetchGenres();
+  }
+
+  Future<void> _fetchGenres() async {
+    final repo = ref.read(tmdbRepositoryProvider);
+    final movieGenres = await repo.getMovieGenres();
+    final tvGenres = await repo.getTvGenres();
+    state = state.copyWith(movieGenres: movieGenres, tvGenres: tvGenres);
+  }
 
   Future<String> loadPersisted() async {
     final prefs = await SharedPreferences.getInstance();
@@ -111,8 +120,13 @@ class SearchNotifier extends StateNotifier<SearchState> {
     _persistState();
   }
 
-  void updateGenreFilter(List<int> genres) {
-    final newFilters = state.advancedFilters.copyWith(genres: genres);
+  void updateMovieGenreFilter(List<int> genres) {
+    final newFilters = state.advancedFilters.copyWith(selectedMovieGenreIds: genres);
+    setAdvancedFilters(newFilters);
+  }
+
+  void updateTvGenreFilter(List<int> genres) {
+    final newFilters = state.advancedFilters.copyWith(selectedTvGenreIds: genres);
     setAdvancedFilters(newFilters);
   }
 
@@ -161,15 +175,23 @@ class SearchNotifier extends StateNotifier<SearchState> {
       final repo = ref.read(tmdbRepositoryProvider);
 
       // Use advanced filters if available
-      final apiParams = state.advancedFilters.toApiParams();
+      final movieApiParams = state.advancedFilters.toApiParams();
+      if (state.advancedFilters.selectedMovieGenreIds.isNotEmpty) {
+        movieApiParams['with_genres'] = state.advancedFilters.selectedMovieGenreIds.join(',');
+      }
+
+      final tvApiParams = state.advancedFilters.toApiParams();
+      if (state.advancedFilters.selectedTvGenreIds.isNotEmpty) {
+        tvApiParams['with_genres'] = state.advancedFilters.selectedTvGenreIds.join(',');
+      }
 
       // Fetch movies and TV in parallel with filters
       final results = await Future.wait<List<dynamic>>([
         if (state.filter == SearchFilter.all ||
             state.filter == SearchFilter.movies)
-          repo.searchMovies(query, page: page, additionalParams: apiParams),
+          repo.searchMovies(query, page: page, additionalParams: movieApiParams),
         if (state.filter == SearchFilter.all || state.filter == SearchFilter.tv)
-          repo.searchTvShows(query, page: page, additionalParams: apiParams),
+          repo.searchTvShows(query, page: page, additionalParams: tvApiParams),
       ]);
 
       // If another request began after this one, ignore these results
