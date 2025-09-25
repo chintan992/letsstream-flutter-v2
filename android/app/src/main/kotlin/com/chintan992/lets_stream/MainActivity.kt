@@ -1,4 +1,4 @@
-package com.example.lets_stream
+package com.chintan992.lets_stream
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDgW2XVC4YhB9wwhe8JxrcX-uFZ0RY6W-o',
-    appId: '1:1080273996839:android:2d6326b45baf5cfaf91202',
+    appId: '1:1080273996839:android:a7c2d1321ca6ed9cf91202',
     messagingSenderId: '1080273996839',
     projectId: 'lets-stream-c09e3',
     storageBucket: 'lets-stream-c09e3.firebasestorage.app',
@@ -60,13 +60,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBx5FOHBYyy9qYZatBZbG10HovQgwLtGmw',
-    appId: '1:1080273996839:ios:14535d2c62159053f91202',
+    appId: '1:1080273996839:ios:134f1e68cc4a0e56f91202',
     messagingSenderId: '1080273996839',
     projectId: 'lets-stream-c09e3',
     storageBucket: 'lets-stream-c09e3.firebasestorage.app',
-    iosClientId:
-        '1080273996839-qff6gds1asp26pvc06au1fnko8kvge41.apps.googleusercontent.com',
-    iosBundleId: 'com.reddragon.letsstream',
+    iosClientId: '1080273996839-it7joafbrhqe4nv7ka5dtrk86m01eems.apps.googleusercontent.com',
+    iosBundleId: 'com.chintan992.letsStream',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

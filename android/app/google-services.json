@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1080273996839:android:2d6326b45baf5cfaf91202",
+        "mobilesdk_app_id": "1:1080273996839:android:a7c2d1321ca6ed9cf91202",
         "android_client_info": {
-          "package_name": "com.example.lets_stream"
+          "package_name": "com.chintan992.lets_stream"
         }
       },
       "oauth_client": [
@@ -34,7 +34,7 @@
               "client_id": "1080273996839-3n5ag98e0c7o8gecctn3ij8tjr8ct60l.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.letsstreamFlutter"
+                "bundle_id": "com.chintan992.letsStream"
               }
             }
           ]

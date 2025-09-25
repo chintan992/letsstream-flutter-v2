@@ -55,19 +55,19 @@ enum AppThemeType {
     switch (this) {
       case AppThemeType.classicDark:
       case AppThemeType.classicLight:
-        return const Color(0xFF6B5B95);
+        return AppColors.primaryColor;
       case AppThemeType.blueOcean:
-        return const Color(0xFF2196F3);
+        return AppColors.blueOceanPrimary;
       case AppThemeType.sunsetOrange:
-        return const Color(0xFFFF9800);
+        return AppColors.sunsetOrangePrimary;
       case AppThemeType.forestGreen:
-        return const Color(0xFF4CAF50);
+        return AppColors.forestGreenPrimary;
       case AppThemeType.midnightPurple:
-        return const Color(0xFF9C27B0);
+        return AppColors.midnightPurplePrimary;
       case AppThemeType.rosePink:
-        return const Color(0xFFE91E63);
+        return AppColors.rosePinkPrimary;
       case AppThemeType.amberGold:
-        return const Color(0xFFFFC107);
+        return AppColors.amberGoldPrimary;
     }
   }
 
@@ -76,19 +76,19 @@ enum AppThemeType {
     switch (this) {
       case AppThemeType.classicDark:
       case AppThemeType.classicLight:
-        return const Color(0xFF4ECDC4);
+        return AppColors.accentColor;
       case AppThemeType.blueOcean:
-        return const Color(0xFF00BCD4);
+        return AppColors.blueOceanAccent;
       case AppThemeType.sunsetOrange:
-        return const Color(0xFFFF5722);
+        return AppColors.sunsetOrangeAccent;
       case AppThemeType.forestGreen:
-        return const Color(0xFF8BC34A);
+        return AppColors.forestGreenAccent;
       case AppThemeType.midnightPurple:
-        return const Color(0xFFBA68C8);
+        return AppColors.midnightPurpleAccent;
       case AppThemeType.rosePink:
-        return const Color(0xFFFFC0CB);
+        return AppColors.rosePinkAccent;
       case AppThemeType.amberGold:
-        return const Color(0xFFFFD54F);
+        return AppColors.amberGoldAccent;
     }
   }
 }

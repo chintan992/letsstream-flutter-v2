@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.lets_stream"
+    namespace = "com.chintan992.lets_stream"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.lets_stream"
+        applicationId = "com.chintan992.lets_stream"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
