@@ -1,53 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
-// Expose FirebaseAuth instance via Riverpod
-final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
-  return FirebaseAuth.instance;
+// Mock authentication providers for when Firebase is not available
+// This provides a basic structure that can be replaced with local authentication later
+
+// Mock auth state provider - always returns null (not signed in)
+final authStateProvider = StreamProvider((ref) {
+  return Stream.value(null); // Always return null (not signed in)
 });
 
-// Stream of auth state changes (User? is null when signed out)
-final authStateProvider = StreamProvider<User?>((ref) {
-  final auth = ref.watch(firebaseAuthProvider);
-  return auth.authStateChanges();
-});
-
+// Mock auth actions provider
 class AuthActions {
-  final FirebaseAuth _auth;
-  AuthActions(this._auth);
-
-  Future<UserCredential> signInWithGoogle() async {
-    // Trigger the authentication flow
-    final googleUser = await GoogleSignIn().signIn();
-    if (googleUser == null) {
-      throw Exception('Sign-in aborted');
-    }
-
-    // Obtain the auth details from the request
-    final googleAuth = await googleUser.authentication;
-
-    // Create a new credential
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
-    // Once signed in, return the UserCredential
-    return _auth.signInWithCredential(credential);
+  Future<void> signInWithGoogle() async {
+    // Mock implementation - could be replaced with local authentication
+    throw Exception('Authentication not available - Firebase has been removed');
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
-    // Also disconnect GoogleSignIn to ensure full sign-out on Android/web
-    try {
-      await GoogleSignIn().signOut();
-    } catch (_) {}
+    // Mock implementation - no-op since we're not signed in
   }
 }
 
 final authActionsProvider = Provider<AuthActions>((ref) {
-  final auth = ref.watch(firebaseAuthProvider);
-  return AuthActions(auth);
+  return AuthActions();
 });
-

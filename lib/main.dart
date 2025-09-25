@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'src/shared/theme/theme_providers.dart';
 import 'src/core/services/cache_service.dart';
@@ -32,9 +31,6 @@ void main() async {
 
   // Load environment variables
   await dotenv.load(fileName: ".env");
-
-  // Initialize Firebase (Android auto-config via google-services.json)
-  await Firebase.initializeApp();
 
   // Initialize Hive and services
   await _initializeServices();
