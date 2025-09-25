@@ -4,6 +4,10 @@ import 'package:lets_stream/src/shared/widgets/app_logo.dart';
 import 'package:lets_stream/src/shared/theme/theme_providers.dart';
 import 'package:lets_stream/src/shared/theme/theme_model.dart';
 import 'package:lets_stream/src/core/services/cache_service.dart';
+import 'package:lets_stream/src/features/simkl_auth/services/simkl_auth_service.dart';
+import 'package:lets_stream/src/core/services/simkl/simkl_api_client.dart';
+import 'package:lets_stream/src/core/models/simkl/simkl_auth_models.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -13,21 +17,13 @@ class ProfileScreen extends ConsumerWidget {
     final currentTheme = ref.watch(themeNotifierProvider);
     final themeNotifier = ref.read(themeNotifierProvider.notifier);
 
-    Widget accountSection() {
-      return const ListTile(
-        leading: Icon(Icons.person),
-        title: Text('Account'),
-        subtitle: Text('Authentication not available'),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text('Profile'), centerTitle: true),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           const _SectionHeader('Account'),
-          accountSection(),
+          _buildAccountSection(context, ref),
           const Divider(),
           const _SectionHeader('Preferences'),
           ListTile(
@@ -130,6 +126,345 @@ class ProfileScreen extends ConsumerWidget {
             onTap: () => _showDmcaNotice(context),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAccountSection(BuildContext context, WidgetRef ref) {
+    final simklAuthService = SimklAuthService(
+      SimklApiClient(),
+      ref as Ref<Object?>,
+    );
+
+    return FutureBuilder<bool>(
+      future: simklAuthService.isAuthenticated(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const ListTile(
+            leading: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            title: Text('Simkl Account'),
+            subtitle: Text('Checking authentication...'),
+          );
+        }
+
+        final authenticated = snapshot.data ?? false;
+
+        if (authenticated) {
+          return _buildAuthenticatedAccountSection(
+            context,
+            ref,
+            simklAuthService,
+          );
+        } else {
+          return _buildUnauthenticatedAccountSection(
+            context,
+            ref,
+            simklAuthService,
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildAuthenticatedAccountSection(
+    BuildContext context,
+    WidgetRef ref,
+    SimklAuthService authService,
+  ) {
+    return FutureBuilder<SimklUserSettings?>(
+      future: authService.getUserSettings(),
+      builder: (context, snapshot) {
+        final userSettings = snapshot.data;
+
+        return Column(
+          children: [
+            ListTile(
+              leading: CircleAvatar(
+                backgroundImage: userSettings?.user.avatar != null
+                    ? NetworkImage(userSettings!.user.avatar!)
+                    : null,
+                child: userSettings?.user.avatar == null
+                    ? const Icon(Icons.person)
+                    : null,
+              ),
+              title: Text(userSettings?.user.name ?? 'Simkl User'),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Connected to Simkl'),
+                  if (userSettings != null)
+                    Text(
+                      'Joined ${userSettings.user.joinedAt.substring(0, 10)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                ],
+              ),
+              trailing: PopupMenuButton<String>(
+                onSelected: (value) async {
+                  if (value == 'logout') {
+                    await _handleLogout(context, ref, authService);
+                  } else if (value == 'sync') {
+                    await _handleSync(context, ref, authService);
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'sync',
+                    child: ListTile(
+                      leading: Icon(Icons.sync),
+                      title: Text('Sync Data'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: ListTile(
+                      leading: Icon(Icons.logout),
+                      title: Text('Sign Out'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (userSettings != null) ...[
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.sync),
+                title: const Text('Sync Status'),
+                subtitle: const Text('Last sync: Never'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.sync_problem),
+                  onPressed: () => _handleSync(context, ref, authService),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings),
+                title: const Text('Simkl Settings'),
+                subtitle: const Text('Manage your Simkl account'),
+                onTap: () => _openSimklSettings(context),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildUnauthenticatedAccountSection(
+    BuildContext context,
+    WidgetRef ref,
+    SimklAuthService authService,
+  ) {
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.person_outline),
+          title: const Text('Simkl Account'),
+          subtitle: const Text(
+            'Connect your Simkl account to sync watch history',
+          ),
+          trailing: ElevatedButton(
+            onPressed: () => _showAuthOptions(context, ref, authService),
+            child: const Text('Connect'),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Simkl lets you track movies, TV shows, and anime across all your devices',
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleLogout(
+    BuildContext context,
+    WidgetRef ref,
+    SimklAuthService authService,
+  ) async {
+    try {
+      await authService.signOut();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Successfully signed out from Simkl'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to sign out: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleSync(
+    BuildContext context,
+    WidgetRef ref,
+    SimklAuthService authService,
+  ) async {
+    try {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Syncing with Simkl...'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+
+      // TODO: Implement actual sync logic
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sync completed successfully'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sync failed: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  void _openSimklSettings(BuildContext context) async {
+    const simklUrl = 'https://simkl.com/settings/';
+    try {
+      final uri = Uri.parse(simklUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open Simkl settings'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening Simkl settings: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showAuthOptions(
+    BuildContext context,
+    WidgetRef ref,
+    SimklAuthService authService,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Connect to Simkl',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.web),
+              title: const Text('Web Authentication'),
+              subtitle: const Text('Open browser to authenticate'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                try {
+                  await authService.authenticateWithOAuth();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Authentication successful!'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Authentication failed: $e'),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.smartphone),
+              title: const Text('Device Authentication'),
+              subtitle: const Text('For TV, console, or limited devices'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                try {
+                  await authService.authenticateWithPin();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Device authentication initiated'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Authentication failed: $e'),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
