@@ -40,6 +40,20 @@ KEY_ALIAS          = [Your key alias]
 KEY_PASSWORD       = [Your key password]
 ```
 
+#### Required Environment Variables:
+```
+TMDB_API_KEY        = [Your TMDB API key]
+TMDB_ACCESS_TOKEN   = [Your TMDB access token]
+TMDB_BASE_URL       = [TMDB API base URL, typically: https://api.themoviedb.org/3]
+TMDB_IMAGE_BASE_URL = [TMDB image base URL, typically: https://image.tmdb.org/t/p]
+```
+
+💡 **How to get TMDB credentials:**
+1. Visit [The Movie Database (TMDB)](https://www.themoviedb.org/)
+2. Create an account and login
+3. Go to Settings → API → Create new API key
+4. Use your API key and access token in the secrets above
+
 #### How to Generate Keystore:
 ```bash
 # Create a new keystore (if you don't have one)
@@ -104,6 +118,12 @@ Auto-generated release notes include:
 - 🔗 Full changelog link
 
 ## 🛠️ Troubleshooting
+
+### Issue: Build Fails with "No file or variants found for asset: .env"
+**Solution:**
+- Ensure all TMDB environment variables are set in GitHub Secrets
+- Check that the .env file creation step runs successfully
+- Verify environment variable names match exactly
 
 ### Issue: Build Fails with Signing Error
 **Solution:** 

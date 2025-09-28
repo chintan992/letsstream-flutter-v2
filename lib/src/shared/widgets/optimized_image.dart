@@ -51,7 +51,7 @@ class OptimizedImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
+    final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? 'https://image.tmdb.org/t/p';
     final String? fullImageUrl = _buildImageUrl(imageBaseUrl);
 
     if (fullImageUrl == null) {
@@ -195,7 +195,7 @@ class OptimizedImage extends StatelessWidget {
   ) {
     // Start with a very small placeholder, then progressively load higher quality
     final smallUrl = _buildImageUrlWithSize(
-      dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '',
+      dotenv.env['TMDB_IMAGE_BASE_URL'] ?? 'https://image.tmdb.org/t/p',
       _getSmallerSize(effectiveSize),
     );
 

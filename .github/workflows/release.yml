@@ -114,6 +114,16 @@ jobs:
       - name: 📊 Flutter Doctor
         run: flutter doctor -v
 
+      - name: 🔐 Create .env file
+        run: |
+          cat > .env << EOF
+          TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          TMDB_ACCESS_TOKEN=${{ secrets.TMDB_ACCESS_TOKEN }}
+          TMDB_BASE_URL=${{ secrets.TMDB_BASE_URL }}
+          TMDB_IMAGE_BASE_URL=${{ secrets.TMDB_IMAGE_BASE_URL }}
+          EOF
+          echo "✅ .env file created"
+
       - name: 📦 Get Dependencies
         run: flutter pub get
 
@@ -302,6 +312,7 @@ jobs:
           # Remove sensitive files
           rm -f android/app/keystore.jks
           rm -f android/key.properties
+          rm -f .env
           echo "✅ Cleanup completed"
 
       - name: 📊 Build Summary

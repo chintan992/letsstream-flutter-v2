@@ -35,7 +35,7 @@ class ImagePrefetchService {
 
     _isPrefetching = true;
     try {
-      final imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
+      final imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? 'https://image.tmdb.org/t/p';
       if (imageBaseUrl.isEmpty) return;
 
       final posterPaths = movies
@@ -71,7 +71,7 @@ class ImagePrefetchService {
 
     _isPrefetching = true;
     try {
-      final imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
+      final imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? 'https://image.tmdb.org/t/p';
       if (imageBaseUrl.isEmpty) return;
 
       final posterPaths = tvShows
@@ -107,7 +107,7 @@ class ImagePrefetchService {
 
     _isPrefetching = true;
     try {
-      final imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
+      final imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? 'https://image.tmdb.org/t/p';
       if (imageBaseUrl.isEmpty) return;
 
       final posterPaths = items
