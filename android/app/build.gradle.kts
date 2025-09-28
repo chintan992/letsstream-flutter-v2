@@ -29,6 +29,11 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
+    // Configure Java compilation to suppress obsolete warnings
+    tasks.withType<JavaCompile> {
+        options.compilerArgs.addAll(listOf("-Xlint:-options", "-Xlint:-deprecation", "-Xlint:-unchecked"))
+    }
+
     defaultConfig {
         applicationId = "com.chintan992.lets_stream"
         // You can update the following values to match your application needs.
