@@ -2,8 +2,6 @@
 
 This repository now includes comprehensive GitHub Actions workflows for automated releases, version management, and APK distribution.
 
-## 📋 Quick Start
-
 ### 🎯 Create a Release (3 Methods)
 
 #### Method 1: Commit with "Release" (Recommended)
