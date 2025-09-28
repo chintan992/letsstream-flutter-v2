@@ -1,0 +1,157 @@
+name: 📈 Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      commit_message:
+        description: 'Custom commit message (optional)'
+        required: false
+        default: 'Release: Version bump'
+
+jobs:
+  bump-version:
+    name: 📈 Bump Version
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 🔧 Setup Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: 📊 Calculate New Version
+        id: version
+        run: |
+          # Extract current version from pubspec.yaml
+          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
+          CURRENT_BUILD=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
+          
+          echo "Current version: $CURRENT_VERSION+$CURRENT_BUILD"
+          
+          # Split version into components
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+          
+          # Increment based on input
+          case "${{ github.event.inputs.version_type }}" in
+            "major")
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            "minor")
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            "patch")
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          NEW_BUILD=$((CURRENT_BUILD + 1))
+          
+          echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "new-build=$NEW_BUILD" >> $GITHUB_OUTPUT
+          echo "old-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "old-build=$CURRENT_BUILD" >> $GITHUB_OUTPUT
+          
+          echo "New version: $NEW_VERSION+$NEW_BUILD"
+
+      - name: 📝 Update pubspec.yaml
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new-version }}"
+          NEW_BUILD="${{ steps.version.outputs.new-build }}"
+          
+          # Update version in pubspec.yaml
+          sed -i "s/^version: .*/version: $NEW_VERSION+$NEW_BUILD/" pubspec.yaml
+          
+          echo "✅ Updated pubspec.yaml with version $NEW_VERSION+$NEW_BUILD"
+
+      - name: 📝 Update CHANGELOG.md
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new-version }}"
+          DATE=$(date '+%Y-%m-%d')
+          
+          # Create CHANGELOG.md if it doesn't exist
+          if [[ ! -f "CHANGELOG.md" ]]; then
+            cat > CHANGELOG.md << EOF
+          # Changelog
+          
+          All notable changes to this project will be documented in this file.
+          
+          EOF
+          fi
+          
+          # Prepare new changelog entry
+          cat > temp_changelog.md << EOF
+          # Changelog
+          
+          All notable changes to this project will be documented in this file.
+          
+          ## [$NEW_VERSION] - $DATE
+          
+          ### Added
+          - Version bump to $NEW_VERSION
+          
+          ### Changed
+          - Updated build configuration
+          
+          ### Fixed
+          - Bug fixes and improvements
+          
+          EOF
+          
+          # Append old changelog (skip the first 3 lines)
+          tail -n +4 CHANGELOG.md >> temp_changelog.md || true
+          mv temp_changelog.md CHANGELOG.md
+          
+          echo "✅ Updated CHANGELOG.md"
+
+      - name: 💾 Commit Changes
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new-version }}"
+          OLD_VERSION="${{ steps.version.outputs.old-version }}"
+          
+          # Set custom commit message or use default
+          if [[ -n "${{ github.event.inputs.commit_message }}" ]]; then
+            COMMIT_MSG="${{ github.event.inputs.commit_message }}"
+          else
+            COMMIT_MSG="Release: Bump version from $OLD_VERSION to $NEW_VERSION"
+          fi
+          
+          # Stage and commit changes
+          git add pubspec.yaml CHANGELOG.md
+          git commit -m "$COMMIT_MSG"
+          git push origin ${{ github.ref_name }}
+          
+          echo "✅ Committed and pushed version bump"
+          echo "📝 Commit message: $COMMIT_MSG"
+
+      - name: 📊 Summary
+        run: |
+          echo "🎉 Version Bump Completed!"
+          echo "========================"
+          echo "📱 Old Version: ${{ steps.version.outputs.old-version }}+${{ steps.version.outputs.old-build }}"
+          echo "📱 New Version: ${{ steps.version.outputs.new-version }}+${{ steps.version.outputs.new-build }}"
+          echo "🔄 Type: ${{ github.event.inputs.version_type }}"
+          echo "📝 Files Updated: pubspec.yaml, CHANGELOG.md"
+          echo ""
+          echo "🚀 The release workflow will automatically trigger if the commit message contains 'Release'"

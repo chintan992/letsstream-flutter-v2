@@ -1,0 +1,335 @@
+name: 🚀 Release Build & Deploy
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+env:
+  FLUTTER_VERSION: '3.24.3'
+  JAVA_VERSION: '17'
+
+jobs:
+  # Job 1: Check if commit message contains "Release"
+  check-release:
+    name: 🔍 Check Release Trigger
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      version: ${{ steps.version.outputs.version }}
+      build-number: ${{ steps.version.outputs.build-number }}
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Check Commit Message
+        id: check
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" == *"Release"* ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should-release=true" >> $GITHUB_OUTPUT
+            echo "✅ Release trigger detected!"
+          else
+            echo "should-release=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No release trigger found"
+          fi
+
+      - name: 📊 Extract Version Information
+        id: version
+        if: steps.check.outputs.should-release == 'true'
+        run: |
+          # Extract version from pubspec.yaml
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
+          BUILD_NUMBER=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
+          
+          # If workflow_dispatch, increment version based on release_type
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
+            MAJOR=${VERSION_PARTS[0]}
+            MINOR=${VERSION_PARTS[1]}
+            PATCH=${VERSION_PARTS[2]}
+            
+            case "${{ github.event.inputs.release_type }}" in
+              "major")
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              "minor")
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              "patch")
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+            
+            VERSION="$MAJOR.$MINOR.$PATCH"
+            BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build-number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+          echo "📱 Version: $VERSION+$BUILD_NUMBER"
+
+  # Job 2: Build and Release
+  build-and-release:
+    name: 🔨 Build & Release APK
+    runs-on: ubuntu-latest
+    needs: check-release
+    if: needs.check-release.outputs.should-release == 'true'
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: 📊 Flutter Doctor
+        run: flutter doctor -v
+
+      - name: 📦 Get Dependencies
+        run: flutter pub get
+
+      - name: 🔧 Run Code Generation
+        run: |
+          flutter pub run build_runner build --delete-conflicting-outputs
+        continue-on-error: true
+
+      - name: 📝 Update Version in pubspec.yaml
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          BUILD_NUMBER="${{ needs.check-release.outputs.build-number }}"
+          sed -i "s/^version: .*/version: $VERSION+$BUILD_NUMBER/" pubspec.yaml
+          echo "Updated version to: $VERSION+$BUILD_NUMBER"
+
+      - name: 🔑 Decode Keystore
+        run: |
+          if [[ -n "${{ secrets.KEYSTORE_BASE64 }}" ]]; then
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/keystore.jks
+            echo "✅ Keystore decoded"
+          else
+            echo "⚠️ No keystore found, using debug signing"
+          fi
+
+      - name: 📝 Create key.properties
+        run: |
+          if [[ -n "${{ secrets.KEYSTORE_BASE64 }}" ]]; then
+            cat > android/key.properties << EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=keystore.jks
+          EOF
+            echo "✅ key.properties created"
+          else
+            echo "⚠️ Using debug signing configuration"
+          fi
+
+      - name: 🔨 Build Release APK
+        run: |
+          if [[ -f "android/key.properties" ]]; then
+            echo "🔨 Building signed release APK..."
+            flutter build apk --release --split-per-abi
+          else
+            echo "🔨 Building debug APK..."
+            flutter build apk --debug --split-per-abi
+          fi
+
+      - name: 🔨 Build App Bundle (AAB)
+        run: |
+          if [[ -f "android/key.properties" ]]; then
+            echo "🔨 Building signed app bundle..."
+            flutter build appbundle --release
+          else
+            echo "🔨 Building debug app bundle..."
+            flutter build appbundle --debug
+          fi
+        continue-on-error: true
+
+      - name: 📱 Rename APK Files
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          BUILD_NUMBER="${{ needs.check-release.outputs.build-number }}"
+          
+          cd build/app/outputs/flutter-apk/
+          
+          # Rename APK files with version info
+          for file in *.apk; do
+            if [[ -f "$file" ]]; then
+              # Extract architecture from filename
+              if [[ "$file" == *"arm64-v8a"* ]]; then
+                ARCH="arm64-v8a"
+              elif [[ "$file" == *"armeabi-v7a"* ]]; then
+                ARCH="armeabi-v7a"
+              elif [[ "$file" == *"x86_64"* ]]; then
+                ARCH="x86_64"
+              else
+                ARCH="universal"
+              fi
+              
+              NEW_NAME="lets-stream-v${VERSION}-${ARCH}.apk"
+              mv "$file" "$NEW_NAME"
+              echo "✅ Renamed $file to $NEW_NAME"
+            fi
+          done
+          
+          ls -la
+
+      - name: 📊 APK Analysis
+        run: |
+          cd build/app/outputs/flutter-apk/
+          echo "📊 APK Build Summary:"
+          echo "===================="
+          for apk in *.apk; do
+            if [[ -f "$apk" ]]; then
+              SIZE=$(du -h "$apk" | cut -f1)
+              echo "📱 $apk: $SIZE"
+            fi
+          done
+
+      - name: 🏷️ Create and Push Tag
+        run: |
+          VERSION="v${{ needs.check-release.outputs.version }}"
+          BUILD_NUMBER="${{ needs.check-release.outputs.build-number }}"
+          
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Create tag
+          git tag -a "$VERSION" -m "Release $VERSION (Build $BUILD_NUMBER)"
+          git push origin "$VERSION"
+          
+          echo "✅ Created and pushed tag: $VERSION"
+
+      - name: 📝 Generate Release Notes
+        id: release-notes
+        run: |
+          VERSION="v${{ needs.check-release.outputs.version }}"
+          BUILD_NUMBER="${{ needs.check-release.outputs.build-number }}"
+          
+          # Get commit messages since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [[ -n "$LAST_TAG" ]]; then
+            COMMIT_RANGE="$LAST_TAG..HEAD"
+          else
+            COMMIT_RANGE="HEAD~10..HEAD"
+          fi
+          
+          # Generate release notes
+          cat > release_notes.md << EOF
+          # 🚀 Let's Stream $VERSION
+          
+          **Build Number:** $BUILD_NUMBER  
+          **Release Date:** $(date '+%Y-%m-%d %H:%M:%S UTC')
+          
+          ## 📱 Downloads
+          - **ARM64**: For most modern Android devices (recommended)
+          - **ARMv7**: For older Android devices
+          - **x86_64**: For Android emulators and x86 devices
+          
+          ## 📋 What's Changed
+          
+          EOF
+          
+          # Add commit messages
+          git log --pretty=format:"- %s" $COMMIT_RANGE >> release_notes.md
+          
+          cat >> release_notes.md << EOF
+          
+          ## 🔧 Technical Details
+          - **Flutter Version:** ${{ env.FLUTTER_VERSION }}
+          - **Target SDK:** 34 (Android 14)
+          - **Minimum SDK:** 21 (Android 5.0)
+          
+          ## 📥 Installation
+          1. Download the appropriate APK for your device
+          2. Enable "Install from unknown sources" in Android settings
+          3. Install the APK
+          
+          ---
+          **Full Changelog:** https://github.com/${{ github.repository }}/compare/$LAST_TAG...$VERSION
+          EOF
+          
+          echo "Generated release notes:"
+          cat release_notes.md
+
+      - name: 🚀 Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.check-release.outputs.version }}
+          name: "Let's Stream v${{ needs.check-release.outputs.version }}"
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/bundle/release/*.aab
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          # Remove sensitive files
+          rm -f android/app/keystore.jks
+          rm -f android/key.properties
+          echo "✅ Cleanup completed"
+
+      - name: 📊 Build Summary
+        run: |
+          echo "🎉 Release Build Completed Successfully!"
+          echo "=================================="
+          echo "📱 Version: v${{ needs.check-release.outputs.version }}"
+          echo "🔢 Build: ${{ needs.check-release.outputs.build-number }}"
+          echo "🏷️ Tag: v${{ needs.check-release.outputs.version }}"
+          echo "🚀 Release: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.check-release.outputs.version }}"
+
+  # Job 3: Notify on Success/Failure
+  notify:
+    name: 📬 Notify Results
+    runs-on: ubuntu-latest
+    needs: [check-release, build-and-release]
+    if: always() && needs.check-release.outputs.should-release == 'true'
+    
+    steps:
+      - name: 📬 Success Notification
+        if: needs.build-and-release.result == 'success'
+        run: |
+          echo "🎉 Release build completed successfully!"
+          echo "📱 Version: v${{ needs.check-release.outputs.version }}"
+          echo "🚀 Check releases: https://github.com/${{ github.repository }}/releases"
+
+      - name: ❌ Failure Notification
+        if: needs.build-and-release.result == 'failure'
+        run: |
+          echo "❌ Release build failed!"
+          echo "📋 Check the logs for details: https://github.com/${{ github.repository }}/actions"
