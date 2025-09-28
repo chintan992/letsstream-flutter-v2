@@ -11,11 +11,13 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.letsstream.pip/pip_channel"
+    private lateinit var channel: MethodChannel
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+        channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+        channel.setMethodCallHandler { call, result ->
             android.util.Log.d("MainActivity", "Method channel called: ${call.method}")
             when (call.method) {
                 "enterPipMode" -> {
@@ -66,7 +68,11 @@ class MainActivity : FlutterActivity() {
         
         android.util.Log.d("MainActivity", "PIP mode changed: $isInPictureInPictureMode")
         
-        // You can notify Flutter about PIP mode changes here if needed
-        // For now, we'll handle it on the Flutter side
+        // Notify Flutter about PIP mode changes
+        try {
+            channel.invokeMethod("onPipModeChanged", isInPictureInPictureMode)
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Failed to notify Flutter about PIP mode change: ${e.message}")
+        }
     }
 }

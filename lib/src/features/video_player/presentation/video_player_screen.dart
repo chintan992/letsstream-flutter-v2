@@ -28,6 +28,9 @@ class VideoPlayerScreen extends ConsumerStatefulWidget {
 class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   bool _showControls = true;
   Timer? _hideControlsTimer;
+  late final NativePipService _pipService;
+  StreamSubscription<bool>? _pipModeSubscription;
+  bool _isInPipMode = false;
 
   @override
   void initState() {
@@ -37,7 +40,26 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   }
 
   void _initializePip() {
-    // Delay the PIP initialization to avoid modifying provider during build
+    // Initialize PIP service
+    _pipService = NativePipService();
+    _pipService.initialize();
+    
+    // Listen to PIP mode changes
+    _pipModeSubscription = _pipService.pipModeStream.listen((isInPip) {
+      if (mounted) {
+        setState(() {
+          _isInPipMode = isInPip;
+          // Hide controls when entering PIP mode
+          if (isInPip) {
+            _showControls = false;
+            _hideControlsTimer?.cancel();
+          }
+        });
+        print('🔄 PIP mode changed in UI: $_isInPipMode');
+      }
+    });
+
+    // Delay the provider PIP initialization to avoid modifying provider during build
     Future(() async {
       final provider = videoPlayerNotifierProvider((
         mediaId: widget.tmdbId,
@@ -62,6 +84,9 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   }
 
   void _toggleControls() {
+    // Don't allow control toggle when in PIP mode
+    if (_isInPipMode) return;
+    
     setState(() {
       _showControls = !_showControls;
     });
@@ -73,6 +98,7 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   @override
   void dispose() {
     _hideControlsTimer?.cancel();
+    _pipModeSubscription?.cancel();
     super.dispose();
   }
 
@@ -197,9 +223,11 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                   style: TextStyle(color: Colors.white),
                 ),
               ),
-            AnimatedOpacity(
-              opacity: _showControls ? 1.0 : 0.2,
-              duration: const Duration(milliseconds: 300),
+            // Only show overlay controls when NOT in PIP mode
+            if (!_isInPipMode)
+              AnimatedOpacity(
+                opacity: _showControls ? 1.0 : 0.2,
+                duration: const Duration(milliseconds: 300),
               child: Stack(
                 children: [
                   Positioned(
@@ -254,12 +282,11 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                             onPressed: () async {
                               print('🎯 PIP button pressed');
                               try {
-                                // Use native Android PIP
-                                final pipService = NativePipService();
-                                await pipService.initialize();
+                                // Use the class instance instead of creating new one
+                                await _pipService.initialize();
                                 
                                 print('🔄 Calling togglePipMode...');
-                                final success = await pipService.togglePipMode(
+                                final success = await _pipService.togglePipMode(
                                   aspectRatio: 16 / 9,
                                 );
                                 

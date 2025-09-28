@@ -15,6 +15,12 @@ class NativePipService {
 
   bool _isInPipMode = false;
   bool _isPipSupported = false;
+  
+  // Stream controller for PIP mode changes
+  final StreamController<bool> _pipModeController = StreamController<bool>.broadcast();
+  
+  /// Stream to listen for PIP mode changes
+  Stream<bool> get pipModeStream => _pipModeController.stream;
 
   /// Whether the app is currently in PIP mode
   bool get isInPipMode => _isInPipMode;
@@ -29,9 +35,31 @@ class NativePipService {
         // Check Android version (PIP requires API 26+)
         _isPipSupported = true; // Assume supported for now
         _logger.i('Native PIP service initialized');
+        
+        // Set up method channel for receiving PIP state changes from native side
+        platform.setMethodCallHandler(_handleMethodCall);
       }
     } catch (e) {
       _logger.e('Failed to initialize Native PIP service: $e');
+    }
+  }
+
+  /// Handle method calls from native Android side
+  Future<dynamic> _handleMethodCall(MethodCall call) async {
+    switch (call.method) {
+      case 'onPipModeChanged':
+        final isInPip = call.arguments as bool;
+        _updatePipMode(isInPip);
+        break;
+    }
+  }
+
+  /// Update PIP mode state and notify listeners
+  void _updatePipMode(bool isInPip) {
+    if (_isInPipMode != isInPip) {
+      _isInPipMode = isInPip;
+      _pipModeController.add(isInPip);
+      print('📱 PIP mode changed: $isInPip');
     }
   }
 
@@ -90,5 +118,10 @@ class NativePipService {
     } else {
       return await enterPipMode(aspectRatio: aspectRatio);
     }
+  }
+
+  /// Dispose resources
+  void dispose() {
+    _pipModeController.close();
   }
 }
