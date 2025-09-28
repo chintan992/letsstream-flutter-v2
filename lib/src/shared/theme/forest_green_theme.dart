@@ -15,7 +15,7 @@ class ForestGreenTheme {
         secondary: AppColors.forestGreenAccent,
         tertiary: AppColors.forestGreenAccent,
         surface: AppColors.darkSurface,
-        surfaceContainerHighest: Color(0xFF2A2A2A),
+        surfaceContainerHighest: AppColors.darkSurfaceHighest,
         onSurface: AppColors.darkTextPrimary,
         onSurfaceVariant: AppColors.darkTextSecondary,
       ),
@@ -44,8 +44,30 @@ class ForestGreenTheme {
 
       // Text Theme
       textTheme: BaseTheme.getTextTheme(
-        primaryTextColor: AppColors.lightTextPrimary,
-        secondaryTextColor: AppColors.lightTextSecondary,
+        primaryTextColor: AppColors.darkTextPrimary,
+        secondaryTextColor: AppColors.darkTextSecondary,
+      ),
+
+      // Input Decoration Theme
+      inputDecorationTheme: BaseTheme.getInputDecorationTheme(
+        fillColor: AppColors.darkSurface,
+        primaryColor: AppColors.forestGreenPrimary,
+        secondaryColor: AppColors.errorColor,
+        labelColor: AppColors.darkTextSecondary,
+        hintColor: AppColors.darkTextSecondary.withValues(alpha: 0.6),
+        isDark: true,
+      ),
+
+      // Divider Theme
+      dividerTheme: BaseTheme.getDividerTheme(isDark: true),
+
+      // Card Theme
+      cardTheme: BaseTheme.getCardTheme(surfaceColor: AppColors.darkSurface),
+
+      // TabBar Theme
+      tabBarTheme: BaseTheme.getTabBarTheme(
+        primaryColor: AppColors.forestGreenPrimary,
+        secondaryTextColor: AppColors.darkTextSecondary,
       ),
     );
   }

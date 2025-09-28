@@ -67,48 +67,48 @@ class BaseTheme {
     required Color primaryTextColor,
     required Color secondaryTextColor,
   }) {
-    return GoogleFonts.nunitoTextTheme().copyWith(
-      displayLarge: GoogleFonts.nunito(
+    return GoogleFonts.allertaTextTheme().copyWith(
+      displayLarge: GoogleFonts.allerta(
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: primaryTextColor,
       ),
-      displayMedium: GoogleFonts.nunito(
+      displayMedium: GoogleFonts.allerta(
         fontSize: 28,
         fontWeight: FontWeight.bold,
         color: primaryTextColor,
       ),
-      displaySmall: GoogleFonts.nunito(
+      displaySmall: GoogleFonts.allerta(
         fontSize: 24,
         fontWeight: FontWeight.w600,
         color: primaryTextColor,
       ),
-      headlineMedium: GoogleFonts.nunito(
+      headlineMedium: GoogleFonts.allerta(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: primaryTextColor,
       ),
-      headlineSmall: GoogleFonts.nunito(
+      headlineSmall: GoogleFonts.allerta(
         fontSize: 18,
         fontWeight: FontWeight.w500,
         color: primaryTextColor,
       ),
-      titleLarge: GoogleFonts.nunito(
+      titleLarge: GoogleFonts.allerta(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: primaryTextColor,
       ),
-      bodyLarge: GoogleFonts.nunito(
+      bodyLarge: GoogleFonts.allerta(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: primaryTextColor,
       ),
-      bodyMedium: GoogleFonts.nunito(
+      bodyMedium: GoogleFonts.allerta(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: secondaryTextColor,
       ),
-      labelLarge: GoogleFonts.nunito(
+      labelLarge: GoogleFonts.allerta(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: primaryTextColor,

@@ -15,7 +15,7 @@ class SunsetOrangeTheme {
         secondary: AppColors.sunsetOrangeAccent,
         tertiary: AppColors.sunsetOrangeAccent,
         surface: AppColors.darkSurface,
-        surfaceContainerHighest: Color(0xFF2A2A2A),
+        surfaceContainerHighest: AppColors.darkSurfaceHighest,
         onSurface: AppColors.darkTextPrimary,
         onSurfaceVariant: AppColors.darkTextSecondary,
       ),
@@ -45,6 +45,28 @@ class SunsetOrangeTheme {
       // Text Theme
       textTheme: BaseTheme.getTextTheme(
         primaryTextColor: AppColors.darkTextPrimary,
+        secondaryTextColor: AppColors.darkTextSecondary,
+      ),
+
+      // Input Decoration Theme
+      inputDecorationTheme: BaseTheme.getInputDecorationTheme(
+        fillColor: AppColors.darkSurface,
+        primaryColor: AppColors.sunsetOrangePrimary,
+        secondaryColor: AppColors.errorColor,
+        labelColor: AppColors.darkTextSecondary,
+        hintColor: AppColors.darkTextSecondary.withValues(alpha: 0.6),
+        isDark: true,
+      ),
+
+      // Divider Theme
+      dividerTheme: BaseTheme.getDividerTheme(isDark: true),
+
+      // Card Theme
+      cardTheme: BaseTheme.getCardTheme(surfaceColor: AppColors.darkSurface),
+
+      // TabBar Theme
+      tabBarTheme: BaseTheme.getTabBarTheme(
+        primaryColor: AppColors.sunsetOrangePrimary,
         secondaryTextColor: AppColors.darkTextSecondary,
       ),
     );

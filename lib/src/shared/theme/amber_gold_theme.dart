@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'base_theme.dart';
 
@@ -16,7 +15,7 @@ class AmberGoldTheme {
         secondary: AppColors.amberGoldAccent,
         tertiary: AppColors.amberGoldAccent,
         surface: AppColors.darkSurface,
-        surfaceContainerHighest: Color(0xFF2A2A2A),
+        surfaceContainerHighest: AppColors.darkSurfaceHighest,
         onSurface: AppColors.darkTextPrimary,
         onSurfaceVariant: AppColors.darkTextSecondary,
       ),
@@ -44,52 +43,31 @@ class AmberGoldTheme {
       ),
 
       // Text Theme
-      textTheme: GoogleFonts.nunitoTextTheme().copyWith(
-        displayLarge: GoogleFonts.nunito(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: const Color(0xFFE0E0E0),
-        ),
-        displayMedium: GoogleFonts.nunito(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: const Color(0xFFE0E0E0),
-        ),
-        displaySmall: GoogleFonts.nunito(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFFE0E0E0),
-        ),
-        headlineMedium: GoogleFonts.nunito(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFFE0E0E0),
-        ),
-        headlineSmall: GoogleFonts.nunito(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFFE0E0E0),
-        ),
-        titleLarge: GoogleFonts.nunito(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFFE0E0E0),
-        ),
-        bodyLarge: GoogleFonts.nunito(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: const Color(0xFFE0E0E0),
-        ),
-        bodyMedium: GoogleFonts.nunito(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: const Color(0xFFB0B0B0),
-        ),
-        labelLarge: GoogleFonts.nunito(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFFE0E0E0),
-        ),
+      textTheme: BaseTheme.getTextTheme(
+        primaryTextColor: AppColors.darkTextPrimary,
+        secondaryTextColor: AppColors.darkTextSecondary,
+      ),
+
+      // Input Decoration Theme
+      inputDecorationTheme: BaseTheme.getInputDecorationTheme(
+        fillColor: AppColors.darkSurface,
+        primaryColor: AppColors.amberGoldPrimary,
+        secondaryColor: AppColors.errorColor,
+        labelColor: AppColors.darkTextSecondary,
+        hintColor: AppColors.darkTextSecondary.withValues(alpha: 0.6),
+        isDark: true,
+      ),
+
+      // Divider Theme
+      dividerTheme: BaseTheme.getDividerTheme(isDark: true),
+
+      // Card Theme
+      cardTheme: BaseTheme.getCardTheme(surfaceColor: AppColors.darkSurface),
+
+      // TabBar Theme
+      tabBarTheme: BaseTheme.getTabBarTheme(
+        primaryColor: AppColors.amberGoldPrimary,
+        secondaryTextColor: AppColors.darkTextSecondary,
       ),
     );
   }

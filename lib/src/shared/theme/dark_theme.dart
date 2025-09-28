@@ -15,7 +15,7 @@ class DarkTheme {
         secondary: AppColors.secondaryColor,
         tertiary: AppColors.accentColor,
         surface: AppColors.darkSurface,
-        surfaceContainerHighest: Color(0xFF2A2A2A),
+        surfaceContainerHighest: AppColors.darkSurfaceHighest,
         onSurface: AppColors.darkTextPrimary,
         onSurfaceVariant: AppColors.darkTextSecondary,
       ),

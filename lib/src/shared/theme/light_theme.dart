@@ -15,7 +15,7 @@ class LightTheme {
         secondary: AppColors.secondaryColor,
         tertiary: AppColors.accentColor,
         surface: AppColors.lightSurface,
-        surfaceContainerHighest: Color(0xFFF0F0F0),
+        surfaceContainerHighest: AppColors.lightSurfaceHighest,
         onSurface: AppColors.lightTextPrimary,
         onSurfaceVariant: AppColors.lightTextSecondary,
       ),
