@@ -36,3 +36,29 @@
 -keep class * extends com.google.gson.TypeAdapter
 -keep class * extends com.google.gson.TypeAdapterFactory
 -keep class * implements java.io.Serializable { *; }
+
+# Google Play Core rules - ignore missing classes
+-dontwarn com.google.android.play.core.**
+-keep class com.google.android.play.core.** { *; }
+
+# WebView rules
+-keep class android.webkit.** { *; }
+-keep class org.chromium.** { *; }
+
+# InAppWebView rules
+-keep class com.pichillilorenzo.flutter_inappwebview.** { *; }
+-dontwarn com.pichillilorenzo.flutter_inappwebview.**
+
+# Flutter WebView rules
+-keep class io.flutter.plugins.webviewflutter.** { *; }
+-dontwarn io.flutter.plugins.webviewflutter.**
+
+# Network security rules
+-keep class okhttp3.** { *; }
+-keep class okio.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**
+
+# Floating Window rules
+-keep class com.example.floating_window_plus.** { *; }
+-dontwarn com.example.floating_window_plus.**

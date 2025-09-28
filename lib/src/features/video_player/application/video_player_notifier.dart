@@ -240,6 +240,16 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
       return false;
     }
   }
+
+  /// Update PIP active state directly (used by UI to sync with native PIP changes)
+  void setPipActive(bool isActive) {
+    final newPipState = isActive ? PipState.active : PipState.inactive;
+    state = state.copyWith(
+      isPipActive: isActive,
+      pipState: newPipState,
+    );
+    print('🔧 setPipActive called: isActive=$isActive, newState=${state.isPipActive}');
+  }
 }
 
 final videoPlayerNotifierProvider = StateNotifierProvider.autoDispose

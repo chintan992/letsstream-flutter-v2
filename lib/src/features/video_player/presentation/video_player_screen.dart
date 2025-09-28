@@ -55,7 +55,18 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
             _hideControlsTimer?.cancel();
           }
         });
-        print('🔄 PIP mode changed in UI: $_isInPipMode');
+        
+        // Update provider state to match PIP mode
+        final provider = videoPlayerNotifierProvider((
+          mediaId: widget.tmdbId,
+          mediaType: widget.isMovie ? 'movie' : 'tv',
+          seasonNumber: widget.season,
+          episodeNumber: widget.episode,
+        ));
+        final notifier = ref.read(provider.notifier);
+        notifier.setPipActive(isInPip);
+        
+        print('🔄 PIP mode changed in UI: $_isInPipMode, provider updated: $isInPip');
       }
     });
 
@@ -84,8 +95,17 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   }
 
   void _toggleControls() {
+    // Get current provider state to check PIP status
+    final provider = videoPlayerNotifierProvider((
+      mediaId: widget.tmdbId,
+      mediaType: widget.isMovie ? 'movie' : 'tv',
+      seasonNumber: widget.season,
+      episodeNumber: widget.episode,
+    ));
+    final state = ref.read(provider);
+    
     // Don't allow control toggle when in PIP mode
-    if (_isInPipMode) return;
+    if (state.isPipActive) return;
     
     setState(() {
       _showControls = !_showControls;
@@ -167,7 +187,7 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                       //print('Checking source: ${source.name}, movieHost: $movieHost, tvHost: $tvHost, urlHost: $urlHost, isAllowed: $isAllowedHost');
                       return isAllowedHost;
                     } catch (e) {
-                      //('Error parsing URL for source ${source.name}: $e');
+                      //print('Error parsing URL for source ${source.name}: $e');
                       return false;
                     }
                   });
@@ -224,7 +244,7 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                 ),
               ),
             // Only show overlay controls when NOT in PIP mode
-            if (!_isInPipMode)
+            if (!state.isPipActive)
               AnimatedOpacity(
                 opacity: _showControls ? 1.0 : 0.2,
                 duration: const Duration(milliseconds: 300),

@@ -1,8 +1,8 @@
 # 🎬 Let's Stream
 
-![Release](https://github.com/USERNAME/REPO/workflows/🚀%20Release%20Build%20&%20Deploy/badge.svg)
-![Version](https://img.shields.io/github/v/release/USERNAME/REPO)
-![License](https://img.shields.io/github/license/USERNAME/REPO)
+![Release](https://github.com/chintan992/letsstream-flutter-v2/workflows/🚀%20Release%20Build%20&%20Deploy/badge.svg)
+![Version](https://img.shields.io/github/v/release/chintan992/letsstream-flutter-v2)
+![License](https://img.shields.io/github/license/chintan992/letsstream-flutter-v2)
 
 **Let's Stream** is a modern, feature-rich media discovery application built with Flutter. It allows users to explore, search, and stream movies, TV shows, and anime, featuring native Android Picture-in-Picture support and enterprise-grade automated release workflows.
 
@@ -10,6 +10,7 @@
 
 ### 🎥 **Streaming & Video**
 - **Native Picture-in-Picture (PIP)**: True Android system PIP support with smart overlay controls
+- **PIP UI Management**: Overlay controls automatically hidden in PIP mode, restored in fullscreen
 - **Multi-Source Streaming**: Switch between 20+ video sources for reliable playback
 - **In-App Video Player**: Secure, iframe-based video player with comprehensive controls
 - **Seamless PIP Experience**: YouTube-like PIP with automatic UI adjustments
@@ -101,7 +102,7 @@ Download the latest version from the [Releases](../../releases) page:
 ### **Setup**
 ```bash
 # Clone the repository
-git clone https://github.com/USERNAME/letsstream-flutter-v2.git
+git clone https://github.com/chintan992/letsstream-flutter-v2.git
 cd letsstream-flutter-v2
 
 # Install dependencies
