@@ -109,7 +109,7 @@ cd letsstream-flutter-v2
 flutter pub get
 
 # Run code generation
-flutter pub run build_runner build
+dart run build_runner build --delete-conflicting-outputs
 
 # Run the app
 flutter run

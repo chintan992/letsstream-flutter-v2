@@ -239,6 +239,20 @@ class SimpleCachedRepository {
         return getPopularMovies(page: page, forceRefresh: forceRefresh);
       case 'top_rated':
         return getTopRatedMovies(page: page, forceRefresh: forceRefresh);
+      
+      // Personalized feeds
+      case 'recommended':
+      case 'personalized':
+        return getPopularMovies(page: page, forceRefresh: forceRefresh); // Fallback to popular for now
+        
+      // Platform-specific movie feeds
+      case 'netflix_movies':
+        return getMoviesByWatchProvider(8, page: page, forceRefresh: forceRefresh); // Netflix
+      case 'prime_movies':
+        return getMoviesByWatchProvider(9, page: page, forceRefresh: forceRefresh); // Amazon Prime
+      case 'disney_movies':
+        return getMoviesByWatchProvider(337, page: page, forceRefresh: forceRefresh); // Disney+
+        
       default:
         return getTrendingMovies(page: page, forceRefresh: forceRefresh);
     }
@@ -258,6 +272,26 @@ class SimpleCachedRepository {
         return getPopularTvShows(page: page, forceRefresh: forceRefresh);
       case 'top_rated':
         return getTopRatedTvShows(page: page, forceRefresh: forceRefresh);
+        
+      // Personalized feeds
+      case 'recommended':
+      case 'platform_recommended':
+        return getPopularTvShows(page: page, forceRefresh: forceRefresh); // Fallback to popular for now
+        
+      // Platform-specific TV feeds
+      case 'netflix':
+        return getTvShowsByWatchProvider(8, page: page, forceRefresh: forceRefresh); // Netflix
+      case 'amazon_prime':
+        return getTvShowsByWatchProvider(9, page: page, forceRefresh: forceRefresh); // Amazon Prime
+      case 'disney_plus':
+        return getTvShowsByWatchProvider(337, page: page, forceRefresh: forceRefresh); // Disney+
+      case 'hulu':
+        return getTvShowsByWatchProvider(15, page: page, forceRefresh: forceRefresh); // Hulu
+      case 'hbo_max':
+        return getTvShowsByWatchProvider(384, page: page, forceRefresh: forceRefresh); // HBO Max
+      case 'apple_tv':
+        return getTvShowsByWatchProvider(2, page: page, forceRefresh: forceRefresh); // Apple TV+
+        
       default:
         return getTrendingTvShows(page: page, forceRefresh: forceRefresh);
     }

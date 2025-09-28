@@ -13,7 +13,7 @@
         android:translateX="4"> <path
             android:pathData="M35,73 V35 H59 C75,35 75,54 59,54 C43,54 43,73 59,73 H73"
             android:strokeWidth="8"
-            android:strokeColor="#F89BA6"
+            android:strokeColor="#f89ba6"
             android:strokeLineCap="round"
             android:strokeLineJoin="round"/>
 
