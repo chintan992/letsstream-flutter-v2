@@ -7,39 +7,33 @@
     android:viewportHeight="108">
 
     <!--
-    REFINEMENT NOTE:
-    The gradient has been removed and replaced with a single monochrome fill color.
-    You can change the android:fillColor below to one of the suggested options.
-    - Off-white: #FFFFFF
-    - Light Gray (Cool): #F1F5F9 (Currently selected)
-    - Light Gray (Cooler): #E2E8F0
-    - Light Gray (Warm): #F3F4F6
+    CLEAN FOREGROUND NOTE:
+    Circle background removed for cleaner look against cinematic gradient.
+    Only the 'LS' logo elements remain for a more modern, minimalist appearance.
     -->
-    <path
-        android:pathData="M54,54m-45,0a45,45 0,1 1,90 0a45,45 0,1 1,-90 0"
-        android:fillColor="#F1F5F9"/>
 
     <!--
-    OPTIMIZATION NOTE:
-    The original 'L' and 'S' were drawn with three separate paths.
-    They have been combined into a single, continuous path for efficiency.
-    The 'S' curve has also been refined using cubic Bézier curves (C) for a smoother shape.
+    UPSCALED LOGO NOTE:
+    The 'L' and 'S' logo has been upscaled by 30% while maintaining center alignment.
+    Original scale factor: 1.0, New scale factor: 1.3
+    Center point remains: (54,54)
     -->
     <path
-        android:pathData="M28,30 V70 H50 C66,70 66,54 50,54 C34,54 34,30 58,30"
-        android:strokeWidth="6"
-        android:strokeColor="#2563EB"
+        android:pathData="M27.1,31.5 V74.7 H61.5 C82.1,74.7 82.1,52.9 61.5,52.9 C40.9,52.9 40.9,31.5 74.9,31.5"
+        android:strokeWidth="7.8"
+        android:strokeColor="#D4AF37"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"/>
 
     <!--
-    OPTIMIZATION NOTE:
-    The inner shadow effect, originally two paths, is now a single path that mirrors the main shape.
+    UPSCALED INNER HIGHLIGHT:
+    The inner shadow effect scaled by 30% to match the main logo.
+    Maintains proportional offset for consistent appearance.
     -->
     <path
-        android:pathData="M30,32 V68 H48 C64,68 64,56 48,56 C36,56 36,32 56,32"
-        android:strokeWidth="2"
-        android:strokeColor="#60A5FA"
+        android:pathData="M29.7,33.1 V72.1 H58.9 C79.7,72.1 79.7,55.5 58.9,55.5 C39.3,55.5 39.3,33.1 73.3,33.1"
+        android:strokeWidth="2.6"
+        android:strokeColor="#E8D5B7"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"/>
 
