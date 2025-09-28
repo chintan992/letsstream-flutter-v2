@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lets_stream/src/core/api/tmdb_api.dart';
 import 'package:lets_stream/src/core/models/video_source.dart';
+import 'package:lets_stream/src/core/services/pip_service.dart';
 import 'package:lets_stream/src/core/services/video_sources_provider.dart';
 import 'package:lets_stream/src/features/video_player/application/video_player_state.dart';
 
@@ -101,6 +103,141 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
       // Add some debugging information
       // sprint('Updating video URL to: $url');
       state = state.copyWith(videoUrl: url);
+    }
+  }
+
+  Future<void> initializePip() async {
+    try {
+      final pipService = _ref.read(pipServiceProvider);
+      final availability = pipService.availability;
+
+      // Delay state modifications to avoid build-time updates
+      Future(() {
+        state = state.copyWith(
+          pipAvailability: availability,
+          pipState: pipService.currentState,
+          isPipActive: pipService.isPipActive,
+        );
+      });
+
+      // Listen to PIP state changes
+      pipService.stateStream.listen((pipState) {
+        print('🔊 PIP state stream update: $pipState (active: ${pipState == PipState.active})');
+        // Update state immediately when PIP state changes
+        state = state.copyWith(
+          pipState: pipState,
+          isPipActive: pipState == PipState.active,
+        );
+        print('✅ Stream state updated: isPipActive=${state.isPipActive}, pipState=${state.pipState}');
+      });
+    } catch (e) {
+      // Handle PIP initialization error
+      Future(() {
+        state = state.copyWith(
+          pipAvailability: PipAvailability.unknown,
+          pipState: PipState.error,
+        );
+      });
+    }
+  }
+
+  Future<bool> togglePipMode() async {
+    try {
+      final pipService = _ref.read(pipServiceProvider);
+
+      print('🔄 Toggle PIP requested. Current state: isPipActive=${state.isPipActive}, pipState=${state.pipState}');
+
+      // Create a simple PIP widget to avoid WebView conflicts
+      final pipWidget = SimplePipWidget(
+        videoUrl: state.videoUrl,
+        selectedSourceName: state.selectedSource?.name ?? 'Unknown Source',
+      );
+
+      print('🔧 Created PIP widget, calling pipService.togglePip...');
+
+      final success = await pipService.togglePip(
+        pipWidget: pipWidget,
+        rational: null,
+        aspectRatio: null,
+        videoUrl: state.videoUrl, // Pass the video URL directly
+      );
+
+      print('🔄 PIP toggle result: success=$success, pipService.currentState=${pipService.currentState}, pipService.isPipActive=${pipService.isPipActive}');
+
+      // Update state immediately (not delayed) after the toggle operation
+      if (success) {
+        state = state.copyWith(
+          pipState: pipService.currentState,
+          isPipActive: pipService.isPipActive,
+        );
+        print('✅ State updated: isPipActive=${state.isPipActive}, pipState=${state.pipState}');
+      } else {
+        print('⚠️ PIP toggle returned false, not updating state');
+      }
+
+      // Add a small delay to allow state propagation before any UI updates
+      await Future.delayed(const Duration(milliseconds: 100));
+      print('🏁 togglePipMode completed successfully');
+
+      return success;
+    } catch (e, stackTrace) {
+      print('❌ Error in togglePipMode: $e');
+      print('❌ Stack trace: $stackTrace');
+      // Update state with error immediately
+      state = state.copyWith(pipState: PipState.error);
+      return false;
+    }
+  }
+
+  Future<bool> enablePipMode() async {
+    try {
+      final pipService = _ref.read(pipServiceProvider);
+
+      final pipWidget = Container(
+        width: 320,
+        height: 180,
+        color: Colors.black,
+        child: const Center(
+          child: Text('Video Player', style: TextStyle(color: Colors.white)),
+        ),
+      );
+
+      final success = await pipService.enablePip(
+        pipWidget: pipWidget,
+        rational: null,
+        aspectRatio: null,
+      );
+
+      if (success) {
+        state = state.copyWith(
+          pipState: pipService.currentState,
+          isPipActive: pipService.isPipActive,
+        );
+      }
+
+      return success;
+    } catch (e) {
+      state = state.copyWith(pipState: PipState.error);
+      return false;
+    }
+  }
+
+  Future<bool> disablePipMode() async {
+    try {
+      final pipService = _ref.read(pipServiceProvider);
+      final success = await pipService.disablePip();
+
+      if (success) {
+        state = state.copyWith(
+          pipState: pipService.currentState,
+          isPipActive: pipService.isPipActive,
+        );
+      }
+
+      return success;
+    } catch (e) {
+      state = state.copyWith(pipState: PipState.error);
+      return false;
     }
   }
 }

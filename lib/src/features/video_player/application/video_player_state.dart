@@ -1,4 +1,5 @@
 import 'package:lets_stream/src/core/models/video_source.dart';
+import 'package:lets_stream/src/core/services/pip_service.dart';
 
 class VideoPlayerState {
   final List<VideoSource> sources;
@@ -10,6 +11,9 @@ class VideoPlayerState {
   final int? seasonNumber;
   final int? episodeNumber;
   final int totalEpisodes;
+  final PipAvailability pipAvailability;
+  final PipState pipState;
+  final bool isPipActive;
 
   const VideoPlayerState({
     this.sources = const [],
@@ -21,6 +25,9 @@ class VideoPlayerState {
     this.seasonNumber,
     this.episodeNumber,
     this.totalEpisodes = 0,
+    this.pipAvailability = PipAvailability.unknown,
+    this.pipState = PipState.inactive,
+    this.isPipActive = false,
   });
 
   VideoPlayerState copyWith({
@@ -33,6 +40,9 @@ class VideoPlayerState {
     int? seasonNumber,
     int? episodeNumber,
     int? totalEpisodes,
+    PipAvailability? pipAvailability,
+    PipState? pipState,
+    bool? isPipActive,
   }) {
     //print('VideoPlayerState.copyWith called with:');
     //if (selectedSource != null) print('  selectedSource: ${selectedSource.name}');
@@ -49,6 +59,9 @@ class VideoPlayerState {
       seasonNumber: seasonNumber ?? this.seasonNumber,
       episodeNumber: episodeNumber ?? this.episodeNumber,
       totalEpisodes: totalEpisodes ?? this.totalEpisodes,
+      pipAvailability: pipAvailability ?? this.pipAvailability,
+      pipState: pipState ?? this.pipState,
+      isPipActive: isPipActive ?? this.isPipActive,
     );
   }
 }
