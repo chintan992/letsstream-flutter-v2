@@ -63,3 +63,11 @@ docs
 web-bundles
 web
 
+# Sensitive files 
+.env 
+.env.* 
+*.keystore 
+*.jks 
+keystore-base64.txt 
+debug.keystore 
+release-keystore.jks 
