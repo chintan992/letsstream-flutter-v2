@@ -21,8 +21,39 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # ===== CODE QUALITY AND DOCUMENTATION =====
+    # Require documentation for public APIs to improve code maintainability
+    public_member_api_docs: true
+
+    # ===== CODE STYLE AND CONSISTENCY =====
+    # Prevent print statements in production code - use logging instead
+    avoid_print: true
+
+    # Use single quotes consistently for strings
+    prefer_single_quotes: true
+
+    # Require trailing commas for better git diffs and readability
+    require_trailing_commas: true
+
+    # ===== PERFORMANCE OPTIMIZATIONS =====
+    # Prefer const constructors for better performance
+    prefer_const_constructors: true
+
+    # Prefer const declarations for better performance
+    prefer_const_declarations: true
+
+    # ===== BEST PRACTICES =====
+    # Prefer using mixins instead of abstract classes for mixin functionality
+    prefer_mixin: true
+
+    # Avoid empty else clauses for cleaner conditional logic
+    avoid_empty_else: true
+
+    # Prefer final fields for immutability best practices
+    prefer_final_fields: true
+
+    # Remove unnecessary parentheses for cleaner expressions
+    unnecessary_parenthesis: true
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

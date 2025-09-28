@@ -5,6 +5,30 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
 import 'package:lets_stream/src/shared/theme/tokens.dart';
 
+/// An enhanced media card widget with animations and overlay information.
+///
+/// This widget provides a rich, interactive media card with features like:
+/// - Smooth hover and tap animations
+/// - Overlay with rating and release year information
+/// - Hero animations for smooth transitions
+/// - Loading states with shimmer effects
+/// - Error handling with fallback icons
+/// - Accessibility support with semantic labels
+///
+/// The card responds to user interactions with scale animations and
+/// shows additional information on hover/focus for better user experience.
+///
+/// Example usage:
+/// ```dart
+/// EnhancedMediaCard(
+///   title: 'Movie Title',
+///   imagePath: '/path/to/poster.jpg',
+///   onTap: () => navigateToDetail(movieId),
+///   rating: 8.5,
+///   releaseYear: '2023',
+///   heroTag: 'movie_${movie.id}',
+/// )
+/// ```
 class EnhancedMediaCard extends StatefulWidget {
   final String title;
   final String? imagePath;
@@ -43,22 +67,14 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _overlayAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    _overlayAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -82,7 +98,8 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
   @override
   Widget build(BuildContext context) {
     final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
-    final String? fullImageUrl = (widget.imagePath != null && widget.imagePath!.isNotEmpty)
+    final String? fullImageUrl =
+        (widget.imagePath != null && widget.imagePath!.isNotEmpty)
         ? '$imageBaseUrl/w500${widget.imagePath}'
         : null;
 
@@ -152,7 +169,9 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
                 borderRadius: BorderRadius.circular(Tokens.radiusM),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: _isHovered ? 0.3 : 0.15),
+                    color: Colors.black.withValues(
+                      alpha: _isHovered ? 0.3 : 0.15,
+                    ),
                     blurRadius: _isHovered ? 12 : 8,
                     offset: Offset(0, _isHovered ? 6 : 4),
                   ),
@@ -177,11 +196,8 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
                     child: Stack(
                       children: [
                         // Image
-                        AspectRatio(
-                          aspectRatio: 2 / 3,
-                          child: imageWidget,
-                        ),
-                        
+                        AspectRatio(aspectRatio: 2 / 3, child: imageWidget),
+
                         // Gradient overlay and info
                         if (widget.showOverlay)
                           AnimatedBuilder(
@@ -207,8 +223,10 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
                                     child: Padding(
                                       padding: const EdgeInsets.all(12),
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.end,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             widget.title,
@@ -229,25 +247,28 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                          if (widget.rating != null || widget.releaseYear != null)
+                                          if (widget.rating != null ||
+                                              widget.releaseYear != null)
                                             const SizedBox(height: 4),
                                           Row(
                                             children: [
                                               if (widget.rating != null) ...[
-                                                Icon(
+                                                const Icon(
                                                   Icons.star,
                                                   color: Colors.amber,
                                                   size: 14,
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  widget.rating!.toStringAsFixed(1),
+                                                  widget.rating!
+                                                      .toStringAsFixed(1),
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodySmall
                                                       ?.copyWith(
                                                         color: Colors.white,
-                                                        fontWeight: FontWeight.w500,
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                 ),
                                                 if (widget.releaseYear != null)
@@ -273,27 +294,30 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
                               );
                             },
                           ),
-                        
+
                         // Play indicator for hover state
                         if (_isHovered)
                           Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.play_arrow,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          )
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.play_arrow,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              )
                               .animate()
-                              .scale(begin: const Offset(0, 0), duration: 200.ms)
+                              .scale(
+                                begin: const Offset(0, 0),
+                                duration: 200.ms,
+                              )
                               .fadeIn(),
                       ],
                     ),
@@ -308,7 +332,27 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
   }
 }
 
-// Simple animated MediaCard for backward compatibility
+/// A simple animated media card widget for backward compatibility.
+///
+/// This widget provides basic animation functionality with slide and fade
+/// transitions. It's designed for simpler use cases where the full feature
+/// set of [EnhancedMediaCard] is not needed but some animation is desired.
+///
+/// Features:
+/// - Slide-in animation from left to right
+/// - Fade-in effect
+/// - Scale animation for smooth appearance
+/// - Configurable animation delay
+///
+/// Example usage:
+/// ```dart
+/// AnimatedMediaCard(
+///   title: 'Movie Title',
+///   imagePath: '/path/to/poster.jpg',
+///   onTap: () => navigateToDetail(movieId),
+///   delay: const Duration(milliseconds: 200),
+/// )
+/// ```
 class AnimatedMediaCard extends StatelessWidget {
   final String title;
   final String? imagePath;
@@ -335,10 +379,8 @@ class AnimatedMediaCard extends StatelessWidget {
       imageWidget = CachedNetworkImage(
         imageUrl: fullImageUrl,
         fit: BoxFit.cover,
-        placeholder: (context, url) => const ShimmerBox(
-          width: double.infinity,
-          height: double.infinity,
-        ),
+        placeholder: (context, url) =>
+            const ShimmerBox(width: double.infinity, height: double.infinity),
         errorWidget: (context, url, error) => Container(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           child: const Icon(Icons.broken_image_outlined),
@@ -347,41 +389,36 @@ class AnimatedMediaCard extends StatelessWidget {
     } else {
       imageWidget = Container(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: const Center(
-          child: Icon(Icons.image_not_supported_outlined),
-        ),
+        child: const Center(child: Icon(Icons.image_not_supported_outlined)),
       );
     }
 
     return Container(
-      width: Tokens.posterCardWidth,
-      margin: const EdgeInsets.only(right: Tokens.spaceM),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(Tokens.radiusM),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(Tokens.radiusM),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(Tokens.radiusM),
-          onTap: onTap,
-          child: ClipRRect(
+          width: Tokens.posterCardWidth,
+          margin: const EdgeInsets.only(right: Tokens.spaceM),
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(Tokens.radiusM),
-            child: AspectRatio(
-              aspectRatio: 2 / 3,
-              child: imageWidget,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(Tokens.radiusM),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(Tokens.radiusM),
+              onTap: onTap,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(Tokens.radiusM),
+                child: AspectRatio(aspectRatio: 2 / 3, child: imageWidget),
+              ),
             ),
           ),
-        ),
-      ),
-    )
+        )
         .animate(delay: delay)
         .slideX(begin: 0.2, duration: 300.ms)
         .fadeIn()

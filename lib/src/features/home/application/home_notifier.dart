@@ -7,6 +7,36 @@ import 'package:lets_stream/src/core/services/tmdb_repository_provider.dart';
 import 'package:lets_stream/src/features/home/application/home_state.dart';
 import 'package:lets_stream/src/core/services/image_prefetch_service.dart';
 
+/// A state notifier that manages the home screen state and data fetching.
+///
+/// This notifier handles fetching and caching of all content displayed on the
+/// home screen, including trending movies, now playing movies, popular movies,
+/// top rated movies, trending TV shows, airing today TV shows, popular TV shows,
+/// and top rated TV shows.
+///
+/// Key features:
+/// - Controlled concurrency API calls to avoid overwhelming the TMDB API
+/// - Image preloading for improved user experience
+/// - Comprehensive error handling
+/// - State management for loading, data, and error states
+///
+/// The notifier automatically fetches data when created and provides methods
+/// for refreshing the content. It uses Riverpod's StateNotifier for reactive
+/// state management.
+///
+/// Example usage:
+/// ```dart
+/// final homeNotifier = ref.watch(homeNotifierProvider);
+/// final homeState = homeNotifier.state;
+///
+/// if (homeState.isLoading) {
+///   return const CircularProgressIndicator();
+/// } else if (homeState.hasError) {
+///   return const Text('Error loading content');
+/// } else {
+///   return HomeScreen(homeState: homeState.data!);
+/// }
+/// ```
 class HomeNotifier extends StateNotifier<AsyncValue<HomeState>> {
   final Ref ref;
 

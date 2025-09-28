@@ -4,6 +4,35 @@ import '../models/movie.dart';
 import '../models/tv_show.dart';
 import '../models/cache_entry.dart';
 
+/// A service for caching movies and TV shows data locally using Hive.
+///
+/// This service provides functionality to cache API responses with TTL (Time To Live)
+/// support, allowing the app to work offline and improve performance by reducing
+/// unnecessary network requests. It manages separate caches for movies and TV shows
+/// with automatic cleanup of expired entries.
+///
+/// The service uses Hive for local storage and provides methods for:
+/// - Caching data with configurable TTL
+/// - Retrieving cached data with automatic expiration checks
+/// - Clearing all cached data
+/// - Cleaning up expired entries
+/// - Getting cache statistics
+///
+/// Example usage:
+/// ```dart
+/// final cacheService = CacheService.instance;
+/// await cacheService.initialize();
+///
+/// // Cache movies with 2 hour TTL
+/// await cacheService.cacheMovies(
+///   key: 'trending_movies',
+///   movies: movieList,
+///   ttl: const Duration(hours: 2),
+/// );
+///
+/// // Retrieve cached movies
+/// final cachedMovies = cacheService.getCachedMovies('trending_movies');
+/// ```
 class CacheService {
   static const String _moviesBoxName = 'movies_cache';
   static const String _tvShowsBoxName = 'tv_shows_cache';

@@ -3,6 +3,26 @@ import 'package:lets_stream/src/shared/widgets/optimized_image.dart';
 import 'package:lets_stream/src/shared/theme/tokens.dart';
 import 'package:lets_stream/src/core/services/accessibility_service.dart';
 
+/// A card widget that displays media content (movies/TV shows) with lazy loading.
+///
+/// This widget provides an accessible and performant way to display media items
+/// in lists and carousels. It includes features like:
+/// - Lazy image loading for improved scroll performance
+/// - Accessibility support with proper semantic labels
+/// - Touch-friendly sizing with accessibility considerations
+/// - Optimized image display with loading states
+///
+/// The widget uses a delayed loading mechanism to improve initial scroll
+/// performance by only loading images when they're about to come into view.
+///
+/// Example usage:
+/// ```dart
+/// MediaCard(
+///   title: 'Movie Title',
+///   imagePath: '/path/to/poster.jpg',
+///   onTap: () => navigateToDetail(movieId),
+/// )
+/// ```
 class MediaCard extends StatefulWidget {
   final String title;
   final String? imagePath;

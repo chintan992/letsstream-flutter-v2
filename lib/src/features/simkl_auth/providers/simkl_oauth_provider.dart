@@ -74,6 +74,59 @@ class SimklOAuthProvider extends StateNotifier<SimklOAuthState> {
   void reset() {
     super.state = SimklOAuthState.idle;
   }
+
+  /// Handle OAuth callback URL
+  Future<bool> handleCallbackUrl(String url) async {
+    try {
+      super.state = SimklOAuthState.tokenExchanging;
+
+      // Parse the callback URL to extract authorization code
+      final uri = Uri.parse(url);
+      final code = uri.queryParameters['code'];
+      final error = uri.queryParameters['error'];
+      final errorDescription = uri.queryParameters['error_description'];
+
+      if (error != null) {
+        super.state = SimklOAuthState.error;
+        debugPrint(
+          'OAuth callback error: $error, description: $errorDescription',
+        );
+        return false;
+      }
+
+      if (code == null || code.isEmpty) {
+        super.state = SimklOAuthState.error;
+        debugPrint('No authorization code found in callback URL');
+        return false;
+      }
+
+      // Exchange code for token
+      await _apiClient.exchangeCodeForToken(
+        code: code,
+        redirectUri: _redirectUri,
+        accessToken: '', // Will be handled by the API client
+      );
+
+      super.state = SimklOAuthState.success;
+      return true;
+    } catch (e) {
+      super.state = SimklOAuthState.error;
+      debugPrint('Callback handling error: $e');
+      rethrow;
+    }
+  }
+
+  /// Check if URL is a valid OAuth callback
+  bool isCallbackUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      return uri.scheme == 'letsstream' &&
+          uri.host == 'oauth' &&
+          uri.path == '/callback';
+    } catch (e) {
+      return false;
+    }
+  }
 }
 
 /// OAuth Provider Provider

@@ -1,13 +1,14 @@
-// Simkl Authentication Service
-// Coordinates OAuth and PIN authentication flows
-
 import 'dart:async';
+import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/simkl/simkl_api_client.dart';
 import '../../../core/models/simkl/simkl_auth_models.dart';
 import '../providers/simkl_oauth_provider.dart';
 import '../providers/simkl_pin_provider.dart';
+
+// Simkl Authentication Service
+// Coordinates OAuth and PIN authentication flows
 
 /// SharedPreferences provider
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -17,7 +18,7 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 /// Simkl Authentication Service
 class SimklAuthService {
   final SimklApiClient _apiClient;
-  final Ref _ref;
+  final WidgetRef _ref;
 
   // Storage keys
   static const String _accessTokenKey = 'simkl_access_token';
@@ -102,6 +103,58 @@ class SimklAuthService {
       await _storeUserSettings(userSettings);
 
       return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Handle OAuth callback from URL
+  Future<bool> handleOAuthCallbackFromUrl(String url) async {
+    try {
+      // Parse the callback URL
+      final uri = Uri.parse(url);
+
+      // Validate it's our callback URL
+      if (uri.scheme != 'letsstream' ||
+          uri.host != 'oauth' ||
+          uri.path != '/callback') {
+        log('Invalid callback URL format: $url');
+        return false;
+      }
+
+      // Extract parameters
+      final code = uri.queryParameters['code'];
+      final error = uri.queryParameters['error'];
+      final errorDescription = uri.queryParameters['error_description'];
+
+      if (error != null) {
+        log('OAuth callback error: $error, description: $errorDescription');
+        return false;
+      }
+
+      if (code == null || code.isEmpty) {
+        log('No authorization code found in callback URL');
+        return false;
+      }
+
+      // Use the existing callback handler
+      return await handleOAuthCallback(
+        code: code,
+        redirectUri: 'letsstream://oauth/callback',
+      );
+    } catch (e) {
+      log('Error handling OAuth callback from URL: $e');
+      return false;
+    }
+  }
+
+  /// Check if URL is a valid OAuth callback
+  bool isValidCallbackUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      return uri.scheme == 'letsstream' &&
+          uri.host == 'oauth' &&
+          uri.path == '/callback';
     } catch (e) {
       return false;
     }
@@ -294,6 +347,48 @@ class SimklAuthService {
       await signInWithPin();
     } catch (e) {
       throw Exception('Failed to start PIN authentication: $e');
+    }
+  }
+
+  /// Enhanced error handling for OAuth callbacks
+  Future<String?> getOAuthErrorMessage(String url) async {
+    try {
+      final uri = Uri.parse(url);
+
+      if (uri.scheme != 'letsstream' ||
+          uri.host != 'oauth' ||
+          uri.path != '/callback') {
+        return 'Invalid callback URL format';
+      }
+
+      final error = uri.queryParameters['error'];
+      final errorDescription = uri.queryParameters['error_description'];
+
+      if (error != null) {
+        // Provide user-friendly error messages
+        switch (error) {
+          case 'access_denied':
+            return 'Access was denied by the user';
+          case 'invalid_request':
+            return 'Invalid authentication request';
+          case 'unauthorized_client':
+            return 'Unauthorized client application';
+          case 'unsupported_response_type':
+            return 'Unsupported response type';
+          case 'invalid_scope':
+            return 'Invalid permission scope requested';
+          case 'server_error':
+            return 'Server error occurred during authentication';
+          case 'temporarily_unavailable':
+            return 'Authentication service temporarily unavailable';
+          default:
+            return errorDescription ?? 'Authentication failed: $error';
+        }
+      }
+
+      return null; // No error
+    } catch (e) {
+      return 'Error parsing callback URL';
     }
   }
 }
