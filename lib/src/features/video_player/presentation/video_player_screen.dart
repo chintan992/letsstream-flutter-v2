@@ -3,9 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:floating_window_plus/floating_window_plus.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lets_stream/src/core/services/pip_service.dart';
+import 'package:lets_stream/src/core/services/native_pip_service.dart';
 import 'package:lets_stream/src/features/video_player/application/video_player_notifier.dart';
 
 class VideoPlayerScreen extends ConsumerStatefulWidget {
@@ -249,14 +248,27 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                           const SizedBox(width: 10),
                           IconButton(
                             icon: Icon(
-                              state.isPipActive
-                                  ? Icons.picture_in_picture_alt_outlined
-                                  : Icons.picture_in_picture_alt,
+                              Icons.picture_in_picture_alt,
                               color: Colors.white,
                             ),
                             onPressed: () async {
-                              await notifier.togglePipMode();
-                              _startHideControlsTimer();
+                              print('🎯 PIP button pressed');
+                              try {
+                                // Use native Android PIP
+                                final pipService = NativePipService();
+                                await pipService.initialize();
+                                
+                                print('🔄 Calling togglePipMode...');
+                                final success = await pipService.togglePipMode(
+                                  aspectRatio: 16 / 9,
+                                );
+                                
+                                print('📱 PIP toggle result: $success');
+                                _startHideControlsTimer();
+                              } catch (e, stackTrace) {
+                                print('❌ PIP Error: $e');
+                                print('📍 Stack trace: $stackTrace');
+                              }
                             },
                           ),
                           const SizedBox(width: 10),
@@ -317,22 +329,6 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                 ],
               ),
             ),
-            // Add PIP Player widget with proper integration
-            if (state.isPipActive && ref.read(pipServiceProvider).currentPipContent != null)
-              PipPlayer(
-                controller: ref.read(pipServiceProvider).pipController,
-                content: ref.read(pipServiceProvider).currentPipContent!,
-                onClose: () async {
-                  await notifier.togglePipMode();
-                },
-                onExpand: () {
-                  // Handle PIP expand if needed
-                  print('🔍 PIP expanded');
-                },
-                onTap: () {
-                  print('👆 PIP tapped');
-                },
-              ),
           ],
         ),
       ),
