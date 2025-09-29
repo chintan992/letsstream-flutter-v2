@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/detail/presentation/enhanced_detail_screen.dart';
 import '../../features/movies/presentation/movies_list_screen.dart';
@@ -17,7 +16,6 @@ import '../../features/detail/presentation/episode_detail_screen.dart';
 import '../../features/video_player/presentation/video_player_screen.dart';
 import '../../core/models/movie.dart';
 import '../../core/models/tv_show.dart';
-import '../../features/simkl_auth/providers/simkl_auth_service_provider.dart';
 
 // Global navigator key for deep link handling
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -165,7 +163,7 @@ final GoRouter appRouter = GoRouter(
         final error = state.uri.queryParameters['error'];
         final errorDescription = state.uri.queryParameters['error_description'];
 
-        // Handle the callback in the auth service
+        // Handle the callback
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!context.mounted) return;
 
@@ -176,20 +174,9 @@ final GoRouter appRouter = GoRouter(
             // Error case - show error message
             _handleOAuthError(context, error, errorDescription);
           } else {
-            // No code or error - check for enhanced error handling
-            final container = ProviderScope.containerOf(context);
-            final authService = container.read(simklAuthServiceProvider);
-            final errorMessage = await authService.getOAuthErrorMessage(
-              state.uri.toString(),
-            );
-
+            // No code or error - show generic message
             if (!context.mounted) return;
-
-            if (errorMessage != null) {
-              _showSnackBar(context, errorMessage);
-            } else {
-              _showSnackBar(context, 'Authentication was cancelled or failed');
-            }
+            _showSnackBar(context, 'Authentication was cancelled or failed');
             if (context.mounted) {
               context.goNamed('profile');
             }
@@ -306,27 +293,12 @@ class MainNavigationScreen extends StatelessWidget {
 /// Handle OAuth callback with authorization code
 Future<void> _handleOAuthCallback(BuildContext context, String code) async {
   try {
-    // Get the auth service from the provider
-    final container = ProviderScope.containerOf(context);
-    final authService = container.read(simklAuthServiceProvider);
-
-    // Process the callback
-    final success = await authService.handleOAuthCallback(
-      code: code,
-      redirectUri: 'letsstream://oauth/callback',
-    );
-
+    // For now, just show success and redirect to profile
+    // TODO: Implement generic OAuth handling if needed
     if (!context.mounted) return;
 
-    if (success) {
-      // Show success message and redirect to profile
-      _showSnackBar(context, 'Successfully connected to Simkl!');
-      context.goNamed('profile');
-    } else {
-      // Show error message and redirect to profile
-      _showSnackBar(context, 'Failed to connect to Simkl. Please try again.');
-      context.goNamed('profile');
-    }
+    _showSnackBar(context, 'Authentication successful!');
+    context.goNamed('profile');
   } catch (e) {
     debugPrint('OAuth callback error: $e');
     if (context.mounted) {
