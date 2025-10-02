@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/services/cache_service.dart';
 import '../../core/services/offline_service.dart';
+import '../../core/services/watchlist_service.dart';
 import '../../core/models/hive_adapters.dart';
 
 /// Initialize all required services for the application
@@ -21,6 +22,7 @@ Future<void> initializeServices() async {
     // Initialize services
     await CacheService.instance.initialize();
     await OfflineService().initialize();
+    await WatchlistService.instance.initialize();
 
     debugPrint('All services initialized successfully');
   } catch (e) {

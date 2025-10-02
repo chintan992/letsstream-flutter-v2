@@ -11,6 +11,7 @@ import 'package:lets_stream/src/features/detail/presentation/widgets/seasons_and
 import 'package:lets_stream/src/features/detail/presentation/widgets/similar_section.dart';
 import 'package:lets_stream/src/features/detail/presentation/widgets/trailers_section.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
+import 'package:lets_stream/src/shared/widgets/watchlist_action_buttons.dart';
 import 'package:go_router/go_router.dart';
 
 class EnhancedDetailScreen extends ConsumerWidget {
@@ -35,6 +36,31 @@ class EnhancedDetailScreen extends ConsumerWidget {
                   _buildHeader(context, item),
                   const SizedBox(height: 24),
                   _buildOverview(context, item),
+                  const SizedBox(height: 32),
+                  if (item != null)
+                    WatchlistActionButtons(
+                      item: item!,
+                      onWatchlistToggle: (isInWatchlist) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isInWatchlist
+                                ? 'Added to watchlist'
+                                : 'Removed from watchlist'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      onFavoritesToggle: (isFavorite) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isFavorite
+                                ? 'Added to favorites'
+                                : 'Removed from favorites'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    ),
                   const SizedBox(height: 32),
                   TrailersSection(
                     videos: detailState.videos,
@@ -72,9 +98,8 @@ class EnhancedDetailScreen extends ConsumerWidget {
 
   Widget _buildSliverAppBar(BuildContext context, Object? item) {
     final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
-    final backdropPath = item is Movie
-        ? item.backdropPath
-        : (item as TvShow).backdropPath;
+    final backdropPath =
+        item is Movie ? item.backdropPath : (item as TvShow).backdropPath;
     final title = item is Movie ? item.title : (item as TvShow).name;
     final backdropUrl = (backdropPath != null && backdropPath.isNotEmpty)
         ? '$imageBaseUrl/w1280$backdropPath'
@@ -119,9 +144,9 @@ class EnhancedDetailScreen extends ConsumerWidget {
         title: Text(
           title,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
         ),
       ),
     );
@@ -129,23 +154,21 @@ class EnhancedDetailScreen extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context, Object? item) {
     final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
-    final posterPath = item is Movie
-        ? item.posterPath
-        : (item as TvShow).posterPath;
+    final posterPath =
+        item is Movie ? item.posterPath : (item as TvShow).posterPath;
     final title = item is Movie ? item.title : (item as TvShow).name;
     final id = item is Movie ? item.id : (item as TvShow).id;
-    final voteAverage = item is Movie
-        ? item.voteAverage
-        : (item as TvShow).voteAverage;
+    final voteAverage =
+        item is Movie ? item.voteAverage : (item as TvShow).voteAverage;
     final subtitle = item is Movie
         ? (item.releaseDate != null
-              ? 'Release: ${item.releaseDate!.toLocal().toIso8601String().split('T').first}'
-              : '')
+            ? 'Release: ${item.releaseDate!.toLocal().toIso8601String().split('T').first}'
+            : '')
         : (item is TvShow
-              ? (item.firstAirDate != null
-                    ? 'First air: ${item.firstAirDate!.toLocal().toIso8601String().split('T').first}'
-                    : '')
-              : '');
+            ? (item.firstAirDate != null
+                ? 'First air: ${item.firstAirDate!.toLocal().toIso8601String().split('T').first}'
+                : '')
+            : '');
 
     final fullPosterUrl = (posterPath != null && posterPath.isNotEmpty)
         ? '$imageBaseUrl/w500$posterPath'
@@ -185,16 +208,16 @@ class EnhancedDetailScreen extends ConsumerWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               if (subtitle.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                 ),
               ],
               const SizedBox(height: 12),
@@ -205,8 +228,8 @@ class EnhancedDetailScreen extends ConsumerWidget {
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,
@@ -248,8 +271,8 @@ class EnhancedDetailScreen extends ConsumerWidget {
                   Text(
                     voteAverage.toStringAsFixed(1),
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
                 ],
               ),

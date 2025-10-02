@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
+import 'package:lets_stream/src/shared/widgets/watchlist_action_buttons.dart';
 import 'package:lets_stream/src/shared/theme/tokens.dart';
+import 'package:lets_stream/src/core/models/movie.dart';
+import 'package:lets_stream/src/core/models/tv_show.dart';
 
 /// An enhanced media card widget with animations and overlay information.
 ///
@@ -29,15 +33,49 @@ import 'package:lets_stream/src/shared/theme/tokens.dart';
 ///   heroTag: 'movie_${movie.id}',
 /// )
 /// ```
-class EnhancedMediaCard extends StatefulWidget {
+class EnhancedMediaCard extends ConsumerStatefulWidget {
+  /// The title of the media item.
   final String title;
+
+  /// The path to the poster image.
   final String? imagePath;
+
+  /// Callback function called when the card is tapped.
   final VoidCallback onTap;
+
+  /// The rating of the media item (optional).
   final double? rating;
+
+  /// The release year of the media item (optional).
   final String? releaseYear;
+
+  /// Whether to show the overlay with rating and year information.
   final bool showOverlay;
+
+  /// The hero tag for hero animations (optional).
   final String? heroTag;
 
+  /// The movie object for watchlist functionality (optional).
+  final Movie? movie;
+
+  /// The TV show object for watchlist functionality (optional).
+  final TvShow? tvShow;
+
+  /// Whether to show the watchlist button overlay.
+  final bool showWatchlistButton;
+
+  /// Creates an enhanced media card widget.
+  ///
+  /// The [title] is the title of the media item.
+  /// The [imagePath] is the path to the poster image.
+  /// The [onTap] callback is triggered when the card is tapped.
+  /// The [rating] is the rating of the media item (optional).
+  /// The [releaseYear] is the release year of the media item (optional).
+  /// The [showOverlay] controls whether to show the overlay with rating and year information.
+  /// The [heroTag] is used for hero animations (optional).
+  /// The [movie] object is used for watchlist functionality (optional).
+  /// The [tvShow] object is used for watchlist functionality (optional).
+  /// The [showWatchlistButton] controls whether to show the watchlist button overlay.
   const EnhancedMediaCard({
     super.key,
     required this.title,
@@ -47,13 +85,16 @@ class EnhancedMediaCard extends StatefulWidget {
     this.releaseYear,
     this.showOverlay = true,
     this.heroTag,
+    this.movie,
+    this.tvShow,
+    this.showWatchlistButton = true,
   });
 
   @override
-  State<EnhancedMediaCard> createState() => _EnhancedMediaCardState();
+  ConsumerState<EnhancedMediaCard> createState() => _EnhancedMediaCardState();
 }
 
-class _EnhancedMediaCardState extends State<EnhancedMediaCard>
+class _EnhancedMediaCardState extends ConsumerState<EnhancedMediaCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -100,8 +141,8 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
     final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
     final String? fullImageUrl =
         (widget.imagePath != null && widget.imagePath!.isNotEmpty)
-        ? '$imageBaseUrl/w500${widget.imagePath}'
-        : null;
+            ? '$imageBaseUrl/w500${widget.imagePath}'
+            : null;
 
     Widget imageWidget;
     if (fullImageUrl != null) {
@@ -234,16 +275,16 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
                                                 .textTheme
                                                 .bodyMedium
                                                 ?.copyWith(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w600,
-                                                  shadows: [
-                                                    const Shadow(
-                                                      color: Colors.black,
-                                                      offset: Offset(0, 1),
-                                                      blurRadius: 2,
-                                                    ),
-                                                  ],
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                              shadows: [
+                                                const Shadow(
+                                                  color: Colors.black,
+                                                  offset: Offset(0, 1),
+                                                  blurRadius: 2,
                                                 ),
+                                              ],
+                                            ),
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -298,27 +339,35 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
                         // Play indicator for hover state
                         if (_isHovered)
                           Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.black54,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.play_arrow,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ),
-                              )
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.play_arrow,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          )
                               .animate()
                               .scale(
                                 begin: const Offset(0, 0),
                                 duration: 200.ms,
                               )
                               .fadeIn(),
+
+                        // Watchlist button overlay
+                        if (widget.showWatchlistButton &&
+                            (widget.movie != null || widget.tvShow != null))
+                          MediaCardWatchlistButton(
+                            item: widget.movie ?? widget.tvShow!,
+                            size: 20,
+                          ),
                       ],
                     ),
                   ),
@@ -353,22 +402,50 @@ class _EnhancedMediaCardState extends State<EnhancedMediaCard>
 ///   delay: const Duration(milliseconds: 200),
 /// )
 /// ```
-class AnimatedMediaCard extends StatelessWidget {
+class AnimatedMediaCard extends ConsumerWidget {
+  /// The title of the media item.
   final String title;
+
+  /// The path to the poster image.
   final String? imagePath;
+
+  /// Callback function called when the card is tapped.
   final VoidCallback onTap;
+
+  /// The delay before the animation starts.
   final Duration delay;
 
+  /// The movie object for watchlist functionality (optional).
+  final Movie? movie;
+
+  /// The TV show object for watchlist functionality (optional).
+  final TvShow? tvShow;
+
+  /// Whether to show the watchlist button overlay.
+  final bool showWatchlistButton;
+
+  /// Creates an animated media card widget.
+  ///
+  /// The [title] is the title of the media item.
+  /// The [imagePath] is the path to the poster image.
+  /// The [onTap] callback is triggered when the card is tapped.
+  /// The [delay] is the delay before the animation starts.
+  /// The [movie] object is used for watchlist functionality (optional).
+  /// The [tvShow] object is used for watchlist functionality (optional).
+  /// The [showWatchlistButton] controls whether to show the watchlist button overlay.
   const AnimatedMediaCard({
     super.key,
     required this.title,
     required this.imagePath,
     required this.onTap,
     this.delay = Duration.zero,
+    this.movie,
+    this.tvShow,
+    this.showWatchlistButton = true,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
     final String? fullImageUrl = (imagePath != null && imagePath!.isNotEmpty)
         ? '$imageBaseUrl/w500$imagePath'
@@ -394,31 +471,31 @@ class AnimatedMediaCard extends StatelessWidget {
     }
 
     return Container(
-          width: Tokens.posterCardWidth,
-          margin: const EdgeInsets.only(right: Tokens.spaceM),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(Tokens.radiusM),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
+      width: Tokens.posterCardWidth,
+      margin: const EdgeInsets.only(right: Tokens.spaceM),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(Tokens.radiusM),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-          child: Material(
-            color: Colors.transparent,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(Tokens.radiusM),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(Tokens.radiusM),
+          onTap: onTap,
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(Tokens.radiusM),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(Tokens.radiusM),
-              onTap: onTap,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(Tokens.radiusM),
-                child: AspectRatio(aspectRatio: 2 / 3, child: imageWidget),
-              ),
-            ),
+            child: AspectRatio(aspectRatio: 2 / 3, child: imageWidget),
           ),
-        )
+        ),
+      ),
+    )
         .animate(delay: delay)
         .slideX(begin: 0.2, duration: 300.ms)
         .fadeIn()

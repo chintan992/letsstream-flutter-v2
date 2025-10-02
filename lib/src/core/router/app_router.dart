@@ -10,6 +10,7 @@ import '../../features/anime/presentation/anime_detail_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart'
     as feature_profile;
 import '../../features/search/presentation/search_screen.dart';
+import '../../features/watchlist/presentation/watchlist_screen.dart';
 import '../../features/movies/presentation/movies_genre_list_screen.dart';
 import '../../features/tv_shows/presentation/tv_genre_list_screen.dart';
 import '../../features/detail/presentation/episode_detail_screen.dart';
@@ -105,6 +106,11 @@ final GoRouter appRouter = GoRouter(
           path: '/search',
           name: 'search',
           builder: (context, state) => const SearchScreen(),
+        ),
+        GoRoute(
+          path: '/watchlist',
+          name: 'watchlist',
+          builder: (context, state) => const WatchlistScreen(),
         ),
         // Detail routes
         GoRoute(
@@ -250,6 +256,11 @@ class MainNavigationScreen extends StatelessWidget {
             label: 'Hub',
           ),
           NavigationDestination(
+            icon: Icon(Icons.bookmark_border_outlined),
+            selectedIcon: Icon(Icons.bookmark),
+            label: 'Watchlist',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.animation_outlined),
             selectedIcon: Icon(Icons.animation),
             label: 'Anime',
@@ -267,8 +278,9 @@ class MainNavigationScreen extends StatelessWidget {
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/hub')) return 1;
-    if (location.startsWith('/anime')) return 2;
-    if (location.startsWith('/profile')) return 3;
+    if (location.startsWith('/watchlist')) return 2;
+    if (location.startsWith('/anime')) return 3;
+    if (location.startsWith('/profile')) return 4;
     return 0;
   }
 
@@ -281,9 +293,12 @@ class MainNavigationScreen extends StatelessWidget {
         context.goNamed('hub');
         break;
       case 2:
-        context.goNamed('anime');
+        context.goNamed('watchlist');
         break;
       case 3:
+        context.goNamed('anime');
+        break;
+      case 4:
         context.goNamed('profile');
         break;
     }

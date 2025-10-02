@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lets_stream/src/shared/widgets/optimized_image.dart';
+import 'package:lets_stream/src/shared/widgets/watchlist_action_buttons.dart';
 import 'package:lets_stream/src/shared/theme/tokens.dart';
 import 'package:lets_stream/src/core/services/accessibility_service.dart';
+import 'package:lets_stream/src/core/models/movie.dart';
+import 'package:lets_stream/src/core/models/tv_show.dart';
 
 /// A card widget that displays media content (movies/TV shows) with lazy loading.
 ///
@@ -23,23 +27,29 @@ import 'package:lets_stream/src/core/services/accessibility_service.dart';
 ///   onTap: () => navigateToDetail(movieId),
 /// )
 /// ```
-class MediaCard extends StatefulWidget {
+class MediaCard extends ConsumerStatefulWidget {
   final String title;
   final String? imagePath;
   final VoidCallback onTap;
+  final Movie? movie;
+  final TvShow? tvShow;
+  final bool showWatchlistButton;
 
   const MediaCard({
     super.key,
     required this.title,
     required this.imagePath,
     required this.onTap,
+    this.movie,
+    this.tvShow,
+    this.showWatchlistButton = true,
   });
 
   @override
-  State<MediaCard> createState() => _MediaCardState();
+  ConsumerState<MediaCard> createState() => _MediaCardState();
 }
 
-class _MediaCardState extends State<MediaCard> {
+class _MediaCardState extends ConsumerState<MediaCard> {
   bool _isVisible = false;
 
   @override
@@ -106,16 +116,27 @@ class _MediaCardState extends State<MediaCard> {
         child: Material(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(Tokens.radiusM),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(Tokens.radiusM),
-            onTap: widget.onTap,
-            focusColor: Theme.of(
-              context,
-            ).colorScheme.primary.withValues(alpha: 0.1),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(Tokens.radiusM),
-              child: imageWidget,
-            ),
+          child: Stack(
+            children: [
+              InkWell(
+                borderRadius: BorderRadius.circular(Tokens.radiusM),
+                onTap: widget.onTap,
+                focusColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(Tokens.radiusM),
+                  child: imageWidget,
+                ),
+              ),
+              // Watchlist button overlay
+              if (widget.showWatchlistButton &&
+                  (widget.movie != null || widget.tvShow != null))
+                MediaCardWatchlistButton(
+                  item: widget.movie ?? widget.tvShow!,
+                  size: 20,
+                ),
+            ],
           ),
         ),
       ),
