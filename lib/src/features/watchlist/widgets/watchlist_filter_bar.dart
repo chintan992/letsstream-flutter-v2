@@ -52,6 +52,10 @@ class _WatchlistFilterBarState extends ConsumerState<WatchlistFilterBar> {
   Widget build(BuildContext context) {
     final categories = ref.watch(watchlistCategoriesProvider);
     final selectedCategories = ref.watch(selectedCategoriesProvider);
+    final watchlistState = ref.watch(watchlistNotifierProvider);
+    final hasActiveFilters = selectedCategories.isNotEmpty ||
+        watchlistState.contentTypeFilter != null ||
+        watchlistState.watchedStatusFilter != null;
 
     return Container(
       padding: const EdgeInsets.all(Tokens.spaceL),
@@ -73,35 +77,52 @@ class _WatchlistFilterBarState extends ConsumerState<WatchlistFilterBar> {
           // Search bar
           _buildSearchBar(),
 
+          const SizedBox(height: Tokens.spaceL),
+
+          // Quick filters
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Quick Filters',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              if (hasActiveFilters)
+                TextButton.icon(
+                  onPressed: _clearAllFilters,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 0),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: const Icon(Icons.clear_all, size: 16),
+                  label: Text(
+                    'Clear all',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: Tokens.spaceS),
+
+          // Quick filter chips (Content Type & Watched Status)
+          _buildQuickFilterChips(watchlistState),
+
           if (categories.isNotEmpty) ...[
             const SizedBox(height: Tokens.spaceL),
 
-            // Category filters header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Categories',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                if (selectedCategories.isNotEmpty)
-                  TextButton(
-                    onPressed: _clearAllFilters,
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(0, 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      'Clear all',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                    ),
+            // Category filters
+            Text(
+              'Categories',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-              ],
             ),
 
             const SizedBox(height: Tokens.spaceS),
@@ -111,6 +132,114 @@ class _WatchlistFilterBarState extends ConsumerState<WatchlistFilterBar> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildQuickFilterChips(dynamic watchlistState) {
+    return Wrap(
+      spacing: Tokens.spaceS,
+      runSpacing: Tokens.spaceS,
+      children: [
+        // Content Type Filters
+        ChoiceChip(
+          label: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.movie, size: 16),
+              SizedBox(width: 4),
+              Text('Movies'),
+            ],
+          ),
+          selected: watchlistState.contentTypeFilter == 'movie',
+          onSelected: (selected) {
+            ref.read(watchlistNotifierProvider.notifier).setContentTypeFilter(
+                  selected ? 'movie' : null,
+                );
+          },
+          selectedColor: Theme.of(context).colorScheme.primaryContainer,
+          side: BorderSide(
+            color: watchlistState.contentTypeFilter == 'movie'
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+        ChoiceChip(
+          label: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.tv, size: 16),
+              SizedBox(width: 4),
+              Text('TV Shows'),
+            ],
+          ),
+          selected: watchlistState.contentTypeFilter == 'tv',
+          onSelected: (selected) {
+            ref.read(watchlistNotifierProvider.notifier).setContentTypeFilter(
+                  selected ? 'tv' : null,
+                );
+          },
+          selectedColor: Theme.of(context).colorScheme.secondaryContainer,
+          side: BorderSide(
+            color: watchlistState.contentTypeFilter == 'tv'
+                ? Theme.of(context).colorScheme.secondary
+                : Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+
+        // Divider
+        Container(
+          height: 32,
+          width: 1,
+          color: Theme.of(context).colorScheme.outlineVariant,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+        ),
+
+        // Watched Status Filters
+        ChoiceChip(
+          label: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.check_circle, size: 16),
+              SizedBox(width: 4),
+              Text('Watched'),
+            ],
+          ),
+          selected: watchlistState.watchedStatusFilter == true,
+          onSelected: (selected) {
+            ref.read(watchlistNotifierProvider.notifier).setWatchedStatusFilter(
+                  selected ? true : null,
+                );
+          },
+          selectedColor: Theme.of(context).colorScheme.tertiaryContainer,
+          side: BorderSide(
+            color: watchlistState.watchedStatusFilter == true
+                ? Theme.of(context).colorScheme.tertiary
+                : Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+        ChoiceChip(
+          label: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.access_time, size: 16),
+              SizedBox(width: 4),
+              Text('To Watch'),
+            ],
+          ),
+          selected: watchlistState.watchedStatusFilter == false,
+          onSelected: (selected) {
+            ref.read(watchlistNotifierProvider.notifier).setWatchedStatusFilter(
+                  selected ? false : null,
+                );
+          },
+          selectedColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          side: BorderSide(
+            color: watchlistState.watchedStatusFilter == false
+                ? Theme.of(context).colorScheme.outline
+                : Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+      ],
     );
   }
 

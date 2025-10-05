@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/providers/watchlist_providers.dart';
 import '../../../shared/theme/tokens.dart';
 
 /// Sort options bottom sheet for watchlist items.
@@ -30,9 +31,17 @@ class WatchlistSortOptions extends StatefulWidget {
   /// Callback when a sort option is selected.
   final Function(WatchlistSortOptionWithOrder) onSortSelected;
 
+  /// Current sort option
+  final WatchlistSortOption? currentOption;
+
+  /// Current sort order (descending)
+  final bool? currentIsDescending;
+
   const WatchlistSortOptions({
     super.key,
     required this.onSortSelected,
+    this.currentOption,
+    this.currentIsDescending,
   });
 
   @override
@@ -40,8 +49,15 @@ class WatchlistSortOptions extends StatefulWidget {
 }
 
 class _WatchlistSortOptionsState extends State<WatchlistSortOptions> {
-  WatchlistSortOption _selectedOption = WatchlistSortOption.dateAdded;
-  bool _isDescending = true;
+  late WatchlistSortOption _selectedOption;
+  late bool _isDescending;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedOption = widget.currentOption ?? WatchlistSortOption.dateAdded;
+    _isDescending = widget.currentIsDescending ?? true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +213,6 @@ class _WatchlistSortOptionsState extends State<WatchlistSortOptions> {
     );
 
     widget.onSortSelected(sortOption);
-    Navigator.pop(context);
   }
 
   String _getSortOptionTitle(WatchlistSortOption option) {
@@ -221,16 +236,6 @@ class _WatchlistSortOptionsState extends State<WatchlistSortOptions> {
       WatchlistSortOption.watchedStatus => 'Watched items first',
     };
   }
-}
-
-/// Enumeration of available sort options for watchlist items.
-enum WatchlistSortOption {
-  dateAdded,
-  priority,
-  rating,
-  title,
-  contentType,
-  watchedStatus,
 }
 
 /// Wrapper class that combines sort option with sort order.

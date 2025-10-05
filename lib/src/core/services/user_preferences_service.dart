@@ -18,7 +18,6 @@ class UserPreferencesService {
   static const String _preferredPlatformsKey = 'preferred_platforms';
   static const String _hubPersonalizationEnabledKey = 'hub_personalization_enabled';
   static const String _recentlyViewedKey = 'recently_viewed';
-  static const String _watchlistKey = 'watchlist';
 
   /// Gets user's preferred movie genres
   Future<List<int>> getPreferredGenres() async {
@@ -121,47 +120,8 @@ class UserPreferencesService {
     }
   }
 
-  /// Gets user's watchlist items
-  Future<List<int>> getWatchlist() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final watchlistStrings = prefs.getStringList(_watchlistKey) ?? [];
-      return watchlistStrings.map((e) => int.tryParse(e) ?? 0).where((e) => e > 0).toList();
-    } catch (e) {
-      _logger.e('Error getting watchlist: $e');
-      return [];
-    }
-  }
-
-  /// Adds an item to watchlist
-  Future<void> addToWatchlist(int itemId) async {
-    try {
-      final watchlist = await getWatchlist();
-      if (!watchlist.contains(itemId)) {
-        watchlist.add(itemId);
-        final prefs = await SharedPreferences.getInstance();
-        final watchlistStrings = watchlist.map((e) => e.toString()).toList();
-        await prefs.setStringList(_watchlistKey, watchlistStrings);
-        _logger.d('Added to watchlist: $itemId');
-      }
-    } catch (e) {
-      _logger.e('Error adding to watchlist: $e');
-    }
-  }
-
-  /// Removes an item from watchlist
-  Future<void> removeFromWatchlist(int itemId) async {
-    try {
-      final watchlist = await getWatchlist();
-      watchlist.removeWhere((id) => id == itemId);
-      final prefs = await SharedPreferences.getInstance();
-      final watchlistStrings = watchlist.map((e) => e.toString()).toList();
-      await prefs.setStringList(_watchlistKey, watchlistStrings);
-      _logger.d('Removed from watchlist: $itemId');
-    } catch (e) {
-      _logger.e('Error removing from watchlist: $e');
-    }
-  }
+  // NOTE: Watchlist functionality has been moved to WatchlistService (Hive-based)
+  // which provides richer features including categories, ratings, notes, and priority.
 
   /// Clears all user preferences
   Future<void> clearAllPreferences() async {
@@ -171,7 +131,6 @@ class UserPreferencesService {
       await prefs.remove(_preferredPlatformsKey);
       await prefs.remove(_hubPersonalizationEnabledKey);
       await prefs.remove(_recentlyViewedKey);
-      await prefs.remove(_watchlistKey);
       _logger.d('Cleared all user preferences');
     } catch (e) {
       _logger.e('Error clearing preferences: $e');

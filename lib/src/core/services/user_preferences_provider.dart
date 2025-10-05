@@ -30,8 +30,5 @@ final recentlyViewedProvider = FutureProvider<List<int>>((ref) async {
   return prefsService.getRecentlyViewed();
 });
 
-/// Provider for watchlist items
-final watchlistProvider = FutureProvider<List<int>>((ref) async {
-  final prefsService = ref.watch(userPreferencesServiceProvider);
-  return prefsService.getWatchlist();
-});
+// NOTE: Watchlist provider has been moved to watchlist_providers.dart
+// Use watchlistItemsProvider from core/providers/watchlist_providers.dart instead

@@ -51,66 +51,13 @@ class WatchlistActionButtons extends ConsumerStatefulWidget {
 
 class _WatchlistActionButtonsState
     extends ConsumerState<WatchlistActionButtons> {
-  bool _isInWatchlist = false;
-  bool _isFavorite = false;
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _checkWatchlistStatus();
-  }
+  String get _itemId => widget.item is Movie
+      ? 'movie_${(widget.item as Movie).id}'
+      : 'tv_${(widget.item as TvShow).id}';
 
-  @override
-  void didUpdateWidget(WatchlistActionButtons oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.item != widget.item) {
-      _checkWatchlistStatus();
-    }
-  }
-
-  void _checkWatchlistStatus() {
-    final items = ref.read(watchlistItemsProvider);
-
-    final itemId = widget.item is Movie
-        ? 'movie_${(widget.item as Movie).id}'
-        : 'tv_${(widget.item as TvShow).id}';
-
-    final watchlistItem = items.firstWhere(
-      (item) => item.id == itemId,
-      orElse: () => WatchlistItem(
-        id: itemId,
-        contentId: widget.item is Movie
-            ? (widget.item as Movie).id
-            : (widget.item as TvShow).id,
-        contentType: widget.item is Movie ? 'movie' : 'tv',
-        title: widget.item is Movie
-            ? (widget.item as Movie).title
-            : (widget.item as TvShow).name,
-        posterPath: widget.item is Movie
-            ? (widget.item as Movie).posterPath
-            : (widget.item as TvShow).posterPath,
-        overview: widget.item is Movie
-            ? (widget.item as Movie).overview
-            : (widget.item as TvShow).overview,
-        releaseDate: widget.item is Movie
-            ? (widget.item as Movie).releaseDate
-            : (widget.item as TvShow).firstAirDate,
-        voteAverage: widget.item is Movie
-            ? (widget.item as Movie).voteAverage
-            : (widget.item as TvShow).voteAverage,
-        categories: [],
-        addedAt: DateTime.now(),
-      ),
-    );
-
-    setState(() {
-      _isInWatchlist = items.any((item) => item.id == itemId);
-      _isFavorite = watchlistItem.categories.contains('Favorites');
-    });
-  }
-
-  Future<void> _toggleWatchlist() async {
+  Future<void> _toggleWatchlist(bool isInWatchlist) async {
     if (_isLoading) return;
 
     setState(() => _isLoading = true);
@@ -118,13 +65,9 @@ class _WatchlistActionButtonsState
     try {
       final watchlistNotifier = ref.read(watchlistNotifierProvider.notifier);
 
-      if (_isInWatchlist) {
+      if (isInWatchlist) {
         // Remove from watchlist
-        final itemId = widget.item is Movie
-            ? 'movie_${(widget.item as Movie).id}'
-            : 'tv_${(widget.item as TvShow).id}';
-        await watchlistNotifier.removeItem(itemId);
-        setState(() => _isInWatchlist = false);
+        await watchlistNotifier.removeItem(_itemId);
         widget.onWatchlistToggle?.call(false);
       } else {
         // Add to watchlist
@@ -133,7 +76,6 @@ class _WatchlistActionButtonsState
             : WatchlistItem.fromTvShow(widget.item as TvShow);
 
         await watchlistNotifier.addItem(watchlistItem);
-        setState(() => _isInWatchlist = true);
         widget.onWatchlistToggle?.call(true);
       }
     } catch (e) {
@@ -146,37 +88,56 @@ class _WatchlistActionButtonsState
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  Future<void> _toggleFavorites() async {
+  Future<void> _toggleFavorites(bool isInWatchlist, bool isFavorite) async {
     if (_isLoading) return;
 
     setState(() => _isLoading = true);
 
     try {
       final watchlistNotifier = ref.read(watchlistNotifierProvider.notifier);
-      final itemId = widget.item is Movie
-          ? 'movie_${(widget.item as Movie).id}'
-          : 'tv_${(widget.item as TvShow).id}';
 
-      if (_isFavorite) {
-        // Remove from favorites
-        await watchlistNotifier.updateItemWith(
-          itemId,
-          categories: ['Watch Later'], // Remove Favorites category
-        );
-        setState(() => _isFavorite = false);
-        widget.onFavoritesToggle?.call(false);
-      } else {
-        // Add to favorites
-        await watchlistNotifier.updateItemWith(
-          itemId,
-          categories: ['Watch Later', 'Favorites'], // Add Favorites category
-        );
-        setState(() => _isFavorite = true);
+      if (!isInWatchlist) {
+        // Item not in watchlist - add it with Favorites category
+        final watchlistItem = widget.item is Movie
+            ? WatchlistItem.fromMovie(
+                widget.item as Movie,
+                categories: [WatchlistCategories.favorites],
+              )
+            : WatchlistItem.fromTvShow(
+                widget.item as TvShow,
+                categories: [WatchlistCategories.favorites],
+              );
+
+        await watchlistNotifier.addItem(watchlistItem);
+        widget.onWatchlistToggle?.call(true);
         widget.onFavoritesToggle?.call(true);
+      } else {
+        // Item already in watchlist - preserve existing categories
+        final items = ref.read(watchlistItemsProvider);
+        final existingItem = items.firstWhere((item) => item.id == _itemId);
+        final currentCategories = List<String>.from(existingItem.categories);
+
+        final updatedCategories = isFavorite
+            ? currentCategories
+                .where((c) => c != WatchlistCategories.favorites)
+                .toList()
+            : [
+                ...currentCategories,
+                if (!currentCategories.contains(WatchlistCategories.favorites))
+                  WatchlistCategories.favorites
+              ];
+
+        await watchlistNotifier.updateItemWith(
+          _itemId,
+          categories: updatedCategories,
+        );
+        widget.onFavoritesToggle?.call(!isFavorite);
       }
     } catch (e) {
       if (mounted) {
@@ -188,30 +149,41 @@ class _WatchlistActionButtonsState
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch the watchlist items to reactively update UI
+    final watchlistItems = ref.watch(watchlistItemsProvider);
+    final isInWatchlist = watchlistItems.any((item) => item.id == _itemId);
+    final isFavorite = watchlistItems
+        .where((item) => item.id == _itemId)
+        .firstOrNull
+        ?.categories
+        .contains(WatchlistCategories.favorites) ?? false;
+
     return Row(
       children: [
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: _isLoading ? null : _toggleWatchlist,
+            onPressed: _isLoading ? null : () => _toggleWatchlist(isInWatchlist),
             icon: _isLoading
                 ? const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Icon(_isInWatchlist ? Icons.bookmark : Icons.bookmark_border),
-            label: Text(_isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'),
+                : Icon(isInWatchlist ? Icons.bookmark : Icons.bookmark_border),
+            label: Text(isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _isInWatchlist
+              backgroundColor: isInWatchlist
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).colorScheme.surfaceContainerHighest,
-              foregroundColor: _isInWatchlist
+              foregroundColor: isInWatchlist
                   ? Theme.of(context).colorScheme.onPrimary
                   : Theme.of(context).colorScheme.onSurfaceVariant,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -224,7 +196,7 @@ class _WatchlistActionButtonsState
         const SizedBox(width: 12),
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: _isLoading ? null : _toggleFavorites,
+            onPressed: _isLoading ? null : () => _toggleFavorites(isInWatchlist, isFavorite),
             icon: _isLoading
                 ? const SizedBox(
                     width: 16,
@@ -232,17 +204,17 @@ class _WatchlistActionButtonsState
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Icon(
-                    _isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: _isFavorite ? Colors.red : null,
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : null,
                   ),
-            label: Text(_isFavorite ? 'Favorited' : 'Add to Favorites'),
+            label: Text(isFavorite ? 'Favorited' : 'Add to Favorites'),
             style: OutlinedButton.styleFrom(
               side: BorderSide(
-                color: _isFavorite
+                color: isFavorite
                     ? Colors.red
                     : Theme.of(context).colorScheme.outline,
               ),
-              foregroundColor: _isFavorite
+              foregroundColor: isFavorite
                   ? Colors.red
                   : Theme.of(context).colorScheme.onSurface,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -280,35 +252,13 @@ class MediaCardWatchlistButton extends ConsumerStatefulWidget {
 
 class _MediaCardWatchlistButtonState
     extends ConsumerState<MediaCardWatchlistButton> {
-  bool _isInWatchlist = false;
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _checkWatchlistStatus();
-  }
+  String get _itemId => widget.item is Movie
+      ? 'movie_${(widget.item as Movie).id}'
+      : 'tv_${(widget.item as TvShow).id}';
 
-  @override
-  void didUpdateWidget(MediaCardWatchlistButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.item != widget.item) {
-      _checkWatchlistStatus();
-    }
-  }
-
-  void _checkWatchlistStatus() {
-    final items = ref.read(watchlistItemsProvider);
-    final itemId = widget.item is Movie
-        ? 'movie_${(widget.item as Movie).id}'
-        : 'tv_${(widget.item as TvShow).id}';
-
-    setState(() {
-      _isInWatchlist = items.any((item) => item.id == itemId);
-    });
-  }
-
-  Future<void> _toggleWatchlist() async {
+  Future<void> _toggleWatchlist(bool isInWatchlist) async {
     if (_isLoading) return;
 
     setState(() => _isLoading = true);
@@ -316,19 +266,14 @@ class _MediaCardWatchlistButtonState
     try {
       final watchlistNotifier = ref.read(watchlistNotifierProvider.notifier);
 
-      if (_isInWatchlist) {
-        final itemId = widget.item is Movie
-            ? 'movie_${(widget.item as Movie).id}'
-            : 'tv_${(widget.item as TvShow).id}';
-        await watchlistNotifier.removeItem(itemId);
-        setState(() => _isInWatchlist = false);
+      if (isInWatchlist) {
+        await watchlistNotifier.removeItem(_itemId);
       } else {
         final watchlistItem = widget.item is Movie
             ? WatchlistItem.fromMovie(widget.item as Movie)
             : WatchlistItem.fromTvShow(widget.item as TvShow);
 
         await watchlistNotifier.addItem(watchlistItem);
-        setState(() => _isInWatchlist = true);
       }
 
       widget.onToggle?.call();
@@ -350,6 +295,9 @@ class _MediaCardWatchlistButtonState
 
   @override
   Widget build(BuildContext context) {
+    final watchlistItems = ref.watch(watchlistItemsProvider);
+    final isInWatchlist = watchlistItems.any((item) => item.id == _itemId);
+
     return Positioned(
       top: 4,
       right: 4,
@@ -363,9 +311,9 @@ class _MediaCardWatchlistButtonState
         child: IconButton(
           iconSize: widget.size,
           padding: EdgeInsets.zero,
-          onPressed: _isLoading ? null : _toggleWatchlist,
+          onPressed: _isLoading ? null : () => _toggleWatchlist(isInWatchlist),
           tooltip:
-              _isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist',
+              isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist',
           icon: _isLoading
               ? SizedBox(
                   width: widget.size,
@@ -376,7 +324,7 @@ class _MediaCardWatchlistButtonState
                   ),
                 )
               : Icon(
-                  _isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
+                  isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
                   color: Colors.white,
                 ),
         ),
@@ -415,52 +363,13 @@ class CompactWatchlistButtons extends ConsumerStatefulWidget {
 
 class _CompactWatchlistButtonsState
     extends ConsumerState<CompactWatchlistButtons> {
-  bool _isInWatchlist = false;
-  bool _isFavorite = false;
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _checkWatchlistStatus();
-  }
+  String get _itemId => widget.item is Movie
+      ? 'movie_${(widget.item as Movie).id}'
+      : 'tv_${(widget.item as TvShow).id}';
 
-  @override
-  void didUpdateWidget(CompactWatchlistButtons oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.item != widget.item) {
-      _checkWatchlistStatus();
-    }
-  }
-
-  void _checkWatchlistStatus() {
-    final items = ref.read(watchlistItemsProvider);
-    final itemId = widget.item is Movie
-        ? 'movie_${(widget.item as Movie).id}'
-        : 'tv_${(widget.item as TvShow).id}';
-
-    setState(() {
-      _isInWatchlist = items.any((item) => item.id == itemId);
-      _isFavorite = items
-          .firstWhere(
-            (item) => item.id == itemId,
-            orElse: () => WatchlistItem(
-              id: itemId,
-              contentId: widget.item is Movie
-                  ? (widget.item as Movie).id
-                  : (widget.item as TvShow).id,
-              contentType: widget.item is Movie ? 'movie' : 'tv',
-              title: '',
-              categories: [],
-              addedAt: DateTime.now(),
-            ),
-          )
-          .categories
-          .contains('Favorites');
-    });
-  }
-
-  Future<void> _toggleWatchlist() async {
+  Future<void> _toggleWatchlist(bool isInWatchlist) async {
     if (_isLoading) return;
 
     setState(() => _isLoading = true);
@@ -468,12 +377,8 @@ class _CompactWatchlistButtonsState
     try {
       final watchlistNotifier = ref.read(watchlistNotifierProvider.notifier);
 
-      if (_isInWatchlist) {
-        final itemId = widget.item is Movie
-            ? 'movie_${(widget.item as Movie).id}'
-            : 'tv_${(widget.item as TvShow).id}';
-        await watchlistNotifier.removeItem(itemId);
-        setState(() => _isInWatchlist = false);
+      if (isInWatchlist) {
+        await watchlistNotifier.removeItem(_itemId);
         widget.onWatchlistToggle?.call(false);
       } else {
         final watchlistItem = widget.item is Movie
@@ -481,7 +386,6 @@ class _CompactWatchlistButtonsState
             : WatchlistItem.fromTvShow(widget.item as TvShow);
 
         await watchlistNotifier.addItem(watchlistItem);
-        setState(() => _isInWatchlist = true);
         widget.onWatchlistToggle?.call(true);
       }
     } catch (e) {
@@ -494,35 +398,56 @@ class _CompactWatchlistButtonsState
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  Future<void> _toggleFavorites() async {
+  Future<void> _toggleFavorites(bool isInWatchlist, bool isFavorite) async {
     if (_isLoading) return;
 
     setState(() => _isLoading = true);
 
     try {
       final watchlistNotifier = ref.read(watchlistNotifierProvider.notifier);
-      final itemId = widget.item is Movie
-          ? 'movie_${(widget.item as Movie).id}'
-          : 'tv_${(widget.item as TvShow).id}';
 
-      if (_isFavorite) {
-        await watchlistNotifier.updateItemWith(
-          itemId,
-          categories: ['Watch Later'],
-        );
-        setState(() => _isFavorite = false);
-        widget.onFavoritesToggle?.call(false);
-      } else {
-        await watchlistNotifier.updateItemWith(
-          itemId,
-          categories: ['Watch Later', 'Favorites'],
-        );
-        setState(() => _isFavorite = true);
+      if (!isInWatchlist) {
+        // Item not in watchlist - add it with Favorites category
+        final watchlistItem = widget.item is Movie
+            ? WatchlistItem.fromMovie(
+                widget.item as Movie,
+                categories: [WatchlistCategories.favorites],
+              )
+            : WatchlistItem.fromTvShow(
+                widget.item as TvShow,
+                categories: [WatchlistCategories.favorites],
+              );
+
+        await watchlistNotifier.addItem(watchlistItem);
+        widget.onWatchlistToggle?.call(true);
         widget.onFavoritesToggle?.call(true);
+      } else {
+        // Item already in watchlist - preserve existing categories
+        final items = ref.read(watchlistItemsProvider);
+        final existingItem = items.firstWhere((item) => item.id == _itemId);
+        final currentCategories = List<String>.from(existingItem.categories);
+
+        final updatedCategories = isFavorite
+            ? currentCategories
+                .where((c) => c != WatchlistCategories.favorites)
+                .toList()
+            : [
+                ...currentCategories,
+                if (!currentCategories.contains(WatchlistCategories.favorites))
+                  WatchlistCategories.favorites
+              ];
+
+        await watchlistNotifier.updateItemWith(
+          _itemId,
+          categories: updatedCategories,
+        );
+        widget.onFavoritesToggle?.call(!isFavorite);
       }
     } catch (e) {
       if (mounted) {
@@ -534,20 +459,31 @@ class _CompactWatchlistButtonsState
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch the watchlist items to reactively update UI
+    final watchlistItems = ref.watch(watchlistItemsProvider);
+    final isInWatchlist = watchlistItems.any((item) => item.id == _itemId);
+    final isFavorite = watchlistItems
+        .where((item) => item.id == _itemId)
+        .firstOrNull
+        ?.categories
+        .contains(WatchlistCategories.favorites) ?? false;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          onPressed: _isLoading ? null : _toggleWatchlist,
+          onPressed: _isLoading ? null : () => _toggleWatchlist(isInWatchlist),
           iconSize: widget.size,
           tooltip:
-              _isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist',
+              isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist',
           icon: _isLoading
               ? SizedBox(
                   width: widget.size,
@@ -555,16 +491,16 @@ class _CompactWatchlistButtonsState
                   child: const CircularProgressIndicator(strokeWidth: 2),
                 )
               : Icon(
-                  _isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
-                  color: _isInWatchlist
+                  isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
+                  color: isInWatchlist
                       ? Theme.of(context).colorScheme.primary
                       : null,
                 ),
         ),
         IconButton(
-          onPressed: _isLoading ? null : _toggleFavorites,
+          onPressed: _isLoading ? null : () => _toggleFavorites(isInWatchlist, isFavorite),
           iconSize: widget.size,
-          tooltip: _isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+          tooltip: isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
           icon: _isLoading
               ? SizedBox(
                   width: widget.size,
@@ -572,8 +508,8 @@ class _CompactWatchlistButtonsState
                   child: const CircularProgressIndicator(strokeWidth: 2),
                 )
               : Icon(
-                  _isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: _isFavorite ? Colors.red : null,
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: isFavorite ? Colors.red : null,
                 ),
         ),
       ],

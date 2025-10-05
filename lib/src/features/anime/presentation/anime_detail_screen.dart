@@ -13,6 +13,7 @@ import 'package:lets_stream/src/core/models/episode.dart';
 import 'package:lets_stream/src/shared/widgets/media_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
+import 'package:lets_stream/src/shared/widgets/watchlist_action_buttons.dart';
 import 'package:go_router/go_router.dart';
 
 class AnimeDetailScreen extends ConsumerStatefulWidget {
@@ -644,6 +645,54 @@ class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen>
                                 ],
                               ),
                             ),
+                            
+                            const SizedBox(height: 16),
+                            
+                            // Watch Now button
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                icon: const Icon(Icons.play_circle_fill, size: 24),
+                                label: Text(
+                                  'Watch Now',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.onPrimary,
+                                      ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).colorScheme.primary,
+                                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 2,
+                                ),
+                                onPressed: () {
+                                  if (widget.item is Movie) {
+                                    context.pushNamed(
+                                      'watch-movie',
+                                      pathParameters: {'id': id.toString()},
+                                    );
+                                  } else if (widget.item is TvShow) {
+                                    context.pushNamed(
+                                      'watch-tv',
+                                      pathParameters: {
+                                        'id': id.toString(),
+                                        'season': '1',
+                                        'ep': '1',
+                                      },
+                                    );
+                                  }
+                                },
+                              ).animate()
+                                .scale(duration: const Duration(milliseconds: 300))
+                                .fadeIn(),
+                            ),
                           ],
                         ),
                       ),
@@ -670,6 +719,38 @@ class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen>
                         ),
                       ),
                     ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Watchlist Action Buttons
+                    if (widget.item != null)
+                      WatchlistActionButtons(
+                        item: widget.item!,
+                        onWatchlistToggle: (isInWatchlist) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(isInWatchlist
+                                  ? 'Added to watchlist'
+                                  : 'Removed from watchlist'),
+                              duration: const Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        onFavoritesToggle: (isFavorite) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(isFavorite
+                                  ? 'Added to favorites'
+                                  : 'Removed from favorites'),
+                              duration: const Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                      ).animate()
+                        .slideX(begin: 0.1, duration: const Duration(milliseconds: 400))
+                        .fadeIn(),
                     
                     const SizedBox(height: 32),
                     

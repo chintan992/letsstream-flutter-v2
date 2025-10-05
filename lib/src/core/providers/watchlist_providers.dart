@@ -8,6 +8,16 @@ final watchlistServiceProvider = Provider<WatchlistService>((ref) {
   return WatchlistService.instance;
 });
 
+/// Enumeration of available sort options for watchlist items.
+enum WatchlistSortOption {
+  dateAdded,
+  priority,
+  rating,
+  title,
+  contentType,
+  watchedStatus,
+}
+
 /// State class for watchlist state management.
 ///
 /// This immutable class holds the current state of the watchlist including
@@ -23,6 +33,10 @@ class WatchlistState {
     this.searchQuery = '',
     this.isLoading = false,
     this.error,
+    this.sortOption = WatchlistSortOption.dateAdded,
+    this.sortDescending = true,
+    this.contentTypeFilter,
+    this.watchedStatusFilter,
   });
 
   final List<WatchlistItem> items;
@@ -32,6 +46,10 @@ class WatchlistState {
   final String searchQuery;
   final bool isLoading;
   final String? error;
+  final WatchlistSortOption sortOption;
+  final bool sortDescending;
+  final String? contentTypeFilter; // 'movie', 'tv', or null for all
+  final bool? watchedStatusFilter; // true for watched, false for unwatched, null for all
 
   /// Get items by content type
   List<WatchlistItem> get movies =>
@@ -47,7 +65,7 @@ class WatchlistState {
 
   /// Get favourite items
   List<WatchlistItem> get favouriteItems =>
-      items.where((item) => item.categories.contains('Favorites')).toList();
+      items.where((item) => item.categories.contains(WatchlistCategories.favorites)).toList();
 
   /// Get items by priority
   List<WatchlistItem> get highPriorityItems =>
@@ -82,6 +100,10 @@ class WatchlistState {
     String? searchQuery,
     bool? isLoading,
     String? error,
+    WatchlistSortOption? sortOption,
+    bool? sortDescending,
+    String? Function()? contentTypeFilter,
+    bool? Function()? watchedStatusFilter,
   }) {
     return WatchlistState(
       items: items ?? this.items,
@@ -91,6 +113,10 @@ class WatchlistState {
       searchQuery: searchQuery ?? this.searchQuery,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
+      sortOption: sortOption ?? this.sortOption,
+      sortDescending: sortDescending ?? this.sortDescending,
+      contentTypeFilter: contentTypeFilter != null ? contentTypeFilter() : this.contentTypeFilter,
+      watchedStatusFilter: watchedStatusFilter != null ? watchedStatusFilter() : this.watchedStatusFilter,
     );
   }
 }
@@ -287,7 +313,34 @@ class WatchlistNotifier extends StateNotifier<WatchlistState> {
     state = state.copyWith(
       searchQuery: '',
       selectedCategories: [],
-      filteredItems: state.items,
+      contentTypeFilter: () => null,
+      watchedStatusFilter: () => null,
+      filteredItems: _applyFilters(state.items),
+    );
+  }
+
+  /// Set sort option and order
+  void setSortOption(WatchlistSortOption option, {bool? descending}) {
+    state = state.copyWith(
+      sortOption: option,
+      sortDescending: descending ?? state.sortDescending,
+      filteredItems: _applyFilters(state.items),
+    );
+  }
+
+  /// Set content type filter
+  void setContentTypeFilter(String? contentType) {
+    state = state.copyWith(
+      contentTypeFilter: () => contentType,
+      filteredItems: _applyFilters(state.items),
+    );
+  }
+
+  /// Set watched status filter
+  void setWatchedStatusFilter(bool? isWatched) {
+    state = state.copyWith(
+      watchedStatusFilter: () => isWatched,
+      filteredItems: _applyFilters(state.items),
     );
   }
 
@@ -320,6 +373,20 @@ class WatchlistNotifier extends StateNotifier<WatchlistState> {
       filtered = _service.searchItems(state.searchQuery);
     }
 
+    // Apply content type filter
+    if (state.contentTypeFilter != null) {
+      filtered = filtered
+          .where((item) => item.contentType == state.contentTypeFilter)
+          .toList();
+    }
+
+    // Apply watched status filter
+    if (state.watchedStatusFilter != null) {
+      filtered = filtered
+          .where((item) => item.isWatched == state.watchedStatusFilter)
+          .toList();
+    }
+
     // Apply category filters
     if (state.selectedCategories.isNotEmpty) {
       filtered = filtered.where((item) {
@@ -328,7 +395,47 @@ class WatchlistNotifier extends StateNotifier<WatchlistState> {
       }).toList();
     }
 
+    // Apply sorting
+    filtered = _sortItems(filtered);
+
     return filtered;
+  }
+
+  /// Sort items based on current sort option
+  List<WatchlistItem> _sortItems(List<WatchlistItem> items) {
+    final sorted = List<WatchlistItem>.from(items);
+
+    sorted.sort((a, b) {
+      int comparison = 0;
+
+      switch (state.sortOption) {
+        case WatchlistSortOption.dateAdded:
+          comparison = a.addedAt.compareTo(b.addedAt);
+          break;
+        case WatchlistSortOption.priority:
+          comparison = a.priority.compareTo(b.priority);
+          break;
+        case WatchlistSortOption.rating:
+          // Sort by user rating if available, otherwise by vote average
+          final aRating = a.userRating ?? a.voteAverage ?? 0;
+          final bRating = b.userRating ?? b.voteAverage ?? 0;
+          comparison = aRating.compareTo(bRating);
+          break;
+        case WatchlistSortOption.title:
+          comparison = a.title.toLowerCase().compareTo(b.title.toLowerCase());
+          break;
+        case WatchlistSortOption.contentType:
+          comparison = a.contentType.compareTo(b.contentType);
+          break;
+        case WatchlistSortOption.watchedStatus:
+          comparison = (a.isWatched ? 1 : 0).compareTo(b.isWatched ? 1 : 0);
+          break;
+      }
+
+      return state.sortDescending ? -comparison : comparison;
+    });
+
+    return sorted;
   }
 }
 
@@ -377,7 +484,7 @@ final watchlistErrorProvider = Provider<String?>((ref) {
 /// Provider for favourite items (filtered from watchlist)
 final favouriteItemsProvider = Provider<List<WatchlistItem>>((ref) {
   final items = ref.watch(watchlistItemsProvider);
-  return items.where((item) => item.categories.contains('Favorites')).toList();
+  return items.where((item) => item.categories.contains(WatchlistCategories.favorites)).toList();
 });
 
 /// Provider for watched items
