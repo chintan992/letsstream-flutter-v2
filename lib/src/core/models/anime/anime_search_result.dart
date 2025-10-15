@@ -103,10 +103,18 @@ class AnimeTvInfo {
     return AnimeTvInfo(
       showType: json['showType'] as String,
       rating: json['rating'] as String?,
-      sub: json['sub'] as int?,
-      dub: json['dub'] as int?,
-      eps: json['eps'] as int?,
+      sub: _parseIntNullable(json['sub']),
+      dub: _parseIntNullable(json['dub']),
+      eps: _parseIntNullable(json['eps']),
     );
+  }
+
+  /// Helper method to parse nullable integer values that might come as strings.
+  static int? _parseIntNullable(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value);
+    return null;
   }
 
   /// Converts the AnimeTvInfo instance to a JSON-serializable map.

@@ -76,8 +76,17 @@ class AnimeApi {
         throw Exception('API returned success: false');
       }
 
-      final results = data['results'] as Map<String, dynamic>;
-      return AnimeInfo.fromJson(results);
+      // Handle different response structures
+      dynamic results = data['results'];
+      if (results is Map<String, dynamic>) {
+        return AnimeInfo.fromJson(results);
+      } else if (results is List && results.isNotEmpty && results.first is Map<String, dynamic>) {
+        // If results is a list, take the first item
+        return AnimeInfo.fromJson(results.first as Map<String, dynamic>);
+      } else {
+        // If results structure is unexpected, try to parse the entire response
+        return AnimeInfo.fromJson(data as Map<String, dynamic>);
+      }
     } catch (e) {
       throw Exception('Failed to get anime info: $e');
     }

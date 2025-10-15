@@ -22,10 +22,32 @@ class AnimeInfo {
   factory AnimeInfo.fromJson(Map<String, dynamic> json) {
     return AnimeInfo(
       data: AnimeData.fromJson(json['data'] as Map<String, dynamic>),
-      seasons: (json['seasons'] as List<dynamic>)
-          .map((seasonJson) => AnimeSeason.fromJson(seasonJson as Map<String, dynamic>))
-          .toList(),
+      seasons: _parseSeasons(json['seasons']),
     );
+  }
+
+  /// Helper method to parse seasons data that might come as List or Map.
+  static List<AnimeSeason> _parseSeasons(dynamic seasonsData) {
+    if (seasonsData is List) {
+      return seasonsData
+          .map((seasonJson) => AnimeSeason.fromJson(seasonJson as Map<String, dynamic>))
+          .toList();
+    } else if (seasonsData is Map<String, dynamic>) {
+      // If seasons is a map, try to extract a list from it
+      // Check common keys that might contain the seasons list
+      final possibleKeys = ['data', 'seasons', 'list', 'items'];
+      for (final key in possibleKeys) {
+        final value = seasonsData[key];
+        if (value is List) {
+          return value
+              .map((seasonJson) => AnimeSeason.fromJson(seasonJson as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      // If no list found, return empty list
+      return [];
+    }
+    return [];
   }
 
   /// Converts the AnimeInfo instance to a JSON-serializable map.
