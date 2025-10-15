@@ -32,12 +32,19 @@ class AnimeEpisode {
   /// [json] A map containing episode data from the Anime API.
   factory AnimeEpisode.fromJson(Map<String, dynamic> json) {
     return AnimeEpisode(
-      episodeNo: json['episode_no'] as int,
+      episodeNo: _parseInt(json['episode_no']),
       id: json['id'] as String,
       title: json['title'] as String,
       japaneseTitle: json['japanese_title'] as String,
       isFiller: json['filler'] as bool? ?? false,
     );
+  }
+
+  /// Helper method to parse integer values that might come as strings.
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 
   /// Converts the AnimeEpisode instance to a JSON-serializable map.

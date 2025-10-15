@@ -100,13 +100,20 @@ class AnimeData {
     return AnimeData(
       adultContent: json['adultContent'] as bool? ?? false,
       id: json['id'] as String,
-      dataId: json['data_id'] as int,
+      dataId: _parseInt(json['data_id']),
       title: json['title'] as String,
       japaneseTitle: json['japanese_title'] as String,
       poster: json['poster'] as String,
       showType: json['showType'] as String,
       animeInfo: AnimeDetailedInfo.fromJson(json['animeInfo'] as Map<String, dynamic>),
     );
+  }
+
+  /// Helper method to parse integer values that might come as strings.
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 
   /// Converts the AnimeData instance to a JSON-serializable map.
@@ -299,14 +306,22 @@ class AnimeSeason {
   factory AnimeSeason.fromJson(Map<String, dynamic> json) {
     return AnimeSeason(
       id: json['id'] as String,
-      dataNumber: json['data_number'] as int,
-      dataId: json['data_id'] as int,
+      dataNumber: AnimeData._parseInt(json['data_number']),
+      dataId: AnimeData._parseInt(json['data_id']),
       season: json['season'] as String,
       title: json['title'] as String,
       japaneseTitle: json['japanese_title'] as String,
       seasonPoster: json['season_poster'] as String,
-      episodeCount: json['episodeCount'] as int?,
+      episodeCount: AnimeSeason._parseIntNullable(json['episodeCount']),
     );
+  }
+
+  /// Helper method to parse nullable integer values that might come as strings.
+  static int? _parseIntNullable(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value);
+    return null;
   }
 
   /// Converts the AnimeSeason instance to a JSON-serializable map.
