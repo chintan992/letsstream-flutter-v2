@@ -7,6 +7,7 @@ import '../../features/tv_shows/presentation/tv_list_screen.dart';
 import '../../features/hub/presentation/hub_screens.dart';
 import '../../features/anime/presentation/anime_screen.dart';
 import '../../features/anime/presentation/anime_detail_screen.dart';
+import '../../features/anime/presentation/anime_player_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart'
     as feature_profile;
 import '../../features/search/presentation/search_screen.dart';
@@ -225,6 +226,19 @@ final GoRouter appRouter = GoRouter(
           isMovie: false,
           season: season,
           episode: ep,
+        );
+      },
+    ),
+    // Anime player route - TOP LEVEL
+    GoRoute(
+      path: '/watch/anime/:animeId/:episodeId?',
+      name: 'watch-anime',
+      builder: (context, state) {
+        final animeId = state.pathParameters['animeId'] ?? '';
+        final episodeId = state.pathParameters['episodeId'];
+        return AnimePlayerScreen(
+          animeId: animeId,
+          episodeId: episodeId,
         );
       },
     ),

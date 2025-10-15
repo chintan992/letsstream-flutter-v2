@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lets_stream/src/shared/theme/theme_providers.dart';
 import 'package:lets_stream/src/shared/theme/theme_model.dart';
 import 'package:lets_stream/src/features/profile/services/profile_service.dart';
+import 'package:lets_stream/src/features/anime/providers/anime_preferences_provider.dart';
 
 class PreferencesSection extends StatelessWidget {
   final ProfileService profileService;
@@ -18,6 +19,8 @@ class PreferencesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentTheme = ref.watch(themeNotifierProvider);
     final themeNotifier = ref.read(themeNotifierProvider.notifier);
+    final animeStreamingSource = ref.watch(animeStreamingSourceProvider);
+    final animeSourceNotifier = ref.read(animeStreamingSourceProvider.notifier);
 
     return Column(
       children: [
@@ -34,6 +37,16 @@ class PreferencesSection extends StatelessWidget {
             ),
           ),
           onTap: () => _showThemeSelector(context, currentTheme, themeNotifier),
+        ),
+        ListTile(
+          leading: const Icon(Icons.movie_outlined),
+          title: const Text('Anime Streaming Source'),
+          subtitle: Text(animeStreamingSource.displayName),
+          trailing: Text(
+            animeStreamingSource.icon,
+            style: const TextStyle(fontSize: 20),
+          ),
+          onTap: () => _showAnimeSourceSelector(context, animeStreamingSource, animeSourceNotifier),
         ),
         ListTile(
           leading: const Icon(Icons.delete_outline),
@@ -129,6 +142,74 @@ class PreferencesSection extends StatelessWidget {
                               themeType,
                               themeNotifier,
                             );
+                          },
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAnimeSourceSelector(
+    BuildContext context,
+    AnimeStreamingSource currentSource,
+    AnimeStreamingSourceNotifier sourceNotifier,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Choose Anime Streaming Source',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: AnimeStreamingSource.values
+                      .map(
+                        (source) => ListTile(
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Text(
+                                source.icon,
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            ),
+                          ),
+                          title: Text(source.displayName),
+                          subtitle: Text(source.description),
+                          trailing: currentSource == source
+                              ? Icon(
+                                  Icons.check,
+                                  color: Theme.of(context).colorScheme.primary,
+                                )
+                              : null,
+                          onTap: () async {
+                            await sourceNotifier.setSource(source);
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
                           },
                         ),
                       )

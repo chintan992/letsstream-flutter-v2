@@ -15,6 +15,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
 import 'package:lets_stream/src/shared/widgets/watchlist_action_buttons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lets_stream/src/features/anime/providers/anime_preferences_provider.dart';
+import 'package:lets_stream/src/features/anime/services/anime_mapping_service.dart';
+import 'package:lets_stream/src/core/api/anime_api.dart';
+import 'package:dio/dio.dart';
+import 'package:lets_stream/src/features/anime/presentation/widgets/anime_mapping_dialog.dart';
+import 'package:lets_stream/src/features/anime/presentation/anime_player_screen.dart';
 
 class AnimeDetailScreen extends ConsumerStatefulWidget {
   final Object? item; // Movie or TvShow
@@ -672,23 +678,7 @@ class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen>
                                   ),
                                   elevation: 2,
                                 ),
-                                onPressed: () {
-                                  if (widget.item is Movie) {
-                                    context.pushNamed(
-                                      'watch-movie',
-                                      pathParameters: {'id': id.toString()},
-                                    );
-                                  } else if (widget.item is TvShow) {
-                                    context.pushNamed(
-                                      'watch-tv',
-                                      pathParameters: {
-                                        'id': id.toString(),
-                                        'season': '1',
-                                        'ep': '1',
-                                      },
-                                    );
-                                  }
-                                },
+                                onPressed: () => _handleWatchNow(context, ref),
                               ).animate()
                                 .scale(duration: const Duration(milliseconds: 300))
                                 .fadeIn(),
@@ -1328,5 +1318,182 @@ class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen>
       );
     }
     return const SizedBox.shrink();
+  }
+
+  /// Handles the watch now button press based on streaming source preference.
+  Future<void> _handleWatchNow(BuildContext context, WidgetRef ref) async {
+    final animeStreamingSource = ref.read(animeStreamingSourceProvider);
+    final item = widget.item;
+    
+    if (item == null) return;
+
+    if (animeStreamingSource == AnimeStreamingSource.animeApi) {
+      // Use Anime API with Chewie player
+      await _handleAnimeApiWatch(context, ref, item);
+    } else {
+      // Use existing TMDB sources with iframe
+      _handleTmdbWatch(context, item);
+    }
+  }
+
+  /// Handles watching with Anime API (Chewie player).
+  Future<void> _handleAnimeApiWatch(BuildContext context, WidgetRef ref, dynamic item) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Finding anime...'),
+            ],
+          ),
+        ),
+      );
+
+      // Create mapping service and search for anime
+      final animeApi = AnimeApi(Dio());
+      final mappingService = AnimeMappingService(animeApi);
+      
+      final animeResult = await mappingService.mapTmdbToAnimeApi(item);
+      
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (animeResult != null) {
+        // Navigate to anime player
+        if (context.mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => AnimePlayerScreen(
+                animeId: animeResult.id,
+              ),
+            ),
+          );
+        }
+      } else {
+        // Show manual mapping dialog
+        final searchResults = await animeApi.searchAnime(
+          item is Movie ? item.title : item.name,
+        );
+        
+        if (context.mounted && searchResults.isNotEmpty) {
+          final selectedAnime = await AnimeMappingDialog.show(
+            context,
+            tmdbTitle: item is Movie ? item.title : item.name,
+            searchResults: searchResults,
+          );
+          
+          if (selectedAnime != null) {
+            // Save manual mapping
+            mappingService.setManualMapping(item.id, selectedAnime);
+            
+            // Navigate to anime player
+            if (context.mounted) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AnimePlayerScreen(
+                    animeId: selectedAnime.id,
+                  ),
+                ),
+              );
+            }
+          }
+        } else if (context.mounted) {
+          // No results found, show error and fallback to TMDB
+          _showAnimeNotFoundDialog(context, ref);
+        }
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+      
+      // Show error and fallback to TMDB
+      if (context.mounted) {
+        _showAnimeApiErrorDialog(context, ref, e.toString());
+      }
+    }
+  }
+
+  /// Handles watching with TMDB sources (existing iframe player).
+  void _handleTmdbWatch(BuildContext context, dynamic item) {
+    final id = item.id;
+    
+    if (item is Movie) {
+      context.pushNamed(
+        'watch-movie',
+        pathParameters: {'id': id.toString()},
+      );
+    } else if (item is TvShow) {
+      context.pushNamed(
+        'watch-tv',
+        pathParameters: {
+          'id': id.toString(),
+          'season': '1',
+          'ep': '1',
+        },
+      );
+    }
+  }
+
+  /// Shows dialog when anime is not found in Anime API.
+  void _showAnimeNotFoundDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Anime Not Found'),
+        content: const Text(
+          'This anime was not found in the Anime API database. '
+          'Would you like to use the traditional TMDB sources instead?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _handleTmdbWatch(context, widget.item);
+            },
+            child: const Text('Use TMDB Sources'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Shows dialog when Anime API fails.
+  void _showAnimeApiErrorDialog(BuildContext context, WidgetRef ref, String error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Anime API Error'),
+        content: Text(
+          'Failed to connect to Anime API: $error\n\n'
+          'Would you like to use the traditional TMDB sources instead?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _handleTmdbWatch(context, widget.item);
+            },
+            child: const Text('Use TMDB Sources'),
+          ),
+        ],
+      ),
+    );
   }
 }
