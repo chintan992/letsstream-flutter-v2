@@ -130,7 +130,7 @@ class _WatchlistActionButtonsState
             : [
                 ...currentCategories,
                 if (!currentCategories.contains(WatchlistCategories.favorites))
-                  WatchlistCategories.favorites
+                  WatchlistCategories.favorites,
               ];
 
         await watchlistNotifier.updateItemWith(
@@ -440,7 +440,7 @@ class _CompactWatchlistButtonsState
             : [
                 ...currentCategories,
                 if (!currentCategories.contains(WatchlistCategories.favorites))
-                  WatchlistCategories.favorites
+                  WatchlistCategories.favorites,
               ];
 
         await watchlistNotifier.updateItemWith(

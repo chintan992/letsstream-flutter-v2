@@ -77,7 +77,7 @@ class DetailScreen extends ConsumerWidget {
                       imageUrl: fullImageUrl,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => const ShimmerBox(
-                          width: double.infinity, height: double.infinity),
+                          width: double.infinity, height: double.infinity,),
                       errorWidget: (context, url, error) => Container(
                         color: Theme.of(context)
                             .colorScheme
@@ -102,7 +102,7 @@ class DetailScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text('Overview',
-                  style: Theme.of(context).textTheme.headlineSmall),
+                  style: Theme.of(context).textTheme.headlineSmall,),
               const SizedBox(height: 8),
               Text(overview, style: Theme.of(context).textTheme.bodyLarge),
               const SizedBox(height: 24),
@@ -115,7 +115,7 @@ class DetailScreen extends ConsumerWidget {
                       SnackBar(
                         content: Text(isInWatchlist
                             ? 'Added to watchlist'
-                            : 'Removed from watchlist'),
+                            : 'Removed from watchlist',),
                         duration: const Duration(seconds: 2),
                       ),
                     );
@@ -125,7 +125,7 @@ class DetailScreen extends ConsumerWidget {
                       SnackBar(
                         content: Text(isFavorite
                             ? 'Added to favorites'
-                            : 'Removed from favorites'),
+                            : 'Removed from favorites',),
                         duration: const Duration(seconds: 2),
                       ),
                     );
@@ -134,7 +134,7 @@ class DetailScreen extends ConsumerWidget {
               const SizedBox(height: 24),
               // Cast section
               Text('Top Billed Cast',
-                  style: Theme.of(context).textTheme.headlineSmall),
+                  style: Theme.of(context).textTheme.headlineSmall,),
               const SizedBox(height: 8),
               SizedBox(
                 height: 160,
@@ -201,8 +201,8 @@ class DetailScreen extends ConsumerWidget {
                                       .textTheme
                                       .bodySmall
                                       ?.copyWith(
-                                          color: Theme.of(context).hintColor),
-                                )
+                                          color: Theme.of(context).hintColor,),
+                                ),
                               ],
                             ),
                           ),
@@ -215,7 +215,7 @@ class DetailScreen extends ConsumerWidget {
               const SizedBox(height: 24),
               // Trailers section
               Text('Trailers',
-                  style: Theme.of(context).textTheme.headlineSmall),
+                  style: Theme.of(context).textTheme.headlineSmall,),
               const SizedBox(height: 8),
               SizedBox(
                 height: 120,
@@ -233,7 +233,7 @@ class DetailScreen extends ConsumerWidget {
                       return const SizedBox.shrink();
                     }
                     final videos = (snapshot.data ?? const <Video>[])
-                        .where((v) => (v.site.toLowerCase() == 'youtube'))
+                        .where((v) => v.site.toLowerCase() == 'youtube')
                         .toList();
                     if (videos.isEmpty) {
                       return const Center(child: Text('No trailers available'));
@@ -254,9 +254,9 @@ class DetailScreen extends ConsumerWidget {
                           child: GestureDetector(
                             onTap: () async {
                               final url = Uri.parse(
-                                  'https://www.youtube.com/watch?v=${v.key}');
+                                  'https://www.youtube.com/watch?v=${v.key}',);
                               await launchUrl(url,
-                                  mode: LaunchMode.externalApplication);
+                                  mode: LaunchMode.externalApplication,);
                             },
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,14 +272,14 @@ class DetailScreen extends ConsumerWidget {
                                         fit: BoxFit.cover,
                                         placeholder: (context, url) =>
                                             const ShimmerBox(
-                                                width: 160, height: 90),
+                                                width: 160, height: 90,),
                                         errorWidget: (context, url, error) =>
                                             Container(
                                           color: Theme.of(context)
                                               .colorScheme
                                               .surfaceContainerHighest,
                                           child: const Icon(
-                                              Icons.broken_image_outlined),
+                                              Icons.broken_image_outlined,),
                                         ),
                                       ),
                                       const Positioned.fill(
@@ -288,7 +288,7 @@ class DetailScreen extends ConsumerWidget {
                                             radius: 18,
                                             backgroundColor: Colors.black54,
                                             child: Icon(Icons.play_arrow,
-                                                color: Colors.white),
+                                                color: Colors.white,),
                                           ),
                                         ),
                                       ),

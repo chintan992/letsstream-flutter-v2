@@ -66,7 +66,7 @@ class _SeasonsAndEpisodesSectionState
       seasonEpisodesNotifierProvider((
         tvId: widget.tvId,
         seasonNumber: _selectedSeason,
-      )),
+      ),),
     );
 
     return Column(
@@ -184,15 +184,15 @@ class _SeasonsAndEpisodesSectionState
                 child: const ShimmerBox(width: 120, height: 68),
               ),
               const SizedBox(width: 12),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const ShimmerBox(width: 100, height: 16),
-                    const SizedBox(height: 8),
-                    const ShimmerBox(width: double.infinity, height: 14),
-                    const SizedBox(height: 4),
-                    const ShimmerBox(width: 150, height: 14),
+                    ShimmerBox(width: 100, height: 16),
+                    SizedBox(height: 8),
+                    ShimmerBox(width: double.infinity, height: 14),
+                    SizedBox(height: 4),
+                    ShimmerBox(width: 150, height: 14),
                   ],
                 ),
               ),

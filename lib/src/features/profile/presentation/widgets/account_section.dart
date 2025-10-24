@@ -13,10 +13,10 @@ class AccountSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ListTile(
-          leading: const Icon(Icons.person_outline),
-          title: const Text('Account'),
-          subtitle: const Text(
+        const ListTile(
+          leading: Icon(Icons.person_outline),
+          title: Text('Account'),
+          subtitle: Text(
             'Profile and account management',
           ),
         ),

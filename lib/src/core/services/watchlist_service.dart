@@ -37,7 +37,7 @@ class WatchlistService {
 
   /// Initialize default categories
   Future<void> _initializeDefaultCategories() async {
-    final defaultCategories = WatchlistCategories.defaultCategories;
+    const defaultCategories = WatchlistCategories.defaultCategories;
     for (final category in defaultCategories) {
       await _categoriesBox.put(category, category);
     }

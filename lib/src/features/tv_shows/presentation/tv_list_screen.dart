@@ -44,7 +44,7 @@ class _TvListScreenState extends ConsumerState<TvListScreen> {
       tvListNotifierProvider((
         feed: widget.feed,
         genreId: widget.genreId,
-      )).notifier,
+      ),).notifier,
     );
     if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 300) {
       notifier.load();
@@ -212,7 +212,7 @@ class _TvListScreenState extends ConsumerState<TvListScreen> {
     final provider = tvListNotifierProvider((
       feed: widget.feed,
       genreId: widget.genreId,
-    ));
+    ),);
     final state = ref.watch(provider);
 
     return Scaffold(

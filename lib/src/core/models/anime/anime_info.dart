@@ -70,7 +70,7 @@ class AnimeInfo {
   AnimeSeason? get mainSeason {
     if (seasons.isEmpty) return null;
     return seasons.reduce((a, b) => 
-      (a.episodeCount ?? 0) > (b.episodeCount ?? 0) ? a : b);
+      (a.episodeCount ?? 0) > (b.episodeCount ?? 0) ? a : b,);
   }
 
   @override

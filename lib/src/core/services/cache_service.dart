@@ -107,7 +107,7 @@ class CacheService {
         return null;
       }
 
-      final movies = (entry.data).map((json) => Movie.fromJson(json)).toList();
+      final movies = entry.data.map((json) => Movie.fromJson(json)).toList();
 
       _logger.d('Retrieved ${movies.length} movies from cache with key: $key');
       return movies;
@@ -150,7 +150,7 @@ class CacheService {
         return null;
       }
 
-      final tvShows = (entry.data)
+      final tvShows = entry.data
           .map((json) => TvShow.fromJson(json))
           .toList();
 

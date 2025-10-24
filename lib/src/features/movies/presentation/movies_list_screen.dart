@@ -44,7 +44,7 @@ class _MoviesListScreenState extends ConsumerState<MoviesListScreen> {
       moviesListNotifierProvider((
         feed: widget.feed,
         genreId: widget.genreId,
-      )).notifier,
+      ),).notifier,
     );
     if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 300) {
       notifier.load();
@@ -75,7 +75,7 @@ class _MoviesListScreenState extends ConsumerState<MoviesListScreen> {
     final provider = moviesListNotifierProvider((
       feed: widget.feed,
       genreId: widget.genreId,
-    ));
+    ),);
     final state = ref.watch(provider);
 
     return Scaffold(

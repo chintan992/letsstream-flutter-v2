@@ -135,24 +135,24 @@ class AppBorderRadius {
   static final circular = BorderRadius.circular(Tokens.radiusCircular);
 
   // Top-only rounded corners
-  static final topSmall = BorderRadius.vertical(
+  static const topSmall = BorderRadius.vertical(
     top: Radius.circular(Tokens.radiusS),
   );
-  static final topMedium = BorderRadius.vertical(
+  static const topMedium = BorderRadius.vertical(
     top: Radius.circular(Tokens.radiusM),
   );
-  static final topLarge = BorderRadius.vertical(
+  static const topLarge = BorderRadius.vertical(
     top: Radius.circular(Tokens.radiusL),
   );
 
   // Bottom-only rounded corners
-  static final bottomSmall = BorderRadius.vertical(
+  static const bottomSmall = BorderRadius.vertical(
     bottom: Radius.circular(Tokens.radiusS),
   );
-  static final bottomMedium = BorderRadius.vertical(
+  static const bottomMedium = BorderRadius.vertical(
     bottom: Radius.circular(Tokens.radiusM),
   );
-  static final bottomLarge = BorderRadius.vertical(
+  static const bottomLarge = BorderRadius.vertical(
     bottom: Radius.circular(Tokens.radiusL),
   );
 }

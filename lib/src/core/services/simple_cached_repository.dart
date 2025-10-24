@@ -573,7 +573,7 @@ class SimpleCachedRepository {
   Future<Map<int, String>> getMovieGenres({bool forceRefresh = false}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final cacheKey = 'movie_genres';
+      const cacheKey = 'movie_genres';
 
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
@@ -625,7 +625,7 @@ class SimpleCachedRepository {
 
       // Try to return cached data as fallback
       final prefs = await SharedPreferences.getInstance();
-      final cacheKey = 'movie_genres';
+      const cacheKey = 'movie_genres';
       final cached = _cache.getCachedString(cacheKey, prefs);
       if (cached != null) {
         _logger.w('API failed: Using cached data for movie genres');
@@ -642,7 +642,7 @@ class SimpleCachedRepository {
   Future<Map<int, String>> getTvGenres({bool forceRefresh = false}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final cacheKey = 'tv_genres';
+      const cacheKey = 'tv_genres';
 
       // Check cache first (unless force refresh)
       if (!forceRefresh) {
@@ -694,7 +694,7 @@ class SimpleCachedRepository {
 
       // Try to return cached data as fallback
       final prefs = await SharedPreferences.getInstance();
-      final cacheKey = 'tv_genres';
+      const cacheKey = 'tv_genres';
       final cached = _cache.getCachedString(cacheKey, prefs);
       if (cached != null) {
         _logger.w('API failed: Using cached data for TV genres');

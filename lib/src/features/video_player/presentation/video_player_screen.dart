@@ -12,7 +12,7 @@ final List<ContentBlocker> adBlockers = [
   // Google Ad Services
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*googlesyndication\\.com.*",
+      urlFilter: '.*googlesyndication\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -20,7 +20,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*doubleclick\\.net.*",
+      urlFilter: '.*doubleclick\\.net.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -28,7 +28,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*googleadservices\\.com.*",
+      urlFilter: '.*googleadservices\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -36,7 +36,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*googletagmanager\\.com.*",
+      urlFilter: '.*googletagmanager\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -44,7 +44,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*googletagservices\\.com.*",
+      urlFilter: '.*googletagservices\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -52,7 +52,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*google-analytics\\.com.*",
+      urlFilter: '.*google-analytics\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -62,7 +62,7 @@ final List<ContentBlocker> adBlockers = [
   // Amazon Ad Services
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*adsystem\\.amazonads\\.com.*",
+      urlFilter: '.*adsystem\\.amazonads\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -70,7 +70,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*amazon-adsystem\\.com.*",
+      urlFilter: '.*amazon-adsystem\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -80,7 +80,7 @@ final List<ContentBlocker> adBlockers = [
   // Facebook/Meta Ad Services
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*connect\\.facebook\\.net.*",
+      urlFilter: '.*connect\\.facebook\\.net.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -88,7 +88,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*facebook\\.com/tr.*",
+      urlFilter: '.*facebook\\.com/tr.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -98,7 +98,7 @@ final List<ContentBlocker> adBlockers = [
   // Major Ad Networks
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*pubmatic\\.com.*",
+      urlFilter: '.*pubmatic\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -106,7 +106,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*openx\\.net.*",
+      urlFilter: '.*openx\\.net.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -114,7 +114,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*appnexus\\.com.*",
+      urlFilter: '.*appnexus\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -122,7 +122,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*rubiconproject\\.com.*",
+      urlFilter: '.*rubiconproject\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -130,7 +130,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*casalemedia\\.com.*",
+      urlFilter: '.*casalemedia\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -138,7 +138,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*smartadserver\\.com.*",
+      urlFilter: '.*smartadserver\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -148,7 +148,7 @@ final List<ContentBlocker> adBlockers = [
   // Content Recommendation Networks
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*outbrain\\.com.*",
+      urlFilter: '.*outbrain\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -156,7 +156,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*taboola\\.com.*",
+      urlFilter: '.*taboola\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -164,7 +164,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*revcontent\\.com.*",
+      urlFilter: '.*revcontent\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -174,7 +174,7 @@ final List<ContentBlocker> adBlockers = [
   // Video Ad Networks
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*vast\\.videoadex\\.com.*",
+      urlFilter: '.*vast\\.videoadex\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -182,7 +182,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*adroll\\.com.*",
+      urlFilter: '.*adroll\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -190,7 +190,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*criteo\\.com.*",
+      urlFilter: '.*criteo\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -200,7 +200,7 @@ final List<ContentBlocker> adBlockers = [
   // Tracking and Analytics
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*quantserve\\.com.*",
+      urlFilter: '.*quantserve\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -208,7 +208,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*scorecardresearch\\.com.*",
+      urlFilter: '.*scorecardresearch\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -216,7 +216,7 @@ final List<ContentBlocker> adBlockers = [
   ),
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*doubleverify\\.com.*",
+      urlFilter: '.*doubleverify\\.com.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.BLOCK,
@@ -226,7 +226,7 @@ final List<ContentBlocker> adBlockers = [
   // Block common ad elements by CSS selector
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*",
+      urlFilter: '.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.CSS_DISPLAY_NONE,
@@ -238,7 +238,7 @@ final List<ContentBlocker> adBlockers = [
   // Block video ads and overlays
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*",
+      urlFilter: '.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.CSS_DISPLAY_NONE,
@@ -250,7 +250,7 @@ final List<ContentBlocker> adBlockers = [
   // Block ad containers and iframes
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*",
+      urlFilter: '.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.CSS_DISPLAY_NONE,
@@ -262,7 +262,7 @@ final List<ContentBlocker> adBlockers = [
   // Block tracking pixels and scripts
   ContentBlocker(
     trigger: ContentBlockerTrigger(
-      urlFilter: ".*",
+      urlFilter: '.*',
     ),
     action: ContentBlockerAction(
       type: ContentBlockerActionType.CSS_DISPLAY_NONE,
@@ -327,12 +327,12 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
           mediaType: widget.isMovie ? 'movie' : 'tv',
           seasonNumber: widget.season,
           episodeNumber: widget.episode,
-        ));
+        ),);
         final notifier = ref.read(provider.notifier);
         notifier.setPipActive(isInPip);
 
         print(
-            '🔄 PIP mode changed in UI: $_isInPipMode, provider updated: $isInPip');
+            '🔄 PIP mode changed in UI: $_isInPipMode, provider updated: $isInPip',);
       }
     });
 
@@ -343,7 +343,7 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
         mediaType: widget.isMovie ? 'movie' : 'tv',
         seasonNumber: widget.season,
         episodeNumber: widget.episode,
-      ));
+      ),);
       final notifier = ref.read(provider.notifier);
       await notifier.initializePip();
     });
@@ -367,7 +367,7 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
       mediaType: widget.isMovie ? 'movie' : 'tv',
       seasonNumber: widget.season,
       episodeNumber: widget.episode,
-    ));
+    ),);
     final state = ref.read(provider);
 
     // Don't allow control toggle when in PIP mode
@@ -389,7 +389,7 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   }
 
   Future<void> _injectAdBlockingJavaScript(
-      InAppWebViewController controller) async {
+      InAppWebViewController controller,) async {
     const adBlockingScript = '''
       (function() {
         'use strict';
@@ -456,25 +456,25 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
             const src = script.src || '';
 
             const adScriptPatterns = [
-              /googlesyndication\.com/,
-              /doubleclick\.net/,
-              /googleadservices\.com/,
-              /googletagmanager\.com/,
-              /googletagservices\.com/,
-              /amazon-adsystem\.com/,
-              /adsystem\.amazonads\.com/,
-              /connect\.facebook\.net/,
-              /pubmatic\.com/,
-              /openx\.net/,
-              /appnexus\.com/,
-              /rubiconproject\.com/,
-              /casalemedia\.com/,
-              /smartadserver\.com/,
-              /outbrain\.com/,
-              /taboola\.com/,
-              /vast\.videoadex\.com/,
-              /adroll\.com/,
-              /criteo\.com/
+              /googlesyndication.com/,
+              /doubleclick.net/,
+              /googleadservices.com/,
+              /googletagmanager.com/,
+              /googletagservices.com/,
+              /amazon-adsystem.com/,
+              /adsystem.amazonads.com/,
+              /connect.facebook.net/,
+              /pubmatic.com/,
+              /openx.net/,
+              /appnexus.com/,
+              /rubiconproject.com/,
+              /casalemedia.com/,
+              /smartadserver.com/,
+              /outbrain.com/,
+              /taboola.com/,
+              /vast.videoadex.com/,
+              /adroll.com/,
+              /criteo.com/
             ];
 
             const isAdScript = adScriptPatterns.some(function(pattern) {
@@ -606,13 +606,13 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
       mediaType: widget.isMovie ? 'movie' : 'tv',
       seasonNumber: widget.season,
       episodeNumber: widget.episode,
-    ));
+    ),);
     final state = ref.watch(provider);
     final notifier = ref.read(provider.notifier);
 
     // Debug UI state
     print(
-        '🖥️ VideoPlayerScreen build - isPipActive: ${state.isPipActive}, videoUrl: ${state.videoUrl != null ? "present" : "null"}');
+        '🖥️ VideoPlayerScreen build - isPipActive: ${state.isPipActive}, videoUrl: ${state.videoUrl != null ? "present" : "null"}',);
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -775,7 +775,7 @@ class VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                               ),
                             const SizedBox(width: 10),
                             IconButton(
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.picture_in_picture_alt,
                                 color: Colors.white,
                               ),

@@ -21,7 +21,7 @@ class ErrorState extends StatelessWidget {
             if (onRetry != null) ...[
               const SizedBox(height: 12),
               FilledButton(onPressed: onRetry, child: const Text('Retry')),
-            ]
+            ],
           ],
         ),
       ),

@@ -210,7 +210,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
-            home: Scaffold(body: const ErrorState()),
+            home: const Scaffold(body: ErrorState()),
           ),
         );
 
@@ -224,7 +224,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.dark(),
-            home: Scaffold(body: const ErrorState()),
+            home: const Scaffold(body: ErrorState()),
           ),
         );
 
@@ -240,7 +240,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
-            home: Scaffold(body: const ErrorState()),
+            home: const Scaffold(body: ErrorState()),
           ),
         );
 
@@ -263,8 +263,8 @@ void main() {
         WidgetTester tester,
       ) async {
         await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(body: const ErrorState(message: '')),
+          const MaterialApp(
+            home: Scaffold(body: ErrorState(message: '')),
           ),
         );
 
@@ -287,8 +287,8 @@ void main() {
             'This is a very long error message that should be displayed properly even when it spans multiple lines and requires proper text wrapping to ensure good readability';
 
         await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(body: const ErrorState(message: longMessage)),
+          const MaterialApp(
+            home: Scaffold(body: ErrorState(message: longMessage)),
           ),
         );
 

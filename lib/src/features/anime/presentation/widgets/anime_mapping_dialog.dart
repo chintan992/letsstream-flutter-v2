@@ -229,7 +229,7 @@ class _AnimeMappingDialogState extends State<AnimeMappingDialog> {
           ],
         ),
         trailing: isSelected
-            ? Icon(
+            ? const Icon(
                 Icons.check_circle,
                 color: Colors.blue,
                 size: 24,

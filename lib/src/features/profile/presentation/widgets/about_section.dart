@@ -8,10 +8,10 @@ class AboutSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ListTile(
-          leading: const AppLogo(size: 24),
-          title: const Text("Let's Stream"),
-          subtitle: const Text('A media discovery app built with Flutter'),
+        const ListTile(
+          leading: AppLogo(size: 24),
+          title: Text("Let's Stream"),
+          subtitle: Text('A media discovery app built with Flutter'),
         ),
         ListTile(
           leading: const Icon(Icons.privacy_tip_outlined),
@@ -19,10 +19,10 @@ class AboutSection extends StatelessWidget {
           subtitle: const Text('Learn how we protect your data'),
           onTap: () => _showPrivacyPolicy(context),
         ),
-        ListTile(
-          leading: const Icon(Icons.info_outline),
-          title: const Text('Version'),
-          subtitle: const Text('1.0.0 (1)'),
+        const ListTile(
+          leading: Icon(Icons.info_outline),
+          title: Text('Version'),
+          subtitle: Text('1.0.0 (1)'),
         ),
         ListTile(
           leading: const Icon(Icons.gavel_outlined),
@@ -68,11 +68,11 @@ class AboutSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Expanded(
+            const Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Last updated: September 4, 2025',
                       style: TextStyle(fontWeight: FontWeight.w500),
@@ -183,11 +183,11 @@ class AboutSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Expanded(
+            const Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Educational Demonstration Notice',
                       style: TextStyle(
@@ -322,11 +322,11 @@ class AboutSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Expanded(
+            const Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Important Notice',
                       style: TextStyle(

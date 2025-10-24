@@ -273,7 +273,7 @@ class _WatchlistItemCardState extends State<WatchlistItemCard> {
             child: ListTile(
               leading: Icon(widget.item.isWatched
                   ? Icons.visibility_off
-                  : Icons.visibility),
+                  : Icons.visibility,),
               title: Text(
                 widget.item.isWatched ? 'Mark unwatched' : 'Mark watched',
               ),

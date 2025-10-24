@@ -234,7 +234,7 @@ class ThemeComposer {
       backgroundColor: config.surfaceColor,
       indicatorColor: config.primaryColor.withValues(alpha: 0.2),
       labelTextStyle: WidgetStateProperty.all(
-        TextStyle(
+        const TextStyle(
           fontSize: Tokens.textBodySmall,
           fontWeight: FontWeight.w500,
         ),

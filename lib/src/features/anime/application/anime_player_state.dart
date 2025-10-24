@@ -4,6 +4,11 @@ import 'package:lets_stream/src/core/models/anime/anime_info.dart';
 import 'package:lets_stream/src/core/models/anime/anime_episode.dart';
 import 'package:lets_stream/src/core/models/anime/anime_server.dart';
 import 'package:lets_stream/src/core/models/anime/anime_stream.dart';
+import 'package:lets_stream/src/core/models/anime/anime_subtitle_track.dart';
+import 'package:lets_stream/src/features/anime/application/models/quality_option.dart';
+import 'package:lets_stream/src/features/anime/application/models/gesture_type.dart';
+import 'package:lets_stream/src/features/anime/application/models/network_quality.dart';
+import 'package:lets_stream/src/features/anime/application/models/aspect_ratio.dart' as custom;
 
 /// Represents the state of the anime player.
 ///
@@ -73,6 +78,60 @@ class AnimePlayerState {
   /// Whether the outro skip button should be shown.
   final bool showOutroSkip;
 
+  /// Available video quality options.
+  final List<QualityOption> availableQualities;
+
+  /// Currently selected quality option.
+  final QualityOption? selectedQuality;
+
+  /// Whether auto quality is enabled.
+  final bool isAutoQuality;
+
+  /// Currently selected subtitle track.
+  final AnimeSubtitleTrack? selectedSubtitle;
+
+  /// Current screen brightness (0.0 to 1.0).
+  final double brightness;
+
+  /// Current volume level (0.0 to 1.0).
+  final double volume;
+
+  /// Whether the player is locked (controls hidden).
+  final bool isLocked;
+
+  /// Current aspect ratio setting.
+  final custom.AspectRatio aspectRatio;
+
+  /// Whether to show gesture indicators.
+  final bool showGestureIndicator;
+
+  /// Currently active gesture type.
+  final GestureType? activeGesture;
+
+  /// Watch progress for resume functionality.
+  final Duration watchProgress;
+
+  /// Whether to auto-play next episode.
+  final bool autoPlayNext;
+
+  /// Auto-play countdown in seconds.
+  final int autoPlayCountdown;
+
+  /// Whether the next episode is being preloaded.
+  final bool isPreloading;
+
+  /// Current network quality for adaptive streaming.
+  final NetworkQuality networkQuality;
+
+  /// Number of retry attempts for current stream.
+  final int retryCount;
+
+  /// Whether the player is in battery optimization mode.
+  final bool batteryOptimizationMode;
+
+  /// Whether wake lock is active.
+  final bool isWakeLockActive;
+
   /// Creates a new AnimePlayerState instance.
   const AnimePlayerState({
     this.animeInfo,
@@ -96,6 +155,24 @@ class AnimePlayerState {
     this.selectedSubtitleTrack,
     this.showIntroSkip = false,
     this.showOutroSkip = false,
+    this.availableQualities = const [],
+    this.selectedQuality,
+    this.isAutoQuality = true,
+    this.selectedSubtitle,
+    this.brightness = 1.0,
+    this.volume = 1.0,
+    this.isLocked = false,
+    this.aspectRatio = custom.AspectRatio.widescreen,
+    this.showGestureIndicator = false,
+    this.activeGesture,
+    this.watchProgress = Duration.zero,
+    this.autoPlayNext = true,
+    this.autoPlayCountdown = 0,
+    this.isPreloading = false,
+    this.networkQuality = NetworkQuality.unknown,
+    this.retryCount = 0,
+    this.batteryOptimizationMode = false,
+    this.isWakeLockActive = false,
   });
 
   /// Creates a copy of this state with updated fields.
@@ -121,6 +198,24 @@ class AnimePlayerState {
     String? selectedSubtitleTrack,
     bool? showIntroSkip,
     bool? showOutroSkip,
+    List<QualityOption>? availableQualities,
+    QualityOption? selectedQuality,
+    bool? isAutoQuality,
+    AnimeSubtitleTrack? selectedSubtitle,
+    double? brightness,
+    double? volume,
+    bool? isLocked,
+    custom.AspectRatio? aspectRatio,
+    bool? showGestureIndicator,
+    GestureType? activeGesture,
+    Duration? watchProgress,
+    bool? autoPlayNext,
+    int? autoPlayCountdown,
+    bool? isPreloading,
+    NetworkQuality? networkQuality,
+    int? retryCount,
+    bool? batteryOptimizationMode,
+    bool? isWakeLockActive,
   }) {
     return AnimePlayerState(
       animeInfo: animeInfo ?? this.animeInfo,
@@ -144,6 +239,24 @@ class AnimePlayerState {
       selectedSubtitleTrack: selectedSubtitleTrack ?? this.selectedSubtitleTrack,
       showIntroSkip: showIntroSkip ?? this.showIntroSkip,
       showOutroSkip: showOutroSkip ?? this.showOutroSkip,
+      availableQualities: availableQualities ?? this.availableQualities,
+      selectedQuality: selectedQuality ?? this.selectedQuality,
+      isAutoQuality: isAutoQuality ?? this.isAutoQuality,
+      selectedSubtitle: selectedSubtitle ?? this.selectedSubtitle,
+      brightness: brightness ?? this.brightness,
+      volume: volume ?? this.volume,
+      isLocked: isLocked ?? this.isLocked,
+      aspectRatio: aspectRatio ?? this.aspectRatio,
+      showGestureIndicator: showGestureIndicator ?? this.showGestureIndicator,
+      activeGesture: activeGesture ?? this.activeGesture,
+      watchProgress: watchProgress ?? this.watchProgress,
+      autoPlayNext: autoPlayNext ?? this.autoPlayNext,
+      autoPlayCountdown: autoPlayCountdown ?? this.autoPlayCountdown,
+      isPreloading: isPreloading ?? this.isPreloading,
+      networkQuality: networkQuality ?? this.networkQuality,
+      retryCount: retryCount ?? this.retryCount,
+      batteryOptimizationMode: batteryOptimizationMode ?? this.batteryOptimizationMode,
+      isWakeLockActive: isWakeLockActive ?? this.isWakeLockActive,
     );
   }
 

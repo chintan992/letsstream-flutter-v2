@@ -45,7 +45,7 @@ class EnhancedDetailScreen extends ConsumerWidget {
                           SnackBar(
                             content: Text(isInWatchlist
                                 ? 'Added to watchlist'
-                                : 'Removed from watchlist'),
+                                : 'Removed from watchlist',),
                             duration: const Duration(seconds: 2),
                           ),
                         );
@@ -55,7 +55,7 @@ class EnhancedDetailScreen extends ConsumerWidget {
                           SnackBar(
                             content: Text(isFavorite
                                 ? 'Added to favorites'
-                                : 'Removed from favorites'),
+                                : 'Removed from favorites',),
                             duration: const Duration(seconds: 2),
                           ),
                         );

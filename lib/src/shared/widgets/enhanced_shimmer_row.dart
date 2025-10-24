@@ -176,7 +176,7 @@ class _AnimatedCounterWidgetState extends State<AnimatedCounterWidget>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeOutCubic,
-    ));
+    ),);
     
     _controller.forward();
   }

@@ -36,7 +36,7 @@ class _PosterThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = const Size(56, 84);
+    const size = Size(56, 84);
     if (imageUrl == null) {
       return SizedBox(
         width: size.width,
@@ -221,7 +221,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               const SizedBox(height: 24),
               // Genres
-              _GenreFilterSection(),
+              const _GenreFilterSection(),
               const SizedBox(height: 24),
               // Apply Button
               SizedBox(
@@ -323,9 +323,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               itemCount: 8,
               separatorBuilder: (context, index) => const Divider(height: 1),
               itemBuilder: (context, index) {
-                return Row(
+                return const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     ShimmerBox(width: 56, height: 84),
                     SizedBox(width: 12),
                     Expanded(

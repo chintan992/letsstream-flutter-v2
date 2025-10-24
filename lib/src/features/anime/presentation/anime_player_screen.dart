@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:chewie/chewie.dart';
 import 'package:dio/dio.dart';
 import 'package:lets_stream/src/core/api/anime_api.dart';
 import 'package:lets_stream/src/features/anime/application/anime_player_notifier.dart';
 import 'package:lets_stream/src/features/anime/application/anime_player_state.dart';
 import 'package:lets_stream/src/features/anime/presentation/widgets/anime_server_selector.dart';
+import 'package:lets_stream/src/features/anime/presentation/widgets/custom_anime_controls.dart';
+import 'package:lets_stream/src/features/anime/presentation/widgets/quality_selector_widget.dart';
+import 'package:lets_stream/src/features/anime/presentation/widgets/subtitle_selector_widget.dart';
 
 /// Provider for the anime player notifier.
 final animePlayerNotifierProvider = StateNotifierProvider.family<
@@ -84,203 +86,72 @@ class _AnimePlayerScreenState extends ConsumerState<AnimePlayerScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Main video player
-            _buildVideoPlayer(playerState),
-            
-            // Loading overlay
-            if (playerState.isLoading)
-              _buildLoadingOverlay(),
-            
-            // Error overlay
-            if (playerState.error != null)
-              _buildErrorOverlay(playerState.error!, playerNotifier),
-            
-            // Custom controls overlay
-            if (!playerState.isLoading && playerState.error == null)
-              _buildControlsOverlay(playerState, playerNotifier),
+            // Main video player with custom controls
+            CustomAnimeControls(
+              state: playerState,
+              notifier: playerNotifier,
+            ),
             
             // Server selector
             if (playerState.showServerSelector)
               _buildServerSelectorOverlay(playerState, playerNotifier),
             
-            // Skip buttons
-            _buildSkipButtons(playerState, playerNotifier),
+            // Quality selector
+            if (playerState.availableQualities.isNotEmpty)
+              _buildQualitySelector(playerState, playerNotifier),
+            
+            // Subtitle selector
+            if (playerState.streamData?.hasSubtitles == true)
+              _buildSubtitleSelector(playerState, playerNotifier),
           ],
         ),
       ),
     );
   }
 
-  /// Builds the main video player.
-  Widget _buildVideoPlayer(AnimePlayerState state) {
-    if (state.chewieController != null) {
-      return Center(
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: Chewie(controller: state.chewieController!),
-        ),
-      );
-    } else {
-      return Container(
-        color: Colors.black,
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.play_circle_outline,
-                size: 64,
-                color: Colors.white54,
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Loading video...',
-                style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-  }
-
-  /// Builds the loading overlay.
-  Widget _buildLoadingOverlay() {
-    return Container(
-      color: Colors.black54,
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Loading...',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
+  /// Builds the quality selector overlay.
+  Widget _buildQualitySelector(AnimePlayerState state, AnimePlayerNotifier notifier) {
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: () => notifier.toggleServerSelector(), // Close quality selector
+        child: Container(
+          color: Colors.black54,
+          child: Center(
+            child: GestureDetector(
+              onTap: () {}, // Prevent closing when tapping the selector
+              child: QualitySelectorWidget(
+                qualities: state.availableQualities,
+                selectedQuality: state.selectedQuality,
+                isAutoQuality: state.isAutoQuality,
+                onQualitySelected: notifier.setQuality,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Builds the error overlay.
-  Widget _buildErrorOverlay(String error, AnimePlayerNotifier notifier) {
-    return Container(
-      color: Colors.black87,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.red,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Error',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () => notifier.clearError(),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                  ),
-                  const SizedBox(width: 16),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
-                    label: const Text('Close'),
-                  ),
-                ],
-              ),
-            ],
           ),
         ),
       ),
     );
   }
 
-  /// Builds the custom controls overlay.
-  Widget _buildControlsOverlay(
-    AnimePlayerState state,
-    AnimePlayerNotifier notifier,
-  ) {
-    return Positioned(
-      top: 16,
-      left: 16,
-      right: 16,
-      child: Row(
-        children: [
-          // Back button
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.black54,
-              shape: const CircleBorder(),
+  /// Builds the subtitle selector overlay.
+  Widget _buildSubtitleSelector(AnimePlayerState state, AnimePlayerNotifier notifier) {
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: () => notifier.toggleServerSelector(), // Close subtitle selector
+        child: Container(
+          color: Colors.black54,
+          child: Center(
+            child: GestureDetector(
+              onTap: () {}, // Prevent closing when tapping the selector
+              child: SubtitleSelectorWidget(
+                subtitleTracks: state.streamData?.streamingLink.tracks ?? [],
+                selectedSubtitle: state.selectedSubtitle,
+                subtitlesEnabled: state.subtitlesEnabled,
+                onSubtitleSelected: notifier.setSubtitleTrack,
+                onSubtitlesToggled: (enabled) => notifier.toggleSubtitles(),
+              ),
             ),
           ),
-          
-          const Spacer(),
-          
-          // Episode info
-          if (state.currentEpisode != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                'Episode ${state.currentEpisode!.episodeNo}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          
-          const SizedBox(width: 8),
-          
-          // Server selector button
-          if (state.hasMultipleServers)
-            IconButton(
-              onPressed: notifier.toggleServerSelector,
-              icon: const Icon(Icons.settings, color: Colors.white),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.black54,
-                shape: const CircleBorder(),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }
@@ -309,49 +180,6 @@ class _AnimePlayerScreenState extends ConsumerState<AnimePlayerScreen> {
     );
   }
 
-  /// Builds the skip buttons (intro/outro).
-  Widget _buildSkipButtons(
-    AnimePlayerState state,
-    AnimePlayerNotifier notifier,
-  ) {
-    return Positioned(
-      bottom: 100,
-      right: 16,
-      child: Column(
-        children: [
-          if (state.shouldShowIntroSkip)
-            _buildSkipButton(
-              'Skip Intro',
-              Icons.fast_forward,
-              notifier.skipIntro,
-            ),
-          if (state.shouldShowOutroSkip)
-            _buildSkipButton(
-              'Skip Outro',
-              Icons.fast_forward,
-              notifier.skipOutro,
-            ),
-        ],
-      ),
-    );
-  }
-
-  /// Builds a skip button.
-  Widget _buildSkipButton(String label, IconData icon, VoidCallback onPressed) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
-      ),
-    );
-  }
 
   /// Loads the anime and starts playback.
   Future<void> _loadAnime() async {

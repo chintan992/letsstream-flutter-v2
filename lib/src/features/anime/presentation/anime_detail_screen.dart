@@ -160,15 +160,15 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
                       child: const ShimmerBox(width: 120, height: 68),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
+                    const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const ShimmerBox(width: 100, height: 16),
-                          const SizedBox(height: 8),
-                          const ShimmerBox(width: double.infinity, height: 14),
-                          const SizedBox(height: 4),
-                          const ShimmerBox(width: 150, height: 14),
+                          ShimmerBox(width: 100, height: 16),
+                          SizedBox(height: 8),
+                          ShimmerBox(width: double.infinity, height: 14),
+                          SizedBox(height: 4),
+                          ShimmerBox(width: 150, height: 14),
                         ],
                       ),
                     ),
@@ -189,7 +189,7 @@ class _SeasonEpisodesViewState extends ConsumerState<_SeasonEpisodesView> {
               style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
             ),
           )
-        else if ((_episodes?.isEmpty ?? true))
+        else if (_episodes?.isEmpty ?? true)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -721,7 +721,7 @@ class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen>
                             SnackBar(
                               content: Text(isInWatchlist
                                   ? 'Added to watchlist'
-                                  : 'Removed from watchlist'),
+                                  : 'Removed from watchlist',),
                               duration: const Duration(seconds: 2),
                               behavior: SnackBarBehavior.floating,
                             ),
@@ -732,7 +732,7 @@ class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen>
                             SnackBar(
                               content: Text(isFavorite
                                   ? 'Added to favorites'
-                                  : 'Removed from favorites'),
+                                  : 'Removed from favorites',),
                               duration: const Duration(seconds: 2),
                               behavior: SnackBarBehavior.floating,
                             ),
@@ -989,7 +989,7 @@ class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 child: Stack(
                   children: [
                     CachedNetworkImage(

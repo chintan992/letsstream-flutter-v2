@@ -71,7 +71,7 @@ class ColorContrastValidator {
     if (!meetsWCAGAA(primaryText, primaryBackground)) {
       results['passed'] = false;
       results['issues'].add(
-          'Primary text on primary background fails WCAG AA (${primaryTextRatio.toStringAsFixed(2)}:1, needs 4.5:1)');
+          'Primary text on primary background fails WCAG AA (${primaryTextRatio.toStringAsFixed(2)}:1, needs 4.5:1)',);
     }
 
     // Check secondary text on primary background
@@ -80,7 +80,7 @@ class ColorContrastValidator {
     if (!meetsWCAGAA(secondaryText, primaryBackground)) {
       results['passed'] = false;
       results['issues'].add(
-          'Secondary text on primary background fails WCAG AA (${secondaryTextRatio.toStringAsFixed(2)}:1, needs 4.5:1)');
+          'Secondary text on primary background fails WCAG AA (${secondaryTextRatio.toStringAsFixed(2)}:1, needs 4.5:1)',);
     }
 
     // Check primary text on surface background
@@ -89,7 +89,7 @@ class ColorContrastValidator {
     if (!meetsWCAGAA(primaryText, surfaceBackground)) {
       results['passed'] = false;
       results['issues'].add(
-          'Primary text on surface background fails WCAG AA (${primaryTextSurfaceRatio.toStringAsFixed(2)}:1, needs 4.5:1)');
+          'Primary text on surface background fails WCAG AA (${primaryTextSurfaceRatio.toStringAsFixed(2)}:1, needs 4.5:1)',);
     }
 
     // Check white text on primary color (for buttons)
@@ -98,7 +98,7 @@ class ColorContrastValidator {
     if (!meetsWCAGAA(Colors.white, primaryColor)) {
       results['passed'] = false;
       results['issues'].add(
-          'White text on primary color fails WCAG AA (${whiteOnPrimaryRatio.toStringAsFixed(2)}:1, needs 4.5:1)');
+          'White text on primary color fails WCAG AA (${whiteOnPrimaryRatio.toStringAsFixed(2)}:1, needs 4.5:1)',);
     }
 
     return results;

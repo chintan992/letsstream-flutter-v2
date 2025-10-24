@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:lets_stream/src/core/api/anime_api.dart';
 import 'package:lets_stream/src/core/models/anime/anime_info.dart';
 import 'package:lets_stream/src/core/models/anime/anime_episode.dart';
 import 'package:lets_stream/src/core/models/anime/anime_server.dart';
+import 'package:lets_stream/src/core/models/anime/anime_subtitle_track.dart';
 import 'package:lets_stream/src/features/anime/application/anime_player_state.dart';
+import 'package:lets_stream/src/features/anime/application/models/quality_option.dart';
+import 'package:lets_stream/src/features/anime/application/models/gesture_type.dart';
+import 'package:lets_stream/src/features/anime/application/models/aspect_ratio.dart' as custom;
 
 /// Notifier for managing anime player state and playback.
 ///
@@ -23,6 +28,14 @@ class AnimePlayerNotifier extends StateNotifier<AnimePlayerState> {
   /// Timer for checking intro/outro skip availability.
   Timer? _skipTimer;
 
+  /// Timer for auto-play countdown.
+  Timer? _autoPlayTimer;
+
+  /// Timer for network quality monitoring.
+  Timer? _networkTimer;
+
+
+
   /// Creates a new AnimePlayerNotifier instance.
   ///
   /// [_animeApi] The Anime API client to use for fetching data.
@@ -32,8 +45,15 @@ class AnimePlayerNotifier extends StateNotifier<AnimePlayerState> {
   void dispose() {
     _positionTimer?.cancel();
     _skipTimer?.cancel();
-    state.videoController?.dispose();
-    state.chewieController?.dispose();
+    _autoPlayTimer?.cancel();
+    _networkTimer?.cancel();
+    
+    // Proper disposal cascade
+    _disposeControllers();
+    
+    // Disable wake lock
+    _disableWakeLock();
+    
     super.dispose();
   }
 
@@ -397,4 +417,242 @@ class AnimePlayerNotifier extends StateNotifier<AnimePlayerState> {
     _disposeControllers();
     state = const AnimePlayerState();
   }
+
+  // ===== NEW ENHANCED METHODS =====
+
+  /// Enables or disables wake lock to keep screen on during playback.
+  Future<void> _enableWakeLock() async {
+    if (!state.isWakeLockActive) {
+      await WakelockPlus.enable();
+      state = state.copyWith(isWakeLockActive: true);
+    }
+  }
+
+  /// Disables wake lock.
+  Future<void> _disableWakeLock() async {
+    if (state.isWakeLockActive) {
+      await WakelockPlus.disable();
+      state = state.copyWith(isWakeLockActive: false);
+    }
+  }
+
+  /// Toggles wake lock.
+  Future<void> toggleWakeLock() async {
+    if (state.isWakeLockActive) {
+      await _disableWakeLock();
+    } else {
+      await _enableWakeLock();
+    }
+  }
+
+  /// Sets the video quality.
+  Future<void> setQuality(QualityOption quality) async {
+    if (state.selectedQuality == quality) return;
+
+    state = state.copyWith(
+      selectedQuality: quality,
+      isAutoQuality: quality.isAuto,
+    );
+
+    // If not auto quality, switch to the selected quality
+    if (!quality.isAuto && state.videoController != null) {
+      await _switchToQuality(quality);
+    }
+  }
+
+  /// Switches to a specific quality while preserving playback position.
+  Future<void> _switchToQuality(QualityOption quality) async {
+    if (state.videoController == null) return;
+
+    final currentPosition = state.currentPosition;
+    final isPlaying = state.isPlaying;
+
+    // Dispose current controller
+    await _disposeControllers();
+
+    // Initialize new controller with selected quality
+    await _initializeVideoPlayer(quality.url);
+
+    // Restore position and playing state
+    if (currentPosition > Duration.zero) {
+      seekTo(currentPosition);
+    }
+    if (isPlaying) {
+      state.videoController?.play();
+    }
+  }
+
+
+  /// Sets the aspect ratio.
+  void setAspectRatio(custom.AspectRatio aspectRatio) {
+    state = state.copyWith(aspectRatio: aspectRatio);
+  }
+
+  /// Sets the brightness level.
+  void setBrightness(double brightness) {
+    final clampedBrightness = brightness.clamp(0.0, 1.0);
+    state = state.copyWith(brightness: clampedBrightness);
+    
+    // Apply brightness to system (would need screen_brightness package)
+    // ScreenBrightness().setScreenBrightness(clampedBrightness);
+  }
+
+  /// Sets the volume level.
+  void setVolume(double volume) {
+    final clampedVolume = volume.clamp(0.0, 1.0);
+    state = state.copyWith(volume: clampedVolume);
+    
+    // Apply volume to system (would need flutter_volume_controller package)
+    // VolumeController.setVolume(clampedVolume);
+  }
+
+  /// Toggles player lock (hides/shows controls).
+  void toggleLock() {
+    state = state.copyWith(isLocked: !state.isLocked);
+  }
+
+  /// Sets the selected subtitle track.
+  void setSubtitleTrack(AnimeSubtitleTrack? subtitle) {
+    state = state.copyWith(selectedSubtitle: subtitle);
+  }
+
+  /// Handles gesture input.
+  void handleGesture(GestureType gestureType, Offset position, Size screenSize) {
+    state = state.copyWith(
+      activeGesture: gestureType,
+      showGestureIndicator: true,
+    );
+
+    // Hide gesture indicator after a delay
+    Timer(const Duration(milliseconds: 1500), () {
+      state = state.copyWith(
+        showGestureIndicator: false,
+        activeGesture: null,
+      );
+    });
+
+    switch (gestureType) {
+      case GestureType.doubleTap:
+        _handleDoubleTap(position, screenSize);
+        break;
+      case GestureType.verticalSwipe:
+        _handleVerticalSwipe(position, screenSize);
+        break;
+      case GestureType.horizontalSwipe:
+        _handleHorizontalSwipe(position, screenSize);
+        break;
+      case GestureType.pinch:
+        _handlePinch(position, screenSize);
+        break;
+      case GestureType.longPress:
+        _handleLongPress(position, screenSize);
+        break;
+      case GestureType.singleTap:
+        _handleSingleTap(position, screenSize);
+        break;
+    }
+  }
+
+  /// Handles double tap gesture for seeking.
+  void _handleDoubleTap(Offset position, Size screenSize) {
+    if (state.videoController == null) return;
+
+    final seekAmount = position.dx < screenSize.width / 2 ? -10 : 10;
+    final newPosition = Duration(
+      seconds: (state.currentPosition.inSeconds + seekAmount).clamp(0, state.totalDuration.inSeconds).round(),
+    );
+    seekTo(newPosition);
+  }
+
+  /// Handles vertical swipe for brightness/volume control.
+  void _handleVerticalSwipe(Offset position, Size screenSize) {
+    final side = position.dx < screenSize.width / 2 ? 'left' : 'right';
+    
+    if (side == 'left') {
+      // Brightness control
+      final brightnessChange = (position.dy / screenSize.height) * 0.1;
+      final newBrightness = (state.brightness - brightnessChange).clamp(0.0, 1.0);
+      setBrightness(newBrightness);
+    } else {
+      // Volume control
+      final volumeChange = (position.dy / screenSize.height) * 0.1;
+      final newVolume = (state.volume - volumeChange).clamp(0.0, 1.0);
+      setVolume(newVolume);
+    }
+  }
+
+  /// Handles horizontal swipe for seeking.
+  void _handleHorizontalSwipe(Offset position, Size screenSize) {
+    if (state.videoController == null) return;
+
+    final seekAmount = (position.dx / screenSize.width) * 30; // 30 seconds max
+    final newPosition = Duration(
+      seconds: (state.currentPosition.inSeconds + seekAmount).clamp(0, state.totalDuration.inSeconds).round(),
+    );
+    seekTo(newPosition);
+  }
+
+  /// Handles pinch gesture for zooming.
+  void _handlePinch(Offset position, Size screenSize) {
+    // Zoom functionality would be implemented here
+    // This would require custom video rendering
+  }
+
+  /// Handles long press for speed control.
+  void _handleLongPress(Offset position, Size screenSize) {
+    // Show speed control overlay
+    // This would trigger a speed selection UI
+  }
+
+  /// Handles single tap for toggling controls.
+  void _handleSingleTap(Offset position, Size screenSize) {
+    // Toggle controls visibility
+    // This would be handled by the UI layer
+  }
+
+  /// Starts auto-play countdown for next episode.
+  void startAutoPlayCountdown() {
+    if (!state.autoPlayNext || state.nextEpisode == null) return;
+
+    state = state.copyWith(autoPlayCountdown: 10);
+    
+    _autoPlayTimer?.cancel();
+    _autoPlayTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final countdown = state.autoPlayCountdown - 1;
+      
+      if (countdown <= 0) {
+        timer.cancel();
+        nextEpisode();
+      } else {
+        state = state.copyWith(autoPlayCountdown: countdown);
+      }
+    });
+  }
+
+  /// Cancels auto-play countdown.
+  void cancelAutoPlay() {
+    _autoPlayTimer?.cancel();
+    state = state.copyWith(
+      autoPlayCountdown: 0,
+      autoPlayNext: false,
+    );
+  }
+
+
+  /// Enables battery optimization mode.
+  void enableBatteryOptimization() {
+    state = state.copyWith(batteryOptimizationMode: true);
+    
+    // Reduce quality and disable some features
+    if (state.availableQualities.isNotEmpty) {
+      final lowQuality = state.availableQualities.last;
+      setQuality(lowQuality);
+    }
+  }
+
+  /// Disables battery optimization mode.
+  void disableBatteryOptimization() {
+    state = state.copyWith(batteryOptimizationMode: false);
+  }
+
 }

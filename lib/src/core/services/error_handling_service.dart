@@ -78,7 +78,7 @@ class ErrorHandlingService {
     if (error is ApiError) {
       return _categorizeApiError(error);
     } else if (error is SocketException) {
-      return ErrorInfo(
+      return const ErrorInfo(
         type: ErrorType.network,
         title: 'Connection Error',
         message:
@@ -87,7 +87,7 @@ class ErrorHandlingService {
         icon: Icons.wifi_off,
       );
     } else if (error is TimeoutException) {
-      return ErrorInfo(
+      return const ErrorInfo(
         type: ErrorType.timeout,
         title: 'Request Timeout',
         message: 'The request took too long to complete. Please try again.',
@@ -95,7 +95,7 @@ class ErrorHandlingService {
         icon: Icons.timer_off,
       );
     } else if (error is FormatException) {
-      return ErrorInfo(
+      return const ErrorInfo(
         type: ErrorType.parsing,
         title: 'Data Error',
         message: 'There was a problem processing the received data.',
@@ -103,7 +103,7 @@ class ErrorHandlingService {
         icon: Icons.bug_report,
       );
     } else {
-      return ErrorInfo(
+      return const ErrorInfo(
         type: ErrorType.unknown,
         title: 'Unexpected Error',
         message: 'Something went wrong. Please try again.',
@@ -115,7 +115,7 @@ class ErrorHandlingService {
 
   ErrorInfo _categorizeApiError(ApiError error) {
     return error.maybeWhen(
-      network: (message, statusCode, details) => ErrorInfo(
+      network: (message, statusCode, details) => const ErrorInfo(
         type: ErrorType.network,
         title: 'Network Error',
         message:
@@ -123,7 +123,7 @@ class ErrorHandlingService {
         canRetry: true,
         icon: Icons.wifi_off,
       ),
-      timeout: (message, details) => ErrorInfo(
+      timeout: (message, details) => const ErrorInfo(
         type: ErrorType.timeout,
         title: 'Request Timeout',
         message: 'The request took too long to complete.',
@@ -138,42 +138,42 @@ class ErrorHandlingService {
         retryAfter: retryAfter != null ? Duration(seconds: retryAfter) : null,
         icon: Icons.speed,
       ),
-      unauthorized: (message, details) => ErrorInfo(
+      unauthorized: (message, details) => const ErrorInfo(
         type: ErrorType.auth,
         title: 'Authentication Error',
         message: 'Please sign in to continue.',
         canRetry: false,
         icon: Icons.lock,
       ),
-      notFound: (message, details) => ErrorInfo(
+      notFound: (message, details) => const ErrorInfo(
         type: ErrorType.notFound,
         title: 'Not Found',
         message: 'The requested content could not be found.',
         canRetry: false,
         icon: Icons.search_off,
       ),
-      server: (message, statusCode, details) => ErrorInfo(
+      server: (message, statusCode, details) => const ErrorInfo(
         type: ErrorType.server,
         title: 'Server Error',
         message: 'The server encountered an error. Please try again later.',
         canRetry: true,
         icon: Icons.cloud_off,
       ),
-      parsing: (message, details) => ErrorInfo(
+      parsing: (message, details) => const ErrorInfo(
         type: ErrorType.parsing,
         title: 'Data Error',
         message: 'There was a problem processing the received data.',
         canRetry: true,
         icon: Icons.bug_report,
       ),
-      offline: (message, details) => ErrorInfo(
+      offline: (message, details) => const ErrorInfo(
         type: ErrorType.offline,
         title: 'Offline Mode',
         message: 'You appear to be offline. Please check your connection.',
         canRetry: true,
         icon: Icons.signal_wifi_off,
       ),
-      orElse: () => ErrorInfo(
+      orElse: () => const ErrorInfo(
         type: ErrorType.unknown,
         title: 'Unknown Error',
         message: 'An unexpected error occurred.',

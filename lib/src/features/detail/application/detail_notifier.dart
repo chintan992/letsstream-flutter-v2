@@ -36,7 +36,7 @@ class DetailNotifier extends StateNotifier<DetailState> {
   Future<void> _fetchAll() async {
     state = state.copyWith(isLoading: true);
     try {
-      final id = _item is Movie ? (_item).id : (_item as TvShow).id;
+      final id = _item is Movie ? _item.id : (_item as TvShow).id;
       final isMovie = _item is Movie;
       final itemType = isMovie ? 'Movie' : 'TV Show';
 
