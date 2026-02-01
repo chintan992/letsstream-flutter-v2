@@ -7,7 +7,15 @@ import 'package:lets_stream/src/features/anime/application/anime_player_notifier
 import 'package:lets_stream/src/features/anime/application/models/gesture_type.dart';
 import 'package:lets_stream/src/features/anime/utils/gesture_handler.dart';
 
-/// Custom video controls widget with gesture support for the anime player.
+/// Netflix-style custom video controls for anime player.
+/// 
+/// Features:
+/// - Dark control bar (#141414)
+/// - Red progress bar (#E50914)
+/// - White icons and text
+/// - Large center play/pause button
+/// - Double-tap to seek
+/// - Auto-play countdown
 class CustomAnimeControls extends StatefulWidget {
   final AnimePlayerState state;
   final AnimePlayerNotifier notifier;
@@ -32,8 +40,15 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
   // Gesture tracking
   Offset? _lastTapPosition;
   DateTime? _lastTapTime;
+  Timer? _singleTapTimer;
   bool _isLongPressing = false;
   Timer? _longPressTimer;
+
+  // Netflix colors
+  static const Color netflixRed = Color(0xFFE50914);
+  static const Color netflixDark = Color(0xFF141414);
+  static const Color netflixGray = Color(0xFF2F2F2F);
+  static const Color netflixLightGray = Color(0xFF808080);
 
   @override
   void initState() {
@@ -42,13 +57,17 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_fadeController);
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
+    _fadeController.forward();
     _startHideControlsTimer();
   }
 
   @override
   void dispose() {
     _hideControlsTimer?.cancel();
+    _singleTapTimer?.cancel();
     _longPressTimer?.cancel();
     _fadeController.dispose();
     super.dispose();
@@ -56,8 +75,8 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
 
   void _startHideControlsTimer() {
     _hideControlsTimer?.cancel();
-    _hideControlsTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted) {
+    _hideControlsTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && widget.state.isPlaying && !widget.state.isLocked) {
         setState(() {
           _showControls = false;
         });
@@ -74,47 +93,81 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
     _startHideControlsTimer();
   }
 
+  void _toggleControls() {
+    setState(() {
+      _showControls = !_showControls;
+    });
+    if (_showControls) {
+      _fadeController.forward();
+      _startHideControlsTimer();
+    } else {
+      _fadeController.reverse();
+    }
+  }
+
   void _handleTap(TapUpDetails details) {
     final now = DateTime.now();
     final position = details.localPosition;
-    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = MediaQuery.of(context).size.width;
 
-    // Check for double tap
+    // Check for double tap (within 300ms)
     if (_lastTapTime != null &&
-        _lastTapPosition != null &&
-        GestureHandler.isDoubleTap(_lastTapTime!, now)) {
-      _handleDoubleTap(position, screenSize);
+        now.difference(_lastTapTime!) < const Duration(milliseconds: 300)) {
+      _singleTapTimer?.cancel();
+      _handleDoubleTap(position, screenWidth);
     } else {
-      _handleSingleTap(position, screenSize);
+      // Delay single tap to check for double tap
+      _singleTapTimer = Timer(const Duration(milliseconds: 300), () {
+        if (widget.state.isLocked) {
+          // Just show controls briefly if locked
+          _showControlsTemporarily();
+        } else {
+          _toggleControls();
+        }
+      });
     }
 
-    _lastTapPosition = position;
     _lastTapTime = now;
+    _lastTapPosition = position;
   }
 
-  void _handleDoubleTap(Offset position, Size screenSize) {
-    widget.notifier.handleGesture(
-      GestureType.doubleTap,
-      position,
-      screenSize,
-    );
+  void _handleDoubleTap(Offset position, double screenWidth) {
+    // Determine if tap is on left or right side
+    if (position.dx < screenWidth * 0.3) {
+      // Left side - seek backward 10 seconds
+      _seekBackward();
+    } else if (position.dx > screenWidth * 0.7) {
+      // Right side - seek forward 10 seconds
+      _seekForward();
+    } else {
+      // Center - toggle play/pause
+      widget.notifier.togglePlayPause();
+    }
     _showControlsTemporarily();
   }
 
-  void _handleSingleTap(Offset position, Size screenSize) {
-    widget.notifier.handleGesture(
-      GestureType.singleTap,
-      position,
-      screenSize,
+  void _seekBackward() {
+    final currentPosition = widget.state.currentPosition;
+    final newPosition = Duration(
+      milliseconds: (currentPosition.inMilliseconds - 10000).clamp(0, double.infinity).toInt(),
     );
-    _showControlsTemporarily();
+    widget.notifier.seekTo(newPosition);
+  }
+
+  void _seekForward() {
+    final currentPosition = widget.state.currentPosition;
+    final totalDuration = widget.state.totalDuration;
+    final newPosition = Duration(
+      milliseconds: (currentPosition.inMilliseconds + 10000).clamp(0, totalDuration.inMilliseconds),
+    );
+    widget.notifier.seekTo(newPosition);
   }
 
   void _handlePanStart(DragStartDetails details) {
     _longPressTimer?.cancel();
     _longPressTimer = Timer(const Duration(milliseconds: 500), () {
       _isLongPressing = true;
-      _handleLongPress(details.localPosition, MediaQuery.of(context).size);
+      _handleLongPress();
     });
   }
 
@@ -124,16 +177,13 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
     final delta = details.delta;
     final screenSize = MediaQuery.of(context).size;
 
-    // Determine gesture type based on movement
     if (delta.dx.abs() > delta.dy.abs()) {
-      // Horizontal swipe
       widget.notifier.handleGesture(
         GestureType.horizontalSwipe,
         details.localPosition,
         screenSize,
       );
     } else {
-      // Vertical swipe
       widget.notifier.handleGesture(
         GestureType.verticalSwipe,
         details.localPosition,
@@ -147,11 +197,11 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
     _isLongPressing = false;
   }
 
-  void _handleLongPress(Offset position, Size screenSize) {
+  void _handleLongPress() {
     widget.notifier.handleGesture(
       GestureType.longPress,
-      position,
-      screenSize,
+      _lastTapPosition ?? Offset.zero,
+      MediaQuery.of(context).size,
     );
     _showControlsTemporarily();
   }
@@ -177,12 +227,16 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
           if (widget.state.showGestureIndicator)
             _buildGestureIndicator(),
 
-          // Controls overlay
+          // Netflix-style controls overlay
           if (_showControls && !widget.state.isLocked)
             FadeTransition(
               opacity: _fadeAnimation,
-              child: _buildControlsOverlay(),
+              child: _buildNetflixControlsOverlay(),
             ),
+
+          // Locked indicator
+          if (widget.state.isLocked)
+            _buildLockedIndicator(),
 
           // Auto-play countdown
           if (widget.state.autoPlayCountdown > 0)
@@ -241,16 +295,18 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.black54,
-          borderRadius: BorderRadius.circular(20),
+          color: netflixDark.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               GestureHandler.getGestureIcon(gestureType),
-              color: GestureHandler.getGestureColor(gestureType),
-              size: 20,
+              color: GestureHandler.getGestureColor(gestureType) == Colors.blue
+                  ? netflixRed
+                  : GestureHandler.getGestureColor(gestureType),
+              size: 24,
             ),
             const SizedBox(width: 8),
             Text(
@@ -258,6 +314,7 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -266,26 +323,34 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
     );
   }
 
-  Widget _buildControlsOverlay() {
+  Widget _buildNetflixControlsOverlay() {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withOpacity(0.7),
+            Colors.black.withValues(alpha: 0.8),
             Colors.transparent,
             Colors.transparent,
-            Colors.black.withOpacity(0.7),
+            Colors.black.withValues(alpha: 0.9),
           ],
+          stops: const [0.0, 0.25, 0.75, 1.0],
         ),
       ),
       child: Column(
         children: [
+          // Top controls
           _buildTopControls(),
+          
           const Spacer(),
-          _buildCenterControls(),
+          
+          // Center play button (Netflix style)
+          _buildCenterPlayButton(),
+          
           const Spacer(),
+          
+          // Bottom controls with Netflix-style progress bar
           _buildBottomControls(),
         ],
       ),
@@ -294,17 +359,13 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
 
   Widget _buildTopControls() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           // Back button
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.black54,
-              shape: const CircleBorder(),
-            ),
+            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
           ),
 
           const Spacer(),
@@ -314,14 +375,15 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(16),
+                color: netflixDark.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
                 'Episode ${widget.state.currentEpisode!.episodeNo}',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
@@ -333,14 +395,15 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(12),
+                color: netflixDark.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
                 widget.state.selectedQuality!.label,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
@@ -350,86 +413,140 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
           // Settings button
           IconButton(
             onPressed: widget.notifier.toggleServerSelector,
-            icon: const Icon(Icons.settings, color: Colors.white),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.black54,
-              shape: const CircleBorder(),
-            ),
+            icon: const Icon(Icons.settings, color: Colors.white, size: 24),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCenterControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        // Previous episode
-        if (widget.state.hasPreviousEpisode)
-          IconButton(
-            onPressed: widget.notifier.previousEpisode,
-            icon: const Icon(Icons.skip_previous, color: Colors.white, size: 32),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.black54,
-              shape: const CircleBorder(),
-            ),
-          ),
-
-        // Play/Pause
-        IconButton(
-          onPressed: widget.notifier.togglePlayPause,
-          icon: Icon(
-            widget.state.isPlaying ? Icons.pause : Icons.play_arrow,
-            color: Colors.white,
-            size: 48,
-          ),
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.black54,
-            shape: const CircleBorder(),
-          ),
+  Widget _buildCenterPlayButton() {
+    return GestureDetector(
+      onTap: widget.notifier.togglePlayPause,
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: netflixRed.withValues(alpha: 0.9),
+          shape: BoxShape.circle,
         ),
-
-        // Next episode
-        if (widget.state.hasNextEpisode)
-          IconButton(
-            onPressed: widget.notifier.nextEpisode,
-            icon: const Icon(Icons.skip_next, color: Colors.white, size: 32),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.black54,
-              shape: const CircleBorder(),
-            ),
-          ),
-      ],
+        child: Icon(
+          widget.state.isPlaying ? Icons.pause : Icons.play_arrow,
+          color: Colors.white,
+          size: 48,
+        ),
+      ),
     );
   }
 
   Widget _buildBottomControls() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return Container(
+      color: netflixDark.withValues(alpha: 0.7),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Progress bar
-          _buildProgressBar(),
-          const SizedBox(height: 16),
+          // Netflix-style progress bar
+          _buildNetflixProgressBar(),
           
-          // Bottom controls row
+          const SizedBox(height: 12),
+          
+          // Control buttons row
           Row(
             children: [
+              // Play/Pause button
+              IconButton(
+                onPressed: () {
+                  widget.notifier.togglePlayPause();
+                  _showControlsTemporarily();
+                },
+                icon: Icon(
+                  widget.state.isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              
+              const SizedBox(width: 8),
+              
+              // Previous episode
+              if (widget.state.hasPreviousEpisode)
+                IconButton(
+                  onPressed: () {
+                    widget.notifier.previousEpisode();
+                    _showControlsTemporarily();
+                  },
+                  icon: const Icon(
+                    Icons.skip_previous,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+              
+              // Next episode
+              if (widget.state.hasNextEpisode)
+                IconButton(
+                  onPressed: () {
+                    widget.notifier.nextEpisode();
+                    _showControlsTemporarily();
+                  },
+                  icon: const Icon(
+                    Icons.skip_next,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+              
+              const SizedBox(width: 16),
+              
               // Current time
               Text(
                 _formatDuration(widget.state.currentPosition),
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               
-              const Spacer(),
+              const SizedBox(width: 8),
+              
+              // Progress slider (expanded)
+              Expanded(
+                child: _buildNetflixSlider(),
+              ),
+              
+              const SizedBox(width: 8),
+              
+              // Total time
+              Text(
+                _formatDuration(widget.state.totalDuration),
+                style: const TextStyle(
+                  color: netflixLightGray,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              
+              const SizedBox(width: 16),
               
               // Playback speed
               IconButton(
                 onPressed: () => _showSpeedSelector(),
-                icon: Text(
-                  '${widget.state.playbackSpeed}x',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                icon: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white, width: 1.5),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '${widget.state.playbackSpeed}x',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               
@@ -437,17 +554,13 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
               IconButton(
                 onPressed: () => _showVolumeSlider(),
                 icon: Icon(
-                  widget.state.volume > 0.5 ? Icons.volume_up : Icons.volume_down,
+                  widget.state.volume > 0.5 
+                      ? Icons.volume_up 
+                      : widget.state.volume > 0 
+                          ? Icons.volume_down 
+                          : Icons.volume_off,
                   color: Colors.white,
-                ),
-              ),
-              
-              // Brightness
-              IconButton(
-                onPressed: () => _showBrightnessSlider(),
-                icon: Icon(
-                  widget.state.brightness > 0.5 ? Icons.brightness_high : Icons.brightness_low,
-                  color: Colors.white,
+                  size: 24,
                 ),
               ),
               
@@ -457,13 +570,14 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
                 icon: Icon(
                   widget.state.isLocked ? Icons.lock : Icons.lock_open,
                   color: Colors.white,
+                  size: 24,
                 ),
               ),
               
-              // Full screen
+              // Fullscreen
               IconButton(
                 onPressed: () => _toggleFullScreen(),
-                icon: const Icon(Icons.fullscreen, color: Colors.white),
+                icon: const Icon(Icons.fullscreen, color: Colors.white, size: 28),
               ),
             ],
           ),
@@ -472,70 +586,184 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
     );
   }
 
-  Widget _buildProgressBar() {
+  Widget _buildNetflixProgressBar() {
+    final progress = widget.state.progressPercentage;
+    final buffered = widget.state.bufferedPercentage;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+
+        return Container(
+          height: 4,
+          decoration: BoxDecoration(
+            color: netflixGray,
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: Stack(
+            children: [
+              // Buffered indicator (white/gray)
+              Container(
+                width: width * buffered.clamp(0.0, 1.0),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              
+              // Progress indicator (Netflix red)
+              Container(
+                width: width * progress.clamp(0.0, 1.0),
+                decoration: BoxDecoration(
+                  color: netflixRed,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNetflixSlider() {
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
-        activeTrackColor: Colors.blue,
-        inactiveTrackColor: Colors.grey,
-        thumbColor: Colors.blue,
-        overlayColor: Colors.blue.withOpacity(0.2),
+        activeTrackColor: netflixRed,
+        inactiveTrackColor: netflixGray,
+        thumbColor: netflixRed,
+        overlayColor: netflixRed.withValues(alpha: 0.3),
+        trackHeight: 4,
+        thumbShape: const RoundSliderThumbShape(
+          enabledThumbRadius: 6,
+          pressedElevation: 8,
+        ),
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
       ),
       child: Slider(
-        value: widget.state.progressPercentage,
+        value: widget.state.currentPosition.inMilliseconds.toDouble(),
+        min: 0,
+        max: widget.state.totalDuration.inMilliseconds.toDouble(),
         onChanged: (value) {
-          final newPosition = Duration(
-            milliseconds: (value * widget.state.totalDuration.inMilliseconds).round(),
-          );
+          final newPosition = Duration(milliseconds: value.round());
           widget.notifier.seekTo(newPosition);
+        },
+        onChangeStart: (_) {
+          _hideControlsTimer?.cancel();
+        },
+        onChangeEnd: (_) {
+          _startHideControlsTimer();
         },
       ),
     );
   }
 
-  Widget _buildAutoPlayOverlay() {
-    return Center(
+  Widget _buildLockedIndicator() {
+    return Positioned(
+      top: 40,
+      right: 20,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.black87,
-          borderRadius: BorderRadius.circular(12),
+          color: netflixDark.withValues(alpha: 0.8),
+          shape: BoxShape.circle,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Next Episode Starting',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '${widget.state.autoPlayCountdown}',
-              style: const TextStyle(
-                color: Colors.blue,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton(
-                  onPressed: widget.notifier.cancelAutoPlay,
-                  child: const Text('Cancel'),
+        child: const Icon(
+          Icons.lock,
+          color: Colors.white,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAutoPlayOverlay() {
+    return Container(
+      color: Colors.black87,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: netflixDark,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Up Next',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(width: 16),
-                OutlinedButton(
-                  onPressed: widget.notifier.nextEpisode,
-                  child: const Text('Play Now'),
+              ),
+              const SizedBox(height: 16),
+              if (widget.state.currentEpisode != null)
+                Text(
+                  'Episode ${widget.state.currentEpisode!.episodeNo + 1}',
+                  style: const TextStyle(
+                    color: netflixLightGray,
+                    fontSize: 16,
+                  ),
                 ),
-              ],
-            ),
-          ],
+              const SizedBox(height: 24),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: CircularProgressIndicator(
+                      value: widget.state.autoPlayCountdown / 10,
+                      strokeWidth: 4,
+                      valueColor: const AlwaysStoppedAnimation<Color>(netflixRed),
+                      backgroundColor: netflixGray,
+                    ),
+                  ),
+                  Text(
+                    '${widget.state.autoPlayCountdown}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: widget.notifier.cancelAutoPlay,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: netflixGray,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: widget.notifier.nextEpisode,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: netflixRed,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: const Text('Play Now'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -549,7 +777,7 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(netflixRed),
             ),
             SizedBox(height: 16),
             Text(
@@ -577,7 +805,7 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
               const Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Colors.red,
+                color: netflixRed,
               ),
               const SizedBox(height: 16),
               Text(
@@ -602,12 +830,19 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
                 children: [
                   ElevatedButton.icon(
                     onPressed: () => widget.notifier.clearError(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: netflixRed,
+                      foregroundColor: Colors.white,
+                    ),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry'),
                   ),
                   const SizedBox(width: 16),
                   OutlinedButton.icon(
                     onPressed: () => Navigator.of(context).pop(),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                    ),
                     icon: const Icon(Icons.close),
                     label: const Text('Close'),
                   ),
@@ -623,6 +858,7 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
   void _showSpeedSelector() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: netflixDark,
       builder: (context) => Container(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -630,7 +866,11 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
           children: [
             const Text(
               'Playback Speed',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 20),
             Wrap(
@@ -639,6 +879,13 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
                 return ChoiceChip(
                   label: Text('${speed}x'),
                   selected: widget.state.playbackSpeed == speed,
+                  selectedColor: netflixRed,
+                  labelStyle: TextStyle(
+                    color: widget.state.playbackSpeed == speed
+                        ? Colors.white
+                        : Colors.white70,
+                  ),
+                  backgroundColor: netflixGray,
                   onSelected: (selected) {
                     widget.notifier.setPlaybackSpeed(speed);
                     Navigator.pop(context);
@@ -656,30 +903,19 @@ class _CustomAnimeControlsState extends State<CustomAnimeControls>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Volume'),
+        backgroundColor: netflixDark,
+        title: const Text('Volume', style: TextStyle(color: Colors.white)),
         content: Slider(
           value: widget.state.volume,
           onChanged: widget.notifier.setVolume,
-        ),
-      ),
-    );
-  }
-
-  void _showBrightnessSlider() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Brightness'),
-        content: Slider(
-          value: widget.state.brightness,
-          onChanged: widget.notifier.setBrightness,
+          activeColor: netflixRed,
+          inactiveColor: netflixGray,
         ),
       ),
     );
   }
 
   void _toggleFullScreen() {
-    // Toggle full screen mode
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.immersiveSticky,
     );

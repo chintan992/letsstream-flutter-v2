@@ -58,6 +58,7 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_launcher_icons: ^0.14.1
   floating_window_plus: ^1.0.4
+  carousel_slider: ^5.1.1
   
   # Navigation
   go_router: ^16.2.0
@@ -75,6 +76,8 @@ dependencies:
   # Video Player
   chewie: ^1.8.5
   video_player: ^2.9.2
+  wakelock_plus: ^1.2.10
+  path_provider: ^2.1.5
   
 
 dev_dependencies:

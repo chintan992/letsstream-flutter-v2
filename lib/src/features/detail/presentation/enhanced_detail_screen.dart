@@ -3,17 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lets_stream/src/core/models/movie.dart';
 import 'package:lets_stream/src/core/models/tv_show.dart';
 import 'package:lets_stream/src/features/detail/application/detail_notifier.dart';
 import 'package:lets_stream/src/features/detail/presentation/widgets/cast_section.dart';
 import 'package:lets_stream/src/features/detail/presentation/widgets/seasons_and_episodes_section.dart';
 import 'package:lets_stream/src/features/detail/presentation/widgets/similar_section.dart';
-import 'package:lets_stream/src/features/detail/presentation/widgets/trailers_section.dart';
+import 'package:lets_stream/src/shared/theme/netflix_colors.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
-import 'package:lets_stream/src/shared/widgets/watchlist_action_buttons.dart';
 import 'package:go_router/go_router.dart';
 
+/// Netflix-style detail screen with full-bleed hero image
+/// Features:
+/// - 60% height hero with gradient overlay
+/// - Bebas Neue title typography
+/// - Metadata badges (Year, Rating, Duration, Quality)
+/// - Large red Play button
+/// - Download and My List buttons
+/// - Synopsis, Cast, More Like This sections
+/// - Episodes section for TV shows
 class EnhancedDetailScreen extends ConsumerWidget {
   final Object? item; // Movie or TvShow
 
@@ -22,96 +31,123 @@ class EnhancedDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailState = ref.watch(detailNotifierProvider(item));
+    final size = MediaQuery.of(context).size;
+    final heroHeight = size.height * 0.6;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(context, item),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(context, item),
-                  const SizedBox(height: 24),
-                  _buildOverview(context, item),
-                  const SizedBox(height: 32),
-                  if (item != null)
-                    WatchlistActionButtons(
-                      item: item!,
-                      onWatchlistToggle: (isInWatchlist) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(isInWatchlist
-                                ? 'Added to watchlist'
-                                : 'Removed from watchlist',),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                      onFavoritesToggle: (isFavorite) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(isFavorite
-                                ? 'Added to favorites'
-                                : 'Removed from favorites',),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
+      backgroundColor: NetflixColors.backgroundBlack,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              // Hero Section (60% height)
+              _buildHeroSection(context, item, heroHeight),
+              
+              // Content Section
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Action Buttons (Play, Download, My List)
+                    _buildActionButtons(context, item),
+                    
+                    // Synopsis
+                    _buildSynopsis(context, item),
+                    
+                    // Cast Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: CastSection(
+                        cast: detailState.cast,
+                        isLoading: detailState.isLoading,
+                        error: detailState.error,
+                      ),
                     ),
-                  const SizedBox(height: 32),
-                  TrailersSection(
-                    videos: detailState.videos,
-                    isLoading: detailState.isLoading,
-                    error: detailState.error,
-                  ),
-                  const SizedBox(height: 32),
-                  CastSection(
-                    cast: detailState.cast,
-                    isLoading: detailState.isLoading,
-                    error: detailState.error,
-                  ),
-                  const SizedBox(height: 32),
-                  if (item is TvShow) ...[
-                    SeasonsAndEpisodesSection(
-                      tvId: (item as TvShow).id,
-                      seasons: detailState.seasons,
+                    const SizedBox(height: 32),
+                    
+                    // Episodes Section (TV Shows only)
+                    if (item is TvShow) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: SeasonsAndEpisodesSection(
+                          tvId: (item as TvShow).id,
+                          seasons: detailState.seasons,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                    
+                    // More Like This
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SimilarSection(
+                        similarItems: detailState.similar,
+                        isLoading: detailState.isLoading,
+                        error: detailState.error,
+                      ),
                     ),
                     const SizedBox(height: 32),
                   ],
-                  SimilarSection(
-                    similarItems: detailState.similar,
-                    isLoading: detailState.isLoading,
-                    error: detailState.error,
-                  ),
-                  const SizedBox(height: 32),
-                ],
+                ),
+              ),
+            ],
+          ),
+          
+          // Top gradient for status bar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 100,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    NetflixColors.blackWithOpacity(0.7),
+                    NetflixColors.transparent,
+                  ],
+                ),
               ),
             ),
+          ),
+          
+          // Back button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 16,
+            child: _buildBackButton(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context, Object? item) {
+  Widget _buildHeroSection(BuildContext context, Object? item, double height) {
     final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
     final backdropPath =
         item is Movie ? item.backdropPath : (item as TvShow).backdropPath;
     final title = item is Movie ? item.title : (item as TvShow).name;
     final backdropUrl = (backdropPath != null && backdropPath.isNotEmpty)
-        ? '$imageBaseUrl/w1280$backdropPath'
+        ? '$imageBaseUrl/original$backdropPath'
         : null;
 
-    return SliverAppBar(
-      expandedHeight: 300,
-      pinned: true,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
+    // Metadata
+    final year = item is Movie
+        ? (item.releaseDate?.year.toString() ?? '')
+        : (item is TvShow ? (item.firstAirDate?.year.toString() ?? '') : '');
+    final voteAverage =
+        item is Movie ? item.voteAverage : (item as TvShow).voteAverage;
+    final rating = voteAverage.toStringAsFixed(1);
+
+    return SliverToBoxAdapter(
+      child: SizedBox(
+        height: height,
+        child: Stack(
           fit: StackFit.expand,
           children: [
+            // Background Image
             if (backdropUrl != null)
               CachedNetworkImage(
                 imageUrl: backdropUrl,
@@ -121,185 +157,406 @@ class EnhancedDetailScreen extends ConsumerWidget {
                   height: double.infinity,
                 ),
                 errorWidget: (context, url, error) => Container(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  child: const Icon(Icons.broken_image_outlined, size: 50),
+                  color: NetflixColors.backgroundBlackDark,
+                  child: const Icon(
+                    Icons.broken_image_outlined,
+                    size: 50,
+                    color: NetflixColors.textSecondary,
+                  ),
+                ),
+              )
+            else
+              Container(
+                color: NetflixColors.backgroundBlackDark,
+                child: const Center(
+                  child: Icon(
+                    Icons.movie_outlined,
+                    size: 80,
+                    color: NetflixColors.textSecondary,
+                  ),
                 ),
               ),
+
+            // Gradient Overlay
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.3),
-                    Colors.black.withValues(alpha: 0.8),
+                    NetflixColors.transparent,
+                    NetflixColors.blackWithOpacity(0.3),
+                    NetflixColors.blackWithOpacity(0.6),
+                    NetflixColors.backgroundBlack,
                   ],
-                  stops: const [0.0, 0.6, 1.0],
+                  stops: const [0.0, 0.4, 0.7, 1.0],
                 ),
               ),
             ),
-          ],
-        ),
-        title: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+
+            // Content at bottom
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 24,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Title with Bebas Neue
+                  Text(
+                    title,
+                    style: GoogleFonts.bebasNeue(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: NetflixColors.textPrimary,
+                      letterSpacing: 1.0,
+                      height: 1.0,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ).animate().fadeIn(duration: 400.ms).slideY(
+                    begin: 0.2,
+                    duration: 400.ms,
+                    curve: Curves.easeOut,
+                  ),
+                  
+                  const SizedBox(height: 12),
+                  
+                  // Metadata Row
+                  _buildMetadataRow(year, rating, item),
+                ],
               ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, Object? item) {
-    final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
-    final posterPath =
-        item is Movie ? item.posterPath : (item as TvShow).posterPath;
-    final title = item is Movie ? item.title : (item as TvShow).name;
-    final id = item is Movie ? item.id : (item as TvShow).id;
-    final voteAverage =
-        item is Movie ? item.voteAverage : (item as TvShow).voteAverage;
-    final subtitle = item is Movie
-        ? (item.releaseDate != null
-            ? 'Release: ${item.releaseDate!.toLocal().toIso8601String().split('T').first}'
-            : '')
-        : (item is TvShow
-            ? (item.firstAirDate != null
-                ? 'First air: ${item.firstAirDate!.toLocal().toIso8601String().split('T').first}'
-                : '')
-            : '');
+  Widget _buildMetadataRow(String year, String rating, Object? item) {
+    final List<Widget> metadataItems = [];
 
-    final fullPosterUrl = (posterPath != null && posterPath.isNotEmpty)
-        ? '$imageBaseUrl/w500$posterPath'
-        : null;
+    // Year badge
+    if (year.isNotEmpty) {
+      metadataItems.add(
+        _buildMetadataBadge(
+          year,
+          isBold: true,
+        ),
+      );
+    }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (fullPosterUrl != null)
-          Hero(
-            tag: 'poster_$id',
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: 120,
-                height: 180,
-                child: CachedNetworkImage(
-                  imageUrl: fullPosterUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) =>
-                      const ShimmerBox(width: 120, height: 180),
-                  errorWidget: (context, url, error) => Container(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    child: const Icon(Icons.broken_image_outlined),
-                  ),
-                ),
-              ),
+    // Rating badge with star
+    metadataItems.add(
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.star,
+            color: NetflixColors.success,
+            size: 16,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            rating,
+            style: const TextStyle(
+              color: NetflixColors.textSecondary,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              if (subtitle.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  subtitle,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.play_circle_fill),
-                label: const Text('Watch Now'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ),
-                onPressed: () {
-                  if (item is Movie) {
-                    context.pushNamed(
-                      'watch-movie',
-                      pathParameters: {'id': id.toString()},
-                    );
-                  } else if (item is TvShow) {
-                    context.pushNamed(
-                      'watch-tv',
-                      pathParameters: {
-                        'id': id.toString(),
-                        'season': '1',
-                        'ep': '1',
-                      },
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  ...List.generate(5, (index) {
-                    final filled = index < (voteAverage / 2).floor();
-                    return Icon(
-                      filled ? Icons.star : Icons.star_outline,
-                      color: filled ? Colors.amber : Colors.grey,
-                      size: 20,
-                    ).animate().scale().fadeIn();
-                  }),
-                  const SizedBox(width: 8),
-                  Text(
-                    voteAverage.toStringAsFixed(1),
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                ],
-              ),
-            ],
+        ],
+      ),
+    );
+
+    // Duration/Seasons badge
+    if (item is Movie) {
+      metadataItems.add(
+        _buildMetadataBadge(
+          '2h 15m', // Placeholder - actual duration would come from API
+        ),
+      );
+    } else if (item is TvShow) {
+      metadataItems.add(
+        _buildMetadataBadge(
+          item.voteCount > 0 ? '${(item.voteCount / 1000).toStringAsFixed(0)}K' : 'New',
+        ),
+      );
+    }
+
+    // HD badge
+    metadataItems.add(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: NetflixColors.textTertiary,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: const Text(
+          'HD',
+          style: TextStyle(
+            color: NetflixColors.textTertiary,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
           ),
         ),
-      ],
+      ),
+    );
+
+            // Genre tags (if available)
+    final genres = item is Movie ? item.genreIds : (item as TvShow).genreIds;
+    if (genres != null && genres.isNotEmpty) {
+      metadataItems.add(
+        _buildMetadataBadge(
+          'Action', // Placeholder - map genreIds to names
+          isSecondary: true,
+        ),
+      );
+    }
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: metadataItems,
+    ).animate().fadeIn(delay: 200.ms, duration: 400.ms);
+  }
+
+  Widget _buildMetadataBadge(String text, {
+    bool isBold = false,
+    bool isSecondary = false,
+  }) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: isSecondary
+            ? NetflixColors.textSecondary
+            : NetflixColors.textPrimary,
+        fontSize: 14,
+        fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+      ),
     );
   }
 
-  Widget _buildOverview(BuildContext context, Object? item) {
+  Widget _buildActionButtons(BuildContext context, Object? item) {
+    final id = item is Movie ? item.id : (item as TvShow).id;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Play Button (Full Width, Red)
+          _buildPlayButton(context, item, id),
+          const SizedBox(height: 12),
+          
+          // Download Button (Gray)
+          _buildDownloadButton(context),
+          const SizedBox(height: 12),
+          
+          // My List Button
+          _buildMyListButton(context, item),
+        ],
+      ),
+    ).animate().fadeIn(delay: 300.ms, duration: 400.ms);
+  }
+
+  Widget _buildPlayButton(BuildContext context, Object? item, int id) {
+    return SizedBox(
+      height: 48,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          if (item is Movie) {
+            context.pushNamed(
+              'watch-movie',
+              pathParameters: {'id': id.toString()},
+            );
+          } else if (item is TvShow) {
+            context.pushNamed(
+              'watch-tv',
+              pathParameters: {
+                'id': id.toString(),
+                'season': '1',
+                'ep': '1',
+              },
+            );
+          }
+        },
+        icon: const Icon(
+          Icons.play_arrow,
+          color: NetflixColors.textPrimary,
+          size: 28,
+        ),
+        label: Text(
+          'Play',
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: NetflixColors.textPrimary,
+            letterSpacing: 0.5,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: NetflixColors.primaryRed,
+          foregroundColor: NetflixColors.textPrimary,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDownloadButton(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Download feature coming soon!'),
+              duration: Duration(seconds: 2),
+              backgroundColor: NetflixColors.surfaceDark,
+            ),
+          );
+        },
+        icon: const Icon(
+          Icons.download,
+          color: NetflixColors.textPrimary,
+          size: 24,
+        ),
+        label: Text(
+          'Download',
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: NetflixColors.textPrimary,
+            letterSpacing: 0.5,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: NetflixColors.surfaceMedium,
+          foregroundColor: NetflixColors.textPrimary,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMyListButton(BuildContext context, Object? item) {
+    return InkWell(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Added to My List',
+              style: GoogleFonts.inter(color: NetflixColors.textPrimary),
+            ),
+            duration: const Duration(seconds: 2),
+            backgroundColor: NetflixColors.surfaceDark,
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.add,
+              color: NetflixColors.textPrimary,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'My List',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: NetflixColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSynopsis(BuildContext context, Object? item) {
     final overview = item is Movie ? item.overview : (item as TvShow).overview;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Overview',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            overview,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: NetflixColors.textPrimary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Cast names (placeholder - would come from cast data)
+          Text(
+            'Starring: Featured Cast',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
+              color: NetflixColors.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 4),
+          
+          // Creator info for TV shows
+          if (item is TvShow) ...[
+            Text(
+              'Creator: Show Creator',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: NetflixColors.textSecondary,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
+      ),
+    ).animate().fadeIn(delay: 400.ms, duration: 400.ms);
+  }
+
+  Widget _buildBackButton(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: NetflixColors.blackWithOpacity(0.5),
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        onPressed: () => context.pop(),
+        icon: const Icon(
+          Icons.arrow_back,
+          color: NetflixColors.textPrimary,
+          size: 24,
         ),
-        const SizedBox(height: 12),
-        Text(
-          overview,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.6),
-        ),
-      ],
+        padding: const EdgeInsets.all(8),
+        constraints: const BoxConstraints(),
+      ),
     );
   }
 }

@@ -66,7 +66,7 @@ class MediaCarousel extends StatelessWidget {
             label: '$title items list',
             hint: 'Horizontal scrolling list of ${items.length} items',
             child: SizedBox(
-              height: 180,
+              height: 220, // Increased from 180 to accommodate title text below poster
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),

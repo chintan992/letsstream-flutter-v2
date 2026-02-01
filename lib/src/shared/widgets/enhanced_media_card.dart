@@ -5,77 +5,36 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
 import 'package:lets_stream/src/shared/widgets/watchlist_action_buttons.dart';
-import 'package:lets_stream/src/shared/theme/tokens.dart';
+import 'package:lets_stream/src/shared/theme/netflix_colors.dart';
+import 'package:lets_stream/src/shared/theme/netflix_typography.dart';
 import 'package:lets_stream/src/core/models/movie.dart';
 import 'package:lets_stream/src/core/models/tv_show.dart';
 
-/// An enhanced media card widget with animations and overlay information.
+/// An enhanced Netflix-style media card with hover animations and overlay.
 ///
-/// This widget provides a rich, interactive media card with features like:
-/// - Smooth hover and tap animations
-/// - Overlay with rating and release year information
-/// - Hero animations for smooth transitions
-/// - Loading states with shimmer effects
-/// - Error handling with fallback icons
-/// - Accessibility support with semantic labels
-///
-/// The card responds to user interactions with scale animations and
-/// shows additional information on hover/focus for better user experience.
-///
-/// Example usage:
-/// ```dart
-/// EnhancedMediaCard(
-///   title: 'Movie Title',
-///   imagePath: '/path/to/poster.jpg',
-///   onTap: () => navigateToDetail(movieId),
-///   rating: 8.5,
-///   releaseYear: '2023',
-///   heroTag: 'movie_${movie.id}',
-/// )
-/// ```
+/// Features:
+/// - 2:3 poster aspect ratio
+/// - 4px border radius
+/// - Scale animation on hover/tap
+/// - Dark shimmer loading state
+/// - Info overlay with rating and year
+/// - Play indicator on hover
+/// - Watchlist button overlay
 class EnhancedMediaCard extends ConsumerStatefulWidget {
-  /// The title of the media item.
   final String title;
-
-  /// The path to the poster image.
   final String? imagePath;
-
-  /// Callback function called when the card is tapped.
   final VoidCallback onTap;
-
-  /// The rating of the media item (optional).
   final double? rating;
-
-  /// The release year of the media item (optional).
   final String? releaseYear;
-
-  /// Whether to show the overlay with rating and year information.
   final bool showOverlay;
-
-  /// The hero tag for hero animations (optional).
   final String? heroTag;
-
-  /// The movie object for watchlist functionality (optional).
   final Movie? movie;
-
-  /// The TV show object for watchlist functionality (optional).
   final TvShow? tvShow;
-
-  /// Whether to show the watchlist button overlay.
   final bool showWatchlistButton;
+  final double? width;
+  final bool isTop10;
+  final int? top10Rank;
 
-  /// Creates an enhanced media card widget.
-  ///
-  /// The [title] is the title of the media item.
-  /// The [imagePath] is the path to the poster image.
-  /// The [onTap] callback is triggered when the card is tapped.
-  /// The [rating] is the rating of the media item (optional).
-  /// The [releaseYear] is the release year of the media item (optional).
-  /// The [showOverlay] controls whether to show the overlay with rating and year information.
-  /// The [heroTag] is used for hero animations (optional).
-  /// The [movie] object is used for watchlist functionality (optional).
-  /// The [tvShow] object is used for watchlist functionality (optional).
-  /// The [showWatchlistButton] controls whether to show the watchlist button overlay.
   const EnhancedMediaCard({
     super.key,
     required this.title,
@@ -88,6 +47,9 @@ class EnhancedMediaCard extends ConsumerStatefulWidget {
     this.movie,
     this.tvShow,
     this.showWatchlistButton = true,
+    this.width,
+    this.isTop10 = false,
+    this.top10Rank,
   });
 
   @override
@@ -98,7 +60,6 @@ class _EnhancedMediaCardState extends ConsumerState<EnhancedMediaCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _overlayAnimation;
   bool _isHovered = false;
 
   @override
@@ -109,11 +70,7 @@ class _EnhancedMediaCardState extends ConsumerState<EnhancedMediaCard>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
-    _overlayAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
   }
@@ -144,6 +101,8 @@ class _EnhancedMediaCardState extends ConsumerState<EnhancedMediaCard>
             ? '$imageBaseUrl/w500${widget.imagePath}'
             : null;
 
+    final cardWidth = widget.width ?? 120.0;
+
     Widget imageWidget;
     if (fullImageUrl != null) {
       imageWidget = widget.heroTag != null
@@ -155,12 +114,13 @@ class _EnhancedMediaCardState extends ConsumerState<EnhancedMediaCard>
                 placeholder: (context, url) => const ShimmerBox(
                   width: double.infinity,
                   height: double.infinity,
+                  borderRadius: BorderRadius.zero,
                 ),
                 errorWidget: (context, url, error) => Container(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  child: Icon(
+                  color: NetflixColors.surfaceMedium,
+                  child: const Icon(
                     Icons.broken_image_outlined,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: NetflixColors.textSecondary,
                     size: 32,
                   ),
                 ),
@@ -172,23 +132,24 @@ class _EnhancedMediaCardState extends ConsumerState<EnhancedMediaCard>
               placeholder: (context, url) => const ShimmerBox(
                 width: double.infinity,
                 height: double.infinity,
+                borderRadius: BorderRadius.zero,
               ),
               errorWidget: (context, url, error) => Container(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: Icon(
+                color: NetflixColors.surfaceMedium,
+                child: const Icon(
                   Icons.broken_image_outlined,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: NetflixColors.textSecondary,
                   size: 32,
                 ),
               ),
             );
     } else {
       imageWidget = Container(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: Center(
+        color: NetflixColors.surfaceMedium,
+        child: const Center(
           child: Icon(
             Icons.image_not_supported_outlined,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color: NetflixColors.textSecondary,
             size: 32,
           ),
         ),
@@ -205,24 +166,23 @@ class _EnhancedMediaCardState extends ConsumerState<EnhancedMediaCard>
           return Transform.scale(
             scale: _scaleAnimation.value,
             child: Container(
-              width: Tokens.posterCardWidth,
+              width: cardWidth,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(Tokens.radiusM),
+                borderRadius: BorderRadius.circular(4),
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: _isHovered ? 0.3 : 0.15,
+                  if (_isHovered)
+                    BoxShadow(
+                      color: NetflixColors.blackWithOpacity(0.5),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
                     ),
-                    blurRadius: _isHovered ? 12 : 8,
-                    offset: Offset(0, _isHovered ? 6 : 4),
-                  ),
                 ],
               ),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(Tokens.radiusM),
+                borderRadius: BorderRadius.circular(4),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(Tokens.radiusM),
+                  borderRadius: BorderRadius.circular(4),
                   onTap: widget.onTap,
                   onTapDown: _onTapDown,
                   onTapUp: _onTapUp,
@@ -233,124 +193,137 @@ class _EnhancedMediaCardState extends ConsumerState<EnhancedMediaCard>
                     });
                   },
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(Tokens.radiusM),
+                    borderRadius: BorderRadius.circular(4),
                     child: Stack(
                       children: [
-                        // Image
-                        AspectRatio(aspectRatio: 2 / 3, child: imageWidget),
+                        // Image with aspect ratio
+                        AspectRatio(
+                          aspectRatio: 2 / 3,
+                          child: imageWidget,
+                        ),
 
-                        // Gradient overlay and info
-                        if (widget.showOverlay)
-                          AnimatedBuilder(
-                            animation: _overlayAnimation,
-                            builder: (context, child) {
-                              return Positioned.fill(
-                                child: AnimatedOpacity(
-                                  opacity: _isHovered ? 1.0 : 0.0,
-                                  duration: const Duration(milliseconds: 200),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Colors.transparent,
-                                          Colors.black.withValues(alpha: 0.3),
-                                          Colors.black.withValues(alpha: 0.8),
-                                        ],
-                                        stops: const [0.4, 0.7, 1.0],
-                                      ),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            widget.title,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w600,
-                                              shadows: [
-                                                const Shadow(
-                                                  color: Colors.black,
-                                                  offset: Offset(0, 1),
-                                                  blurRadius: 2,
-                                                ),
-                                              ],
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          if (widget.rating != null ||
-                                              widget.releaseYear != null)
-                                            const SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              if (widget.rating != null) ...[
-                                                const Icon(
-                                                  Icons.star,
-                                                  color: Colors.amber,
-                                                  size: 14,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  widget.rating!
-                                                      .toStringAsFixed(1),
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                ),
-                                                if (widget.releaseYear != null)
-                                                  const SizedBox(width: 8),
-                                              ],
-                                              if (widget.releaseYear != null)
-                                                Text(
-                                                  widget.releaseYear!,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                        color: Colors.white70,
-                                                      ),
-                                                ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                        // Top 10 rank indicator
+                        if (widget.isTop10 && widget.top10Rank != null)
+                          Positioned(
+                            top: 8,
+                            left: 8,
+                            child: Container(
+                              width: 28,
+                              height: 28,
+                              decoration: const BoxDecoration(
+                                color: NetflixColors.primaryRed,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(4),
+                                  bottomRight: Radius.circular(4),
+                                  bottomLeft: Radius.circular(4),
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${widget.top10Rank}',
+                                  style: NetflixTypography.cardTitle.copyWith(
+                                    color: NetflixColors.textPrimary,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                              );
-                            },
+                              ),
+                            ),
                           ),
 
-                        // Play indicator for hover state
+                        // Gradient overlay with info on hover
+                        if (widget.showOverlay)
+                          AnimatedOpacity(
+                            opacity: _isHovered ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 200),
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    NetflixColors.transparent,
+                                    NetflixColors.backgroundBlack,
+                                  ],
+                                  stops: [0.4, 0.6, 1.0],
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.title,
+                                      style: NetflixTypography
+                                          .textTheme.labelMedium
+                                          ?.copyWith(
+                                            color: NetflixColors.textPrimary,
+                                          ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (widget.rating != null ||
+                                        widget.releaseYear != null)
+                                      const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        if (widget.rating != null) ...[
+                                          const Icon(
+                                            Icons.star,
+                                            color: NetflixColors.warning,
+                                            size: 12,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            widget.rating!
+                                                .toStringAsFixed(1),
+                                            style: NetflixTypography
+                                                .textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color:
+                                                      NetflixColors.textPrimary,
+                                                ),
+                                          ),
+                                          if (widget.releaseYear != null)
+                                            const SizedBox(width: 8),
+                                        ],
+                                        if (widget.releaseYear != null)
+                                          Text(
+                                            widget.releaseYear!,
+                                            style: NetflixTypography
+                                                .textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: NetflixColors
+                                                      .textSecondary,
+                                                ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        // Play button on hover
                         if (_isHovered)
                           Positioned(
                             top: 8,
                             right: 8,
                             child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Colors.black54,
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color:
+                                    NetflixColors.blackWithOpacity(0.7),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
                                 Icons.play_arrow,
-                                color: Colors.white,
-                                size: 16,
+                                color: NetflixColors.textPrimary,
+                                size: 20,
                               ),
                             ),
                           )
@@ -366,7 +339,7 @@ class _EnhancedMediaCardState extends ConsumerState<EnhancedMediaCard>
                             (widget.movie != null || widget.tvShow != null))
                           MediaCardWatchlistButton(
                             item: widget.movie ?? widget.tvShow!,
-                            size: 20,
+                            size: 24,
                           ),
                       ],
                     ),
@@ -382,57 +355,15 @@ class _EnhancedMediaCardState extends ConsumerState<EnhancedMediaCard>
 }
 
 /// A simple animated media card widget for backward compatibility.
-///
-/// This widget provides basic animation functionality with slide and fade
-/// transitions. It's designed for simpler use cases where the full feature
-/// set of [EnhancedMediaCard] is not needed but some animation is desired.
-///
-/// Features:
-/// - Slide-in animation from left to right
-/// - Fade-in effect
-/// - Scale animation for smooth appearance
-/// - Configurable animation delay
-///
-/// Example usage:
-/// ```dart
-/// AnimatedMediaCard(
-///   title: 'Movie Title',
-///   imagePath: '/path/to/poster.jpg',
-///   onTap: () => navigateToDetail(movieId),
-///   delay: const Duration(milliseconds: 200),
-/// )
-/// ```
 class AnimatedMediaCard extends ConsumerWidget {
-  /// The title of the media item.
   final String title;
-
-  /// The path to the poster image.
   final String? imagePath;
-
-  /// Callback function called when the card is tapped.
   final VoidCallback onTap;
-
-  /// The delay before the animation starts.
   final Duration delay;
-
-  /// The movie object for watchlist functionality (optional).
   final Movie? movie;
-
-  /// The TV show object for watchlist functionality (optional).
   final TvShow? tvShow;
-
-  /// Whether to show the watchlist button overlay.
   final bool showWatchlistButton;
 
-  /// Creates an animated media card widget.
-  ///
-  /// The [title] is the title of the media item.
-  /// The [imagePath] is the path to the poster image.
-  /// The [onTap] callback is triggered when the card is tapped.
-  /// The [delay] is the delay before the animation starts.
-  /// The [movie] object is used for watchlist functionality (optional).
-  /// The [tvShow] object is used for watchlist functionality (optional).
-  /// The [showWatchlistButton] controls whether to show the watchlist button overlay.
   const AnimatedMediaCard({
     super.key,
     required this.title,
@@ -447,50 +378,55 @@ class AnimatedMediaCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
-    final String? fullImageUrl = (imagePath != null && imagePath!.isNotEmpty)
-        ? '$imageBaseUrl/w500$imagePath'
-        : null;
+    final String? fullImageUrl =
+        (imagePath != null && imagePath!.isNotEmpty)
+            ? '$imageBaseUrl/w500$imagePath'
+            : null;
 
     Widget imageWidget;
     if (fullImageUrl != null) {
       imageWidget = CachedNetworkImage(
         imageUrl: fullImageUrl,
         fit: BoxFit.cover,
-        placeholder: (context, url) =>
-            const ShimmerBox(width: double.infinity, height: double.infinity),
+        placeholder: (context, url) => const ShimmerBox(
+          width: double.infinity,
+          height: double.infinity,
+          borderRadius: BorderRadius.zero,
+        ),
         errorWidget: (context, url, error) => Container(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: const Icon(Icons.broken_image_outlined),
+          color: NetflixColors.surfaceMedium,
+          child: const Icon(
+            Icons.broken_image_outlined,
+            color: NetflixColors.textSecondary,
+          ),
         ),
       );
     } else {
       imageWidget = Container(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: const Center(child: Icon(Icons.image_not_supported_outlined)),
+        color: NetflixColors.surfaceMedium,
+        child: const Center(
+          child: Icon(
+            Icons.image_not_supported_outlined,
+            color: NetflixColors.textSecondary,
+          ),
+        ),
       );
     }
 
     return Container(
-      width: Tokens.posterCardWidth,
-      margin: const EdgeInsets.only(right: Tokens.spaceM),
+      width: 120,
+      margin: const EdgeInsets.only(right: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(Tokens.radiusM),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(Tokens.radiusM),
+        color: NetflixColors.surfaceDark,
+        borderRadius: BorderRadius.circular(4),
         child: InkWell(
-          borderRadius: BorderRadius.circular(Tokens.radiusM),
+          borderRadius: BorderRadius.circular(4),
           onTap: onTap,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(Tokens.radiusM),
+            borderRadius: BorderRadius.circular(4),
             child: AspectRatio(aspectRatio: 2 / 3, child: imageWidget),
           ),
         ),

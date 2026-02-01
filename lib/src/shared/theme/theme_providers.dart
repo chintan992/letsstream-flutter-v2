@@ -31,7 +31,7 @@ final themeServiceProvider = Provider<ThemeService>((ref) {
 class ThemeNotifier extends StateNotifier<AppThemeType> {
   final ThemeService _themeService;
 
-  ThemeNotifier(this._themeService) : super(AppThemeType.classicDark) {
+  ThemeNotifier(this._themeService) : super(AppThemeType.netflix) {
     _loadInitialTheme();
   }
 

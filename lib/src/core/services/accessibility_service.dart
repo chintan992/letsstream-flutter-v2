@@ -203,6 +203,9 @@ class AccessibilityService {
 
   /// Announce content to screen readers
   void announce(String message) {
+    // The new sendAnnouncement API requires a FlutterView parameter.
+    // Using deprecated method until multi-view support is added.
+    // ignore: deprecated_member_use
     SemanticsService.announce(message, TextDirection.ltr);
   }
 

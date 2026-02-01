@@ -160,11 +160,11 @@ class VideoPIPWidget extends StatelessWidget {
         },
         onReceivedError: (controller, request, error) {
           // Handle load error - using onReceivedError instead of deprecated onLoadError
-          print('PIP WebView error: ${error.description}');
+          debugPrint('PIP WebView error: ${error.description}');
         },
       );
     } catch (e) {
-      print('Error creating PIP WebView: $e');
+      debugPrint('Error creating PIP WebView: $e');
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

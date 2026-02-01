@@ -4,7 +4,7 @@
 ![Version](https://img.shields.io/github/v/release/chintan992/letsstream-flutter-v2)
 ![License](https://img.shields.io/github/license/chintan992/letsstream-flutter-v2)
 
-**Let's Stream** is a modern, feature-rich media discovery application built with Flutter. It allows users to explore, search, and stream movies, TV shows, and anime, featuring native Android Picture-in-Picture support and enterprise-grade automated release workflows.
+**Let's Stream** is a modern, feature-rich media streaming application built with Flutter, featuring a complete Netflix-inspired UI redesign. It allows users to explore, search, and stream movies, TV shows, and anime with a premium cinematic experience, native Android Picture-in-Picture support, and enterprise-grade automated release workflows.
 
 ## ✨ Key Features
 
@@ -15,14 +15,24 @@
 - **In-App Video Player**: Secure, iframe-based video player with comprehensive controls
 - **Seamless PIP Experience**: YouTube-like PIP with automatic UI adjustments
 
+### 🎨 **Netflix-Style UI**
+- **Cinematic Design**: Complete Netflix-inspired UI with dark theme (#141414), red accents (#E50914), and Bebas Neue typography
+- **Material 3 + Cinematic Navigation**: 72dp hybrid bottom nav with red glow, pill-shaped indicators, and animated icons
+- **Immersive Hero Banners**: Full-bleed featured content with gradient overlays and action buttons
+- **Category Browse**: Grid layout with actual movie/TV backdrop images for each genre
+- **Premium Media Cards**: 2:3 poster ratio, 4px border radius, shimmer loading states
+
 ### 🎯 **Discovery & Navigation**
 - **Media Discovery**: Browse extensive catalogs of movies, TV shows, and anime
 - **Dynamic Home Screen**: Interactive carousels for trending, now playing, and airing content
-- **Advanced Search**: Debounced, paginated search with filters and smart suggestions
-- **Detailed Views**: Rich detail screens with trailers, cast, similar titles, and episode guides
+- **Hub/Categories**: Movies, TV Shows, and Browse tabs with personalized recommendations
+- **Advanced Search**: Debounced, paginated search with 3-column poster grid and category browse
+- **Detailed Views**: Netflix-style detail screens with 60% hero banners, cast, similar titles, and episode guides
+- **My List**: Grid-based watchlist with edit mode for managing saved content
 
 ### 🚀 **Performance & UX**
-- **Modern UI/UX**: Material Design 3 with smooth animations and shimmer loading
+- **Netflix Design System**: Custom theme with Netflix colors, typography (Bebas Neue + Inter), and component library
+- **Modern UI/UX**: Material Design 3 with Netflix styling, smooth animations and shimmer loading
 - **Offline Support**: Intelligent caching with Hive for offline browsing
 - **Accessibility**: Screen reader support, dynamic text scaling, and touch target optimization
 - **Performance Optimized**: Image optimization with WebP/AVIF, lazy loading, and prefetching
@@ -38,8 +48,9 @@ The project has evolved significantly with advanced features and enterprise-grad
 
 - **✅ Phase 1 (Completed)**: Core features including API integration, navigation, all major screens (Home, Movies, TV, Anime, Search, Detail), and complete UI/UX foundation
 - **✅ Phase 2 (Completed)**: Native Android PIP support, GitHub Actions automation, performance optimizations, accessibility features, and offline capabilities
-- **🔄 Phase 3 (In Progress)**: Firebase integration for user authentication, watchlist synchronization, and advanced user preferences
-- **🚀 Phase 4 (Future)**: Advanced search filters, recommendation engine, and cross-platform iOS support
+- **✅ Phase 3 (Completed)**: Complete Netflix UI redesign - all 21 screens redesigned with Netflix styling, Material 3 + Cinematic navigation, Netflix theme system (colors, typography), category browse with dynamic images
+- **🔄 Phase 4 (In Progress)**: Firebase integration for user authentication, watchlist synchronization, and advanced user preferences
+- **🚀 Phase 5 (Future)**: Advanced search filters, recommendation engine, and cross-platform iOS support
 
 ## 🛠️ Technology Stack
 
@@ -48,7 +59,7 @@ The project has evolved significantly with advanced features and enterprise-grad
 - **Language**: Dart
 - **State Management**: Riverpod (StateNotifier pattern)
 - **Navigation**: GoRouter with deep linking
-- **Design**: Material Design 3 with custom theming
+- **Design**: Netflix-inspired UI with Material Design 3, Netflix theme system (colors, typography)
 - **Video Player**: InAppWebView with native PIP support
 
 ### **Backend & APIs**

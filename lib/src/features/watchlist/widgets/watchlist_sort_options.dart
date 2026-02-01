@@ -125,84 +125,80 @@ class _WatchlistSortOptionsState extends State<WatchlistSortOptions> {
   }
 
   Widget _buildSortCriteriaOptions() {
-    return Column(
-      children: WatchlistSortOption.values.map((option) {
-        return ListTile(
-          title: Text(_getSortOptionTitle(option)),
-          subtitle: Text(_getSortOptionSubtitle(option)),
-          contentPadding: EdgeInsets.zero,
-          visualDensity: VisualDensity.compact,
-          leading: Radio<WatchlistSortOption>(
-            value: option,
-            groupValue: _selectedOption,
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _selectedOption = value;
-                });
-              }
+    return RadioGroup<WatchlistSortOption>(
+      groupValue: _selectedOption,
+      onChanged: (value) {
+        if (value != null) {
+          setState(() {
+            _selectedOption = value;
+          });
+        }
+      },
+      child: Column(
+        children: WatchlistSortOption.values.map((option) {
+          return ListTile(
+            title: Text(_getSortOptionTitle(option)),
+            subtitle: Text(_getSortOptionSubtitle(option)),
+            contentPadding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
+            leading: Radio<WatchlistSortOption>(
+              value: option,
+            ),
+            onTap: () {
+              setState(() {
+                _selectedOption = option;
+              });
             },
-          ),
-          onTap: () {
-            setState(() {
-              _selectedOption = option;
-            });
-          },
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 
   Widget _buildSortOrderOptions() {
-    return Row(
-      children: [
-        Expanded(
-          child: ListTile(
-            title: const Text('Ascending'),
-            contentPadding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-            leading: Radio<bool>(
-              value: false,
-              groupValue: _isDescending,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _isDescending = value;
-                  });
-                }
+    return RadioGroup<bool>(
+      groupValue: _isDescending,
+      onChanged: (value) {
+        if (value != null) {
+          setState(() {
+            _isDescending = value;
+          });
+        }
+      },
+      child: Row(
+        children: [
+          Expanded(
+            child: ListTile(
+              title: const Text('Ascending'),
+              contentPadding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              leading: const Radio<bool>(
+                value: false,
+              ),
+              onTap: () {
+                setState(() {
+                  _isDescending = false;
+                });
               },
             ),
-            onTap: () {
-              setState(() {
-                _isDescending = false;
-              });
-            },
           ),
-        ),
-        Expanded(
-          child: ListTile(
-            title: const Text('Descending'),
-            contentPadding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-            leading: Radio<bool>(
-              value: true,
-              groupValue: _isDescending,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _isDescending = value;
-                  });
-                }
+          Expanded(
+            child: ListTile(
+              title: const Text('Descending'),
+              contentPadding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              leading: const Radio<bool>(
+                value: true,
+              ),
+              onTap: () {
+                setState(() {
+                  _isDescending = true;
+                });
               },
             ),
-            onTap: () {
-              setState(() {
-                _isDescending = true;
-              });
-            },
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

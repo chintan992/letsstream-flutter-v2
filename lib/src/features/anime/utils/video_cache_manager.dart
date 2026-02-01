@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,6 +12,8 @@ class VideoCacheManager {
   
   static VideoCacheManager? _instance;
   static VideoCacheManager get instance => _instance ??= VideoCacheManager._();
+  
+  final Logger _logger = Logger();
   
   VideoCacheManager._();
   
@@ -183,10 +186,10 @@ class VideoCacheManager {
     try {
       // This would typically involve downloading and caching the manifest
       // and initial video segments
-      print('Preloading next episode: $nextEpisodeUrl');
+      _logger.d('Preloading next episode: $nextEpisodeUrl');
       // Implementation would depend on the specific streaming protocol
     } catch (e) {
-      print('Failed to preload next episode: $e');
+      _logger.e('Failed to preload next episode: $e');
     }
   }
   

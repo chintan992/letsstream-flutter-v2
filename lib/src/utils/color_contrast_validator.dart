@@ -16,9 +16,9 @@ class ColorContrastValidator {
       }
     }
 
-    final r = toLinear(color.red.toDouble());
-    final g = toLinear(color.green.toDouble());
-    final b = toLinear(color.blue.toDouble());
+    final r = toLinear((color.r * 255.0).round().clamp(0, 255).toDouble());
+    final g = toLinear((color.g * 255.0).round().clamp(0, 255).toDouble());
+    final b = toLinear((color.b * 255.0).round().clamp(0, 255).toDouble());
 
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   }

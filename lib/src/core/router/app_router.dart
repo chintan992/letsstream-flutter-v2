@@ -4,7 +4,7 @@ import '../../features/home/presentation/home_screen.dart';
 import '../../features/detail/presentation/enhanced_detail_screen.dart';
 import '../../features/movies/presentation/movies_list_screen.dart';
 import '../../features/tv_shows/presentation/tv_list_screen.dart';
-import '../../features/hub/presentation/hub_screens.dart';
+import '../../features/hub/presentation/netflix_hub_screen.dart';
 import '../../features/anime/presentation/anime_screen.dart';
 import '../../features/anime/presentation/anime_detail_screen.dart';
 import '../../features/anime/presentation/anime_player_screen.dart';
@@ -38,10 +38,10 @@ final GoRouter appRouter = GoRouter(
           name: 'home',
           builder: (context, state) => const HomeScreen(),
         ),
-        GoRoute(
+GoRoute(
           path: '/hub',
           name: 'hub',
-          builder: (context, state) => const HubScreen(),
+          builder: (context, state) => const NetflixHubScreen(),
         ),
         GoRoute(
           path: '/movies/:feed',
@@ -107,6 +107,11 @@ final GoRouter appRouter = GoRouter(
           path: '/search',
           name: 'search',
           builder: (context, state) => const SearchScreen(),
+        ),
+        GoRoute(
+          path: '/new-hot',
+          name: 'new-hot',
+          builder: (context, state) => const MoviesListScreen(feed: 'trending'),
         ),
         GoRoute(
           path: '/watchlist',
@@ -245,77 +250,226 @@ final GoRouter appRouter = GoRouter(
   ],
 );
 
-/// Main navigation shell with bottom navigation bar
-class MainNavigationScreen extends StatelessWidget {
+/// Main navigation shell with Material 3 + Cinematic hybrid bottom navigation
+class MainNavigationScreen extends StatefulWidget {
   final Widget child;
 
   const MainNavigationScreen({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _calculateSelectedIndex(context),
-        onDestinationSelected: (index) => _onItemTapped(index, context),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.video_library_outlined),
-            selectedIcon: Icon(Icons.video_library),
-            label: 'Hub',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_border_outlined),
-            selectedIcon: Icon(Icons.bookmark),
-            label: 'Watchlist',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.animation_outlined),
-            selectedIcon: Icon(Icons.animation),
-            label: 'Anime',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
-    );
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+}
+
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  int _selectedIndex = 0;
+
+  final List<NavItem> _navItems = const [
+    NavItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home'),
+    NavItem(icon: Icons.search_outlined, activeIcon: Icons.search, label: 'Search'),
+    NavItem(icon: Icons.local_fire_department_outlined, activeIcon: Icons.local_fire_department, label: 'New & Hot'),
+    NavItem(icon: Icons.bookmark_border_outlined, activeIcon: Icons.bookmark, label: 'My List'),
+    NavItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile'),
+  ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _selectedIndex = _calculateSelectedIndex(context);
   }
 
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/hub')) return 1;
-    if (location.startsWith('/watchlist')) return 2;
-    if (location.startsWith('/anime')) return 3;
+    if (location.startsWith('/search')) return 1;
+    if (location.startsWith('/new-hot')) return 2;
+    if (location.startsWith('/watchlist')) return 3;
     if (location.startsWith('/profile')) return 4;
     return 0;
   }
 
-  void _onItemTapped(int index, BuildContext context) {
+  void _onItemTapped(int index) {
+    if (index == _selectedIndex) return;
+    
+    setState(() {
+      _selectedIndex = index;
+    });
+
     switch (index) {
       case 0:
         context.goNamed('home');
         break;
       case 1:
-        context.goNamed('hub');
+        context.goNamed('search');
         break;
       case 2:
-        context.goNamed('watchlist');
+        context.goNamed('new-hot');
         break;
       case 3:
-        context.goNamed('anime');
+        context.goNamed('watchlist');
         break;
       case 4:
         context.goNamed('profile');
         break;
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: widget.child,
+      bottomNavigationBar: _CinematicNavBar(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
+        items: _navItems,
+      ),
+    );
+  }
+}
+
+class NavItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+
+  const NavItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+  });
+}
+
+/// Material 3 + Cinematic hybrid navigation bar
+class _CinematicNavBar extends StatelessWidget {
+  final int selectedIndex;
+  final Function(int) onItemTapped;
+  final List<NavItem> items;
+
+  const _CinematicNavBar({
+    required this.selectedIndex,
+    required this.onItemTapped,
+    required this.items,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1F1F1F), // Material 3 surface color
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFE50914).withValues(alpha: 0.3),
+            blurRadius: 20,
+            spreadRadius: -5,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Container(
+          height: 72,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(items.length, (index) {
+              final item = items[index];
+              final isSelected = index == selectedIndex;
+              
+              return _NavItemWidget(
+                item: item,
+                isSelected: isSelected,
+                onTap: () => onItemTapped(index),
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItemWidget extends StatelessWidget {
+  final NavItem item;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _NavItemWidget({
+    required this.item,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? const Color(0xFFE50914).withValues(alpha: 0.15) 
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Animated Icon
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (child, animation) {
+                return ScaleTransition(
+                  scale: animation,
+                  child: child,
+                );
+              },
+              child: Icon(
+                isSelected ? item.activeIcon : item.icon,
+                key: ValueKey<bool>(isSelected),
+                size: isSelected ? 26 : 22,
+                color: isSelected 
+                    ? const Color(0xFFE50914) 
+                    : const Color(0xFF808080),
+              ),
+            ),
+            const SizedBox(height: 1),
+            // Label
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                fontSize: isSelected ? 10 : 9,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected 
+                    ? const Color(0xFFE50914) 
+                    : const Color(0xFF808080),
+              ),
+              child: Text(item.label),
+            ),
+            // Red dot indicator when selected
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isSelected ? 1.0 : 0.0,
+              child: Container(
+                margin: const EdgeInsets.only(top: 1),
+                width: 3,
+                height: 3,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE50914),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

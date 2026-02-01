@@ -105,7 +105,7 @@ class SubtitleSelectorWidget extends StatelessWidget {
                 trailing: track.isDefault
                     ? Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                            horizontal: 6, vertical: 2,),
                         decoration: BoxDecoration(
                           color: Colors.blue.withAlpha(51),
                           borderRadius: BorderRadius.circular(4),

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lets_stream/src/core/models/cast_member.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:lets_stream/src/shared/theme/netflix_colors.dart';
 import 'package:lets_stream/src/shared/widgets/shimmer_box.dart';
 
+/// Netflix-style cast section with horizontal scrolling
 class CastSection extends StatelessWidget {
   final List<CastMember> cast;
   final bool isLoading;
@@ -18,30 +21,21 @@ class CastSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(
-              Icons.people_outline,
-              color: theme.colorScheme.primary,
-              size: 28,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Top Billed Cast',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+        Text(
+          'Cast',
+          style: GoogleFonts.inter(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: NetflixColors.textPrimary,
+          ),
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 180,
-          child: isLoading ? _buildLoading() : _buildCastList(context, theme),
+          height: 140,
+          child: isLoading ? _buildLoading() : _buildCastList(context),
         ),
       ],
     );
@@ -70,25 +64,29 @@ class CastSection extends StatelessWidget {
     );
   }
 
-  Widget _buildCastList(BuildContext context, ThemeData theme) {
+  Widget _buildCastList(BuildContext context) {
     if (error != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, color: theme.colorScheme.error, size: 32),
-            const SizedBox(height: 8),
-            Text(
-              'Failed to load cast',
-              style: TextStyle(color: theme.colorScheme.error),
-            ),
-          ],
+        child: Text(
+          'Failed to load cast',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: NetflixColors.textSecondary,
+          ),
         ),
       );
     }
 
     if (cast.isEmpty) {
-      return const Center(child: Text('No cast available'));
+      return Center(
+        child: Text(
+          'No cast information available',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: NetflixColors.textSecondary,
+          ),
+        ),
+      );
     }
 
     return ListView.builder(
@@ -98,73 +96,69 @@ class CastSection extends StatelessWidget {
         final member = cast[index];
         return Padding(
           padding: const EdgeInsets.only(right: 12),
-          child: _buildCastCard(context, theme, member)
-              .animate(delay: Duration(milliseconds: 100 * index))
-              .slideY(begin: 0.2, duration: const Duration(milliseconds: 300))
-              .fadeIn(),
+          child: _buildCastCard(context, member)
+              .animate(delay: Duration(milliseconds: 50 * index))
+              .fadeIn(duration: const Duration(milliseconds: 300))
+              .slideX(begin: 0.1, duration: const Duration(milliseconds: 300)),
         );
       },
     );
   }
 
-  Widget _buildCastCard(
-    BuildContext context,
-    ThemeData theme,
-    CastMember member,
-  ) {
+  Widget _buildCastCard(BuildContext context, CastMember member) {
     final String imageBaseUrl = dotenv.env['TMDB_IMAGE_BASE_URL'] ?? '';
     final imageUrl =
         (member.profilePath != null && member.profilePath!.isNotEmpty)
-        ? '$imageBaseUrl/w185${member.profilePath}'
-        : null;
+            ? '$imageBaseUrl/w185${member.profilePath}'
+            : null;
 
     return SizedBox(
-      width: 110,
+      width: 80,
       child: Column(
         children: [
           Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(
+                color: NetflixColors.surfaceMedium,
+                width: 2,
+              ),
             ),
             child: CircleAvatar(
               radius: 40,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+              backgroundColor: NetflixColors.surfaceDark,
               backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
               child: imageUrl == null
-                  ? Icon(
+                  ? const Icon(
                       Icons.person_outline,
                       size: 32,
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: NetflixColors.textSecondary,
                     )
                   : null,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             member.name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
+            style: GoogleFonts.inter(
+              fontSize: 12,
               fontWeight: FontWeight.w500,
+              color: NetflixColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 4),
           if (member.character != null && member.character!.isNotEmpty)
             Text(
               member.character!,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w400,
+                color: NetflixColors.textSecondary,
               ),
             ),
         ],

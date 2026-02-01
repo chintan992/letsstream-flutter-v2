@@ -1,61 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/models/watchlist_item.dart';
 import '../../../core/models/movie.dart';
 import '../../../core/models/tv_show.dart';
 import '../../../core/providers/watchlist_providers.dart';
-import '../../../shared/theme/tokens.dart';
-import '../../../shared/widgets/empty_state.dart';
-import '../../../shared/widgets/error_state.dart';
-import '../../../shared/widgets/shimmer_row.dart';
+import '../../../shared/theme/netflix_colors.dart';
 import '../../../shared/widgets/media_card.dart';
-import '../widgets/watchlist_filter_bar.dart';
-import '../widgets/watchlist_sort_options.dart';
 
-/// Comprehensive watchlist screen with filtering, search, and item management.
-///
-/// This screen provides a full-featured watchlist interface that allows users to:
-/// - View all their saved movies and TV shows
-/// - Search through their watchlist
-/// - Filter by categories, content type, and viewing status
-/// - Sort items by various criteria
-/// - Edit item details, ratings, and categories
-/// - Mark items as watched/unwatched
-/// - Remove items from watchlist
-///
-/// The screen follows Material Design 3 principles and integrates seamlessly
-/// with the app's existing design system and state management architecture.
+/// Netflix-style "My List" screen for saved content.
+/// Features a 3-column grid layout with edit mode support.
 class WatchlistScreen extends ConsumerStatefulWidget {
-  /// Creates a watchlist screen.
   const WatchlistScreen({super.key});
 
   @override
   ConsumerState<WatchlistScreen> createState() => _WatchlistScreenState();
 }
 
-class _WatchlistScreenState extends ConsumerState<WatchlistScreen>
-    with TickerProviderStateMixin {
-  final TextEditingController _searchController = TextEditingController();
-  late AnimationController _fabAnimationController;
-
-  @override
-  void initState() {
-    super.initState();
-    _fabAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _fabAnimationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _fabAnimationController.dispose();
-    super.dispose();
-  }
+class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
+  bool _isEditMode = false;
+  final Set<String> _selectedItems = {};
 
   @override
   Widget build(BuildContext context) {
@@ -63,170 +27,150 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen>
     final filteredItems = ref.watch(filteredWatchlistItemsProvider);
     final isLoading = ref.watch(watchlistLoadingProvider);
     final error = ref.watch(watchlistErrorProvider);
-    final statistics = ref.watch(watchlistStatisticsProvider);
-
-    // Show loading state
-    if (isLoading && watchlistState.items.isEmpty) {
-      return const Scaffold(
-        body: SafeArea(
-          child: ShimmerRow(
-            count: 10,
-            itemHeight: 200,
-          ),
-        ),
-      );
-    }
-
-    // Show error state
-    if (error != null && watchlistState.items.isEmpty) {
-      return Scaffold(
-        body: SafeArea(
-          child: ErrorState(
-            message: error,
-            onRetry: () =>
-                ref.read(watchlistNotifierProvider.notifier).refresh(),
-          ),
-        ),
-      );
-    }
 
     return Scaffold(
+      backgroundColor: NetflixColors.backgroundBlack,
+      appBar: _buildAppBar(watchlistState),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header with statistics
-            _buildHeader(statistics),
-
-            // Search and filters
-            WatchlistFilterBar(
-              searchController: _searchController,
-              onSearchChanged: (query) {
-                ref
-                    .read(watchlistNotifierProvider.notifier)
-                    .setSearchQuery(query);
-              },
-            ),
-
-            // Content area
-            Expanded(
-              child: filteredItems.isEmpty
-                  ? _buildEmptyState(watchlistState.searchQuery.isNotEmpty)
-                  : _buildWatchlistGrid(filteredItems),
-            ),
-          ],
-        ),
-      ),
-
-      // Floating action button for sort options
-      floatingActionButton: ScaleTransition(
-        scale: _fabAnimationController,
-        child: FloatingActionButton(
-          onPressed: _showSortOptions,
-          tooltip: 'Sort options',
-          child: const Icon(Icons.sort),
-        ),
+        child: isLoading && watchlistState.items.isEmpty
+            ? _buildShimmerGrid()
+            : error != null && watchlistState.items.isEmpty
+                ? _buildErrorState(error)
+                : filteredItems.isEmpty
+                    ? _buildEmptyState(watchlistState.searchQuery.isNotEmpty)
+                    : _buildWatchlistGrid(filteredItems),
       ),
     );
   }
 
-  Widget _buildHeader(Map<String, int> statistics) {
-    final total = statistics['total'] ?? 0;
-    final watched = statistics['watched'] ?? 0;
-    final unwatched = statistics['unwatched'] ?? 0;
-    final movies = statistics['movies'] ?? 0;
-    final tvShows = statistics['tvShows'] ?? 0;
-    final favorites = statistics['favorites'] ?? 0;
+  PreferredSizeWidget _buildAppBar(dynamic watchlistState) {
+    return AppBar(
+      backgroundColor: NetflixColors.backgroundBlack,
+      elevation: 0,
+      centerTitle: true,
+      title: const Text(
+        'My List',
+        style: TextStyle(
+          color: NetflixColors.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      actions: [
+        if (watchlistState.items.isNotEmpty)
+          TextButton(
+            onPressed: _toggleEditMode,
+            style: TextButton.styleFrom(
+              foregroundColor: NetflixColors.textPrimary,
+            ),
+            child: Text(
+              _isEditMode ? 'Done' : 'Edit',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
 
+  void _toggleEditMode() {
+    setState(() {
+      _isEditMode = !_isEditMode;
+      if (!_isEditMode) {
+        _selectedItems.clear();
+      }
+    });
+  }
+
+  Widget _buildWatchlistGrid(List<WatchlistItem> items) {
+    return Column(
+      children: [
+        if (_isEditMode && _selectedItems.isNotEmpty)
+          _buildEditToolbar(),
+        Expanded(
+          child: RefreshIndicator(
+            backgroundColor: NetflixColors.surfaceMedium,
+            color: NetflixColors.primaryRed,
+            onRefresh: () =>
+                ref.read(watchlistNotifierProvider.notifier).refresh(),
+            child: GridView.builder(
+              padding: const EdgeInsets.all(12),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 16,
+                childAspectRatio: 2 / 3,
+              ),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final isSelected = _selectedItems.contains(item.id);
+
+                return _buildWatchlistItem(
+                  item: item,
+                  isSelected: isSelected,
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditToolbar() {
     return Container(
-      padding: const EdgeInsets.all(Tokens.spaceL),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: NetflixColors.surfaceMedium,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context)
-                .colorScheme
-                .outlineVariant
-                .withValues(alpha: 0.5),
+            color: NetflixColors.surfaceLight,
             width: 1,
           ),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Title and total count
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'My Watchlist',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Tokens.spaceM,
-                  vertical: Tokens.spaceXS,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(Tokens.radiusM),
-                ),
-                child: Text(
-                  '$total',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-            ],
+          Text(
+            '${_selectedItems.length} selected',
+            style: const TextStyle(
+              color: NetflixColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-
-          const SizedBox(height: Tokens.spaceM),
-
-          // Statistics chips
-          Wrap(
-            spacing: Tokens.spaceS,
-            runSpacing: Tokens.spaceS,
+          Row(
             children: [
-              _buildStatChip(
-                context,
-                icon: Icons.check_circle_outline,
-                label: 'Watched',
-                value: watched,
-                color: Theme.of(context).colorScheme.tertiary,
-              ),
-              _buildStatChip(
-                context,
-                icon: Icons.schedule,
-                label: 'To Watch',
-                value: unwatched,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-              _buildStatChip(
-                context,
-                icon: Icons.movie,
-                label: 'Movies',
-                value: movies,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              _buildStatChip(
-                context,
-                icon: Icons.tv,
-                label: 'TV Shows',
-                value: tvShows,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-              if (favorites > 0)
-                _buildStatChip(
-                  context,
-                  icon: Icons.favorite,
-                  label: 'Favorites',
-                  value: favorites,
-                  color: Colors.red,
+              TextButton.icon(
+                onPressed: _selectAll,
+                icon: const Icon(
+                  Icons.select_all,
+                  size: 18,
+                  color: NetflixColors.textPrimary,
                 ),
+                label: const Text(
+                  'All',
+                  style: TextStyle(color: NetflixColors.textPrimary),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: _deleteSelected,
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 18,
+                  color: NetflixColors.primaryRed,
+                ),
+                label: const Text(
+                  'Delete',
+                  style: TextStyle(color: NetflixColors.primaryRed),
+                ),
+              ),
             ],
           ),
         ],
@@ -234,109 +178,258 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen>
     );
   }
 
-  Widget _buildStatChip(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required int value,
-    required Color color,
-  }) {
-    return Chip(
-      avatar: Icon(icon, size: 16, color: color),
-      label: Text(
-        '$label: $value',
-        style: Theme.of(context).textTheme.bodySmall,
+  void _selectAll() {
+    final items = ref.read(filteredWatchlistItemsProvider);
+    setState(() {
+      if (_selectedItems.length == items.length) {
+        _selectedItems.clear();
+      } else {
+        _selectedItems.clear();
+        _selectedItems.addAll(items.map((item) => item.id));
+      }
+    });
+  }
+
+  void _deleteSelected() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: NetflixColors.surfaceDark,
+        title: const Text(
+          'Remove from My List?',
+          style: TextStyle(color: NetflixColors.textPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to remove ${_selectedItems.length} item(s)?',
+          style: const TextStyle(color: NetflixColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: NetflixColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              for (final id in _selectedItems) {
+                ref.read(watchlistNotifierProvider.notifier).removeItem(id);
+              }
+              setState(() {
+                _selectedItems.clear();
+                _isEditMode = false;
+              });
+              Navigator.pop(context);
+              _showSnackBar('Removed ${_selectedItems.length} item(s)');
+            },
+            child: const Text(
+              'Remove',
+              style: TextStyle(color: NetflixColors.primaryRed),
+            ),
+          ),
+        ],
       ),
-      backgroundColor: color.withValues(alpha: 0.1),
-      side: BorderSide(color: color.withValues(alpha: 0.3)),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      visualDensity: VisualDensity.compact,
     );
   }
 
+  Widget _buildWatchlistItem({
+    required WatchlistItem item,
+    required bool isSelected,
+  }) {
+    final mediaItem = _convertToMediaItem(item);
+
+    return Stack(
+      children: [
+        MediaCard(
+          title: item.title,
+          imagePath: item.posterPath,
+          onTap: () {
+            if (_isEditMode) {
+              setState(() {
+                if (isSelected) {
+                  _selectedItems.remove(item.id);
+                } else {
+                  _selectedItems.add(item.id);
+                }
+              });
+            } else {
+              _navigateToDetail(item);
+            }
+          },
+          movie: item.contentType == 'movie' ? mediaItem as Movie? : null,
+          tvShow: item.contentType == 'tv' ? mediaItem as TvShow? : null,
+          showWatchlistButton: !_isEditMode,
+        ),
+        if (_isEditMode)
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (isSelected) {
+                    _selectedItems.remove(item.id);
+                  } else {
+                    _selectedItems.add(item.id);
+                  }
+                });
+              },
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? NetflixColors.primaryRed
+                      : NetflixColors.backgroundBlack.withOpacity(0.7),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected
+                        ? NetflixColors.primaryRed
+                        : NetflixColors.textPrimary,
+                    width: 2,
+                  ),
+                ),
+                child: isSelected
+                    ? const Icon(
+                        Icons.check,
+                        color: NetflixColors.textPrimary,
+                        size: 16,
+                      )
+                    : null,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 
   Widget _buildEmptyState(bool isSearchResult) {
-    return isSearchResult
-        ? EmptyState.noResults(
-            query: _searchController.text,
-            actions: [
-              FilledButton.icon(
-                onPressed: () {
-                  _searchController.clear();
-                  ref.read(watchlistNotifierProvider.notifier).clearFilters();
-                },
-                icon: const Icon(Icons.clear),
-                label: const Text('Clear filters'),
-              ),
-            ],
-          )
-        : EmptyState.noWatchlist();
-  }
-
-  Widget _buildWatchlistGrid(List<WatchlistItem> items) {
-    return RefreshIndicator(
-      onRefresh: () => ref.read(watchlistNotifierProvider.notifier).refresh(),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // Responsive grid columns based on width
-          int crossAxisCount;
-          if (constraints.maxWidth > 900) {
-            crossAxisCount = 6; // Desktop/tablet landscape
-          } else if (constraints.maxWidth > 600) {
-            crossAxisCount = 4; // Tablet portrait
-          } else {
-            crossAxisCount = 3; // Mobile
-          }
-
-          return GridView.builder(
-            padding: const EdgeInsets.all(Tokens.spaceL),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: Tokens.spaceM,
-              mainAxisSpacing: Tokens.spaceL,
-              childAspectRatio: Tokens.posterAspect,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.bookmark_border,
+              color: NetflixColors.textSecondary,
+              size: 64,
             ),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              final mediaItem = _convertToMediaItem(item);
-              
-              return GestureDetector(
-                onLongPress: () => _showItemOptionsDialog(item),
-                child: MediaCard(
-                  title: item.title,
-                  imagePath: item.posterPath,
-                  onTap: () => _navigateToDetail(item),
-                  movie: item.contentType == 'movie' ? mediaItem as Movie? : null,
-                  tvShow: item.contentType == 'tv' ? mediaItem as TvShow? : null,
-                  showWatchlistButton: true,
-                )
-                    .animate()
-                    .fadeIn(duration: 300.ms, delay: (index * 50).ms)
-                    .slideY(begin: 0.2, duration: 300.ms, delay: (index * 50).ms),
-              );
-            },
-          );
-        },
+            const SizedBox(height: 24),
+            Text(
+              isSearchResult ? 'No matches found' : 'Your list is empty',
+              style: const TextStyle(
+                color: NetflixColors.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              isSearchResult
+                  ? 'Try different search terms'
+                  : 'Add movies and shows you want to watch later',
+              style: const TextStyle(
+                color: NetflixColors.textSecondary,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+              if (!isSearchResult)
+              ElevatedButton(
+                onPressed: () => context.goNamed('home'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: NetflixColors.textPrimary,
+                  foregroundColor: NetflixColors.backgroundBlack,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                child: const Text(
+                  'Browse Content',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  void _showSortOptions() {
-    final currentState = ref.read(watchlistNotifierProvider);
-
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => WatchlistSortOptions(
-        currentOption: currentState.sortOption,
-        currentIsDescending: currentState.sortDescending,
-        onSortSelected: (sortOptionWithOrder) {
-          ref.read(watchlistNotifierProvider.notifier).setSortOption(
-                sortOptionWithOrder.option,
-                descending: sortOptionWithOrder.isDescending,
-              );
-        },
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              color: NetflixColors.textSecondary,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Something went wrong',
+              style: const TextStyle(
+                color: NetflixColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              style: const TextStyle(
+                color: NetflixColors.textSecondary,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            TextButton.icon(
+              onPressed: () =>
+                  ref.read(watchlistNotifierProvider.notifier).refresh(),
+              icon: const Icon(Icons.refresh, color: NetflixColors.textPrimary),
+              label: const Text(
+                'Try Again',
+                style: TextStyle(color: NetflixColors.textPrimary),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildShimmerGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 16,
+        childAspectRatio: 2 / 3,
+      ),
+      itemCount: 9,
+      itemBuilder: (context, index) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            color: NetflixColors.surfaceMedium,
+          ),
+        );
+      },
     );
   }
 
@@ -356,108 +449,19 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen>
     }
   }
 
-  void _showItemOptionsDialog(WatchlistItem item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(item.title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Edit Details'),
-              onTap: () {
-                Navigator.pop(context);
-                _showEditDialog(item);
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                item.isWatched ? Icons.visibility_off : Icons.visibility,
-              ),
-              title: Text(
-                item.isWatched ? 'Mark as Unwatched' : 'Mark as Watched',
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _toggleWatchedStatus(item);
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.delete,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              title: Text(
-                'Remove from Watchlist',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _showDeleteDialog(item);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showEditDialog(WatchlistItem item) {
-    showDialog(
-      context: context,
-      builder: (context) => _EditWatchlistItemDialog(item: item),
-    );
-  }
-
-  void _showDeleteDialog(WatchlistItem item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove from Watchlist'),
-        content: Text(
-            'Are you sure you want to remove "${item.title}" from your watchlist?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              ref.read(watchlistNotifierProvider.notifier).removeItem(item.id);
-              Navigator.pop(context);
-              _showSnackBar('Removed from watchlist');
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _toggleWatchedStatus(WatchlistItem item) {
-    ref.read(watchlistNotifierProvider.notifier).toggleWatchedStatus(item.id);
-    final isWatched = !item.isWatched;
-    _showSnackBar(
-      isWatched ? 'Marked as watched' : 'Marked as unwatched',
-    );
-  }
-
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(
+          message,
+          style: const TextStyle(color: NetflixColors.textPrimary),
+        ),
+        backgroundColor: NetflixColors.surfaceDark,
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  // Helper method to convert watchlist item to Movie or TvShow object
   dynamic _convertToMediaItem(WatchlistItem item) {
     if (item.contentType == 'movie') {
       return Movie(
@@ -486,7 +490,6 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen>
     }
   }
 
-  // Helper methods to create movie/TV show objects from watchlist items for navigation
   dynamic _createMovieFromWatchlistItem(WatchlistItem item) {
     return Movie(
       id: item.contentId,
@@ -513,240 +516,5 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen>
       backdropPath: null,
       voteCount: 0,
     );
-  }
-}
-
-/// Dialog for editing watchlist item details
-class _EditWatchlistItemDialog extends ConsumerStatefulWidget {
-  final WatchlistItem item;
-
-  const _EditWatchlistItemDialog({required this.item});
-
-  @override
-  ConsumerState<_EditWatchlistItemDialog> createState() =>
-      _EditWatchlistItemDialogState();
-}
-
-class _EditWatchlistItemDialogState
-    extends ConsumerState<_EditWatchlistItemDialog> {
-  late TextEditingController _notesController;
-  late double _userRating;
-  late int _priority;
-  late List<String> _selectedCategories;
-
-  @override
-  void initState() {
-    super.initState();
-    _notesController = TextEditingController(text: widget.item.notes ?? '');
-    _userRating = widget.item.userRating ?? 0.0;
-    _priority = widget.item.priority;
-    _selectedCategories = List.from(widget.item.categories);
-  }
-
-  @override
-  void dispose() {
-    _notesController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final availableCategories = ref.watch(watchlistCategoriesProvider);
-
-    return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(Tokens.spaceL),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Edit ${widget.item.title}',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: Tokens.spaceL),
-
-            // User Rating
-            Text(
-              'Your Rating',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: Tokens.spaceS),
-            Row(
-              children: [
-                Expanded(
-                  child: Slider(
-                    value: _userRating,
-                    min: 0,
-                    max: 10,
-                    divisions: 10,
-                    label: _userRating > 0
-                        ? _userRating.toStringAsFixed(1)
-                        : 'Not rated',
-                    onChanged: (value) {
-                      setState(() {
-                        _userRating = value;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(width: Tokens.spaceS),
-                Text(
-                  _userRating > 0 ? _userRating.toStringAsFixed(1) : '—',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              ],
-            ),
-            const SizedBox(height: Tokens.spaceL),
-
-            // Priority
-            Text(
-              'Priority',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: Tokens.spaceS),
-            Wrap(
-              spacing: Tokens.spaceXS,
-              children: List.generate(5, (index) {
-                final priority = index + 1;
-                final isSelected = _priority == priority;
-                return ChoiceChip(
-                  label: Text('$priority'),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() {
-                        _priority = priority;
-                      });
-                    }
-                  },
-                  selectedColor: _getPriorityColor(priority),
-                  side: BorderSide(
-                    color: isSelected
-                        ? _getPriorityColor(priority)
-                        : Theme.of(context).colorScheme.outlineVariant,
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: Tokens.spaceXS),
-            Text(
-              _getPriorityLabel(_priority),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(height: Tokens.spaceL),
-
-            // Categories
-            Text(
-              'Categories',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: Tokens.spaceS),
-            Wrap(
-              spacing: Tokens.spaceXS,
-              runSpacing: Tokens.spaceXS,
-              children: availableCategories.map((category) {
-                final isSelected = _selectedCategories.contains(category);
-                return FilterChip(
-                  label: Text(category),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedCategories.add(category);
-                      } else {
-                        _selectedCategories.remove(category);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: Tokens.spaceL),
-
-            // Notes
-            TextField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                hintText: 'Add your thoughts about this item...',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: Tokens.spaceL),
-
-            // Actions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: Tokens.spaceS),
-                FilledButton(
-                  onPressed: _saveChanges,
-                  child: const Text('Save'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _saveChanges() {
-    ref.read(watchlistNotifierProvider.notifier).updateItemWith(
-          widget.item.id,
-          userRating: _userRating > 0 ? _userRating : null,
-          priority: _priority,
-          categories: _selectedCategories,
-          notes:
-              _notesController.text.isNotEmpty ? _notesController.text : null,
-        );
-
-    Navigator.pop(context);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Watchlist item updated')),
-    );
-  }
-
-  Color _getPriorityColor(int priority) {
-    switch (priority) {
-      case 1:
-        return Colors.grey;
-      case 2:
-        return Colors.blue;
-      case 3:
-        return Colors.orange;
-      case 4:
-        return Colors.red;
-      case 5:
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getPriorityLabel(int priority) {
-    switch (priority) {
-      case 1:
-        return 'Low priority';
-      case 2:
-        return 'Normal priority';
-      case 3:
-        return 'Medium priority';
-      case 4:
-        return 'High priority';
-      case 5:
-        return 'Urgent priority';
-      default:
-        return '';
-    }
   }
 }

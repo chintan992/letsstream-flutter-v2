@@ -59,7 +59,7 @@ class NativePipService {
     if (_isInPipMode != isInPip) {
       _isInPipMode = isInPip;
       _pipModeController.add(isInPip);
-      print('📱 PIP mode changed: $isInPip');
+      _logger.d('PIP mode changed: $isInPip');
     }
   }
 
@@ -72,29 +72,26 @@ class NativePipService {
       }
 
       _logger.i('Attempting to enter native PIP mode...');
-      print('🚀 Calling platform method: enterPipMode');
+      _logger.d('Calling platform method: enterPipMode');
       
       // Use method channel to call native Android PIP
       final result = await platform.invokeMethod('enterPipMode', {
         'aspectRatio': aspectRatio ?? (16.0 / 9.0),
       });
 
-      print('📱 Platform method result: $result');
+      _logger.d('Platform method result: $result');
       _isInPipMode = result == true;
       
       if (_isInPipMode) {
         _logger.i('Successfully entered native PIP mode');
-        print('✅ Native PIP activated successfully');
       } else {
         _logger.e('Failed to enter native PIP mode');
-        print('❌ Native PIP activation failed');
       }
 
       return _isInPipMode;
     } catch (e, stackTrace) {
       _logger.e('Error entering PIP mode: $e');
-      print('💥 Exception in enterPipMode: $e');
-      print('📍 Stack trace: $stackTrace');
+      _logger.d('Stack trace: $stackTrace');
       return false;
     }
   }

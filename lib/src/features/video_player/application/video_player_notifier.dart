@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'package:lets_stream/src/core/api/tmdb_api.dart';
 import 'package:lets_stream/src/core/models/video_source.dart';
 import 'package:lets_stream/src/core/services/pip_service.dart';
@@ -10,6 +11,7 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
   final Ref _ref;
   final int mediaId;
   final String mediaType;
+  final Logger _logger = Logger();
 
   VideoPlayerNotifier(
     this._ref, {
@@ -122,13 +124,13 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
 
       // Listen to PIP state changes
       pipService.stateStream.listen((pipState) {
-        print('🔊 PIP state stream update: $pipState (active: ${pipState == PipState.active})');
+        _logger.d('PIP state stream update: $pipState (active: ${pipState == PipState.active})');
         // Update state immediately when PIP state changes
         state = state.copyWith(
           pipState: pipState,
           isPipActive: pipState == PipState.active,
         );
-        print('✅ Stream state updated: isPipActive=${state.isPipActive}, pipState=${state.pipState}');
+        _logger.d('Stream state updated: isPipActive=${state.isPipActive}, pipState=${state.pipState}');
       });
     } catch (e) {
       // Handle PIP initialization error
@@ -145,7 +147,7 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
     try {
       final pipService = _ref.read(pipServiceProvider);
 
-      print('🔄 Toggle PIP requested. Current state: isPipActive=${state.isPipActive}, pipState=${state.pipState}');
+      _logger.d('Toggle PIP requested. Current state: isPipActive=${state.isPipActive}, pipState=${state.pipState}');
 
       // Create a simple PIP widget to avoid WebView conflicts
       final pipWidget = SimplePipWidget(
@@ -153,7 +155,7 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
         selectedSourceName: state.selectedSource?.name ?? 'Unknown Source',
       );
 
-      print('🔧 Created PIP widget, calling pipService.togglePip...');
+      _logger.d('Created PIP widget, calling pipService.togglePip...');
 
       final success = await pipService.togglePip(
         pipWidget: pipWidget,
@@ -162,7 +164,7 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
         videoUrl: state.videoUrl, // Pass the video URL directly
       );
 
-      print('🔄 PIP toggle result: success=$success, pipService.currentState=${pipService.currentState}, pipService.isPipActive=${pipService.isPipActive}');
+      _logger.d('PIP toggle result: success=$success, pipService.currentState=${pipService.currentState}, pipService.isPipActive=${pipService.isPipActive}');
 
       // Update state immediately (not delayed) after the toggle operation
       if (success) {
@@ -170,19 +172,19 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
           pipState: pipService.currentState,
           isPipActive: pipService.isPipActive,
         );
-        print('✅ State updated: isPipActive=${state.isPipActive}, pipState=${state.pipState}');
+        _logger.d('State updated: isPipActive=${state.isPipActive}, pipState=${state.pipState}');
       } else {
-        print('⚠️ PIP toggle returned false, not updating state');
+        _logger.w('PIP toggle returned false, not updating state');
       }
 
       // Add a small delay to allow state propagation before any UI updates
       await Future.delayed(const Duration(milliseconds: 100));
-      print('🏁 togglePipMode completed successfully');
+      _logger.d('togglePipMode completed successfully');
 
       return success;
     } catch (e, stackTrace) {
-      print('❌ Error in togglePipMode: $e');
-      print('❌ Stack trace: $stackTrace');
+      _logger.e('Error in togglePipMode: $e');
+      _logger.d('Stack trace: $stackTrace');
       // Update state with error immediately
       state = state.copyWith(pipState: PipState.error);
       return false;
@@ -248,7 +250,7 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
       isPipActive: isActive,
       pipState: newPipState,
     );
-    print('🔧 setPipActive called: isActive=$isActive, newState=${state.isPipActive}');
+    _logger.d('setPipActive called: isActive=$isActive, newState=${state.isPipActive}');
   }
 }
 

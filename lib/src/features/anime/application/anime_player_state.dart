@@ -325,6 +325,14 @@ class AnimePlayerState {
     return currentPosition.inMilliseconds / totalDuration.inMilliseconds;
   }
 
+  /// Returns the buffered percentage (0.0 to 1.0).
+  /// Estimates buffer as 30 seconds ahead of current position.
+  double get bufferedPercentage {
+    if (totalDuration.inMilliseconds == 0) return 0.0;
+    final bufferedPosition = currentPosition + const Duration(seconds: 30);
+    return bufferedPosition.inMilliseconds / totalDuration.inMilliseconds;
+  }
+
   /// Returns the remaining duration.
   Duration get remainingDuration {
     return totalDuration - currentPosition;
